@@ -1,0 +1,12 @@
+# Core geometry pipeline: plat2json.py, fit_arcs.py, arc_refine.py
+PyMuPDF>=1.24
+opencv-python>=4.9
+numpy>=1.26
+scikit-image>=0.22
+
+# Label-OCR experiments (experiments/) — optional, heavy.
+# pytesseract also needs a system Tesseract install (https://github.com/tesseract-ocr/tesseract).
+# easyocr pulls in PyTorch (large download).
+pytesseract>=0.3.13
+easyocr>=1.7
+Pillow>=10

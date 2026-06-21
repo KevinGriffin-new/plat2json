@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Pipeline inputs/outputs & scratch (plats, rendered images, plan JSONs)
+*.pdf
+*.png
+*.json
+_*.png
+
+# IDE / OS
+.vscode/
+.idea/
+*.user
+Thumbs.db
+.DS_Store
