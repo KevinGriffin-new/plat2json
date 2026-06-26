@@ -1,0 +1,12 @@
+# Working directory — downloaded source scans, page renders, tiles, per-plan
+# derived outputs. ALL regenerable from manifest.json URLs via
+# harness/acquire.py + harness/prep_plan.py. Never committed: this both keeps
+# the repo small and respects per-source redistribution (only facts —
+# numeric keys, reads, geometry traces — are committed; see README.md).
+_sources/
+_work/
+*.png
+*.jpg
+*.pdf
+__pycache__/
+*.pyc

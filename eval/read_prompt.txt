@@ -1,0 +1,22 @@
+Read the image at {tile}
+
+It is a tile cropped from a survey plan. Transcribe EVERY dimension annotation
+visible: (1) bearings/azimuths like `156° 48' 05"` (DMS; sometimes only degrees,
+or quadrant form like N.56°9'E.; sometimes split fragments), and (2) distances as
+plain decimals like `23.76` (or feet/chains as printed). Some labels are ROTATED
+along survey lines — read them at any orientation.
+
+Rules: transcribe EXACTLY what is printed; do NOT compute, infer, normalize, or
+guess; if a glyph is illegible use '?'; if you genuinely cannot resolve a label,
+OMIT it rather than guess. IGNORE the title block, plan/survey numbers, area
+values, lot/lode names, road/river names, and legend/notes.
+
+Return ONLY a JSON array; each item
+{"raw":"<exact text>","kind":"bearing"|"distance","rotated":true|false}.
+No prose, no markdown fence. If you can resolve nothing, return [].
+
+# This is the fixed instrument for the blind read. The strict no-guess clause is
+# load-bearing: it engineers a FAIL-SAFE failure mode (the reader omits or marks
+# '?' rather than fabricating), which the results depend on. The reader must
+# never see any answer key — that blindness is why the recall numbers are
+# trustworthy. Fight for the User.

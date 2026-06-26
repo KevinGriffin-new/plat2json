@@ -1,0 +1,76 @@
+{
+  "schema_version": 2,
+  "_doc": "plat2json/eval corpus. Each plan carries a PUBLIC source URL, a license, a redistribution flag, and a license-free ground-truth mode the scorer can check WITHOUT a CAD license. Source images are NEVER committed (regenerate via harness/acquire.py from the URL); only FACTS (numeric keys, blind-read fixtures, plat2json geometry traces) are committed. See README.md and results/corpus_sources.md.",
+  "redistribution_rule": "Code = MIT. Committable for ANY source: numeric goldens, blind-read fixtures, geometry traces (all facts, not expression; Feist + merger doctrine). Gated: the source raster/image — committed only for public-domain (US-federal) sources; otherwise URL-only and the user re-fetches. Not legal advice.",
+  "tolerances": { "dist_m": 0.05, "bearing_arcmin": 5.0, "shape_m": 1.0, "shape_frac": 0.02, "closure_m": 0.05 },
+  "ground_truth_types": [
+    "self_check: read labels vs plat2json-recovered geometry (license-free precision signal)",
+    "published_values: recovered labels vs the plan's own printed values (e.g. a vector text layer)",
+    "field_notes_key: read labels vs the surveyor's separately-recorded courses (OCR/VLM of field notes)",
+    "geometric_invariants: read courses must satisfy the survey's own structural constraints (closure, perpendicularity, equal opposite sides) — a self-validating golden, strongest for high-entropy values"
+  ],
+  "plans": [
+    {
+      "id": "glo_t28nr71w",
+      "title": "BLM cadastral plat T.28N R.71W 6th P.M. WY (Dependent Resurvey & Subdivision of Sec.10, 1997)",
+      "axes": { "mode": "finished-plat", "era": "modern", "input_form": "raster" },
+      "source": { "name": "BLM Wyoming cadastral", "license": "public-domain (US federal, 17 USC 105)", "redistribute": true,
+                  "url": "https://www.wy.blm.gov/cadastral/countyplats/albany/t28nr71w.pdf",
+                  "field_notes_url": "https://www.wy.blm.gov/cadastral/countyplats/albany/fieldnotes/gp553.pdf",
+                  "pattern": "wy.blm.gov/cadastral/countyplats/<county>/t<NN>nr<NN>w.pdf bundles a HIGH-RES plat (~9584x7578px) + scanned field notes" },
+      "scan": { "native_px": [9584, 7578], "native_dpi_approx": 404, "read_render_dpi": 300 },
+      "ground_truth": [
+        { "type": "self_check" },
+        { "type": "field_notes_key", "golden": "goldens/glo_t28nr71w.fieldnote_key.json", "note": "tesseract OCR of the bundled scanned field notes" }
+      ],
+      "reads": "reads/glo_t28nr71w.reads.json",
+      "results": "results/RESULTS.md (R1, R-CLIFF)"
+    },
+    {
+      "id": "blm_ms52a",
+      "title": "US Mineral Survey No. 52 (Garfield lode), T.29N R.100W 6th P.M. WY, 1892",
+      "axes": { "mode": "finished-plat", "era": "historical", "input_form": "raster" },
+      "source": { "name": "BLM Wyoming cadastral - mineral surveys", "license": "public-domain (US federal, 17 USC 105)", "redistribute": true,
+                  "url": "https://www.wy.blm.gov/cadastral/mineralsurvey/050-099/ms52a.pdf",
+                  "field_notes_url": "https://www.wy.blm.gov/cadastral/mineralsurvey/050-099/fieldnotes/ms52a_fn.pdf",
+                  "pattern": "wy.blm.gov/cadastral/mineralsurvey/<range>/ms<N>.pdf (+ /fieldnotes/ms<N>_fn.pdf); enumerate from each township plat's Mineral-Survey index page. HIGH-ENTROPY non-cardinal lode courses." },
+      "scan": { "native_px": [8478, 6038] },
+      "ground_truth": [ { "type": "geometric_invariants", "golden": "goldens/blm_ms52a.invariants.json" } ],
+      "reads": "reads/blm_ms52a.reads.json",
+      "results": "results/RESULTS.md (R-MS)"
+    },
+    {
+      "id": "nara_m121",
+      "title": "NARA / Truman Library sales plat 'Blue Ridge Heights', Grandview MO (low-res historical scan)",
+      "axes": { "mode": "finished-plat", "era": "historical", "input_form": "raster" },
+      "source": { "name": "Harry S. Truman Library / NARA", "license": "public-domain (US federal)", "redistribute": true,
+                  "url": "https://www.trumanlibrary.gov/sites/default/files/maps/M121.jpg" },
+      "scan": { "native_px": [1337, 2665], "note": "low-res scan = a real degradation case" },
+      "ground_truth": [ { "type": "self_check" } ],
+      "reads": null,
+      "results": "results/corpus_sources.md (degradation note)"
+    },
+    {
+      "id": "county_test",
+      "title": "Boise County ID 2025 final plat 'Lowman Subdivision' (vector PDF; clean-render upper bound)",
+      "axes": { "mode": "finished-plat", "era": "modern", "input_form": "vector" },
+      "source": { "name": "Boise County recorder", "license": "public record (image NOT republished here; public-record != public-domain everywhere)", "redistribute": false,
+                  "url": "https://www.boisecounty.us/wp-content/uploads/2025/09/Exh-13-Final-Plat.pdf",
+                  "image_policy": "URL-only - re-fetch and render locally; only the numeric key (facts) is committed" },
+      "ground_truth": [ { "type": "published_values", "golden": "goldens/county_test.key_p0.json", "note": "the vector text layer = the surveyor's exact published bearings/distances; high-entropy" } ],
+      "reads": null,
+      "results": "results/corpus_sources.md (clean-render upper bound)"
+    },
+    {
+      "id": "ltsa_sample_1",
+      "title": "ParcelMap BC survey-plan dataset sample (reference target only)",
+      "axes": { "mode": "finished-plat", "era": "modern", "input_form": "vector" },
+      "source": { "name": "LTSA / ParcelMap BC sample package", "license": "Crown copyright (BC) - NOT redistributable", "redistribute": false,
+                  "url": "https://ltsa.ca/wp-content/uploads/2020/10/Sample_1.zip",
+                  "image_policy": "URL-only - no data committed; run the pipeline locally on your own copy" },
+      "ground_truth": [ { "type": "dxf_answer_key", "note": "the submitted DXF is its own key; build the derived key locally (not committed - Crown copyright)" } ],
+      "reads": null,
+      "results": "results/corpus_sources.md"
+    }
+  ]
+}
