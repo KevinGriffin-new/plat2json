@@ -1,0 +1,8 @@
+# eval harness deps (SYSTEM python; superset of plat2json's own requirements).
+# prep/acquire/score use these; the blind-read step is done by an external VLM
+# (any capable model) fed read_prompt.txt — no model SDK is required here.
+PyMuPDF>=1.23      # fitz: render PDF pages, read embedded scan resolution
+opencv-python>=4.8 # binarize, connected components, resampling
+numpy>=1.24
+Pillow>=10.0
+scikit-image>=0.21 # skeletonize (geometry side)

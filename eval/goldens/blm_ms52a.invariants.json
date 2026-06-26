@@ -1,0 +1,23 @@
+{
+  "survey": "US Mineral Survey No. 52 (Garfield lode), T.29N R.100W 6th P.M., Wyoming, 1892",
+  "source_url": "https://www.wy.blm.gov/cadastral/mineralsurvey/050-099/ms52a.pdf",
+  "field_notes_url": "https://www.wy.blm.gov/cadastral/mineralsurvey/050-099/fieldnotes/ms52a_fn.pdf",
+  "golden_type": "geometric_invariants",
+  "note": "License-free correctness key derived from the claim's OWN geometry: a lode claim is a surveyed rectangle, so its boundary courses must satisfy exact structural constraints. A blind read of the plat is validated by checking these invariants — no external answer key needed, and contamination-proof. Strongest for high-entropy (non-cardinal) bearings, where coincidental agreement is astronomically unlikely.",
+  "claim_boundary": {
+    "side_bearing_dms": ["N56°09'E", "S56°09'W"],
+    "end_bearing_dms": ["S33°51'E", "N33°51'W"],
+    "side_length_ft": 1500,
+    "end_length_ft": 600
+  },
+  "invariants": [
+    {"name": "sides_perpendicular_to_ends", "check": "side_azimuth - end_azimuth == 90°00' exactly", "value_deg": 90.0},
+    {"name": "opposite_sides_equal", "check": "both side lines read 1500 ft"},
+    {"name": "opposite_ends_equal", "check": "both end lines read 600 ft, anti-parallel"}
+  ],
+  "high_entropy_reference_bearings_dms": [
+    "S56°09'W", "N56°09'E", "S33°51'E", "N33°51'W",
+    "N85°31'E", "S86°31'E", "S82°16'E", "S76°17'E", "S66°48'E", "S42°54'E"
+  ],
+  "reads_fixture": "../reads/blm_ms52a.reads.json"
+}
