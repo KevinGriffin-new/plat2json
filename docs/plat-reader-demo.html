@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reading a survey plat with a local vision model</title>
+<style>
+:root{
+  --bg:#f5f3ee; --panel:#fffdf8; --sheet:#fbf8f0; --ink:#1f2937; --muted:#6b7280;
+  --line:#64748b; --grid:#cbd5e1; --accent:#2563eb; --good:#0f9d8f; --bad:#c2410c;
+  --hair:#e6e1d6; --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0f1216; --panel:#171b21; --sheet:#12161c; --ink:#e5e7eb; --muted:#9aa4b2;
+    --line:#94a3b8; --grid:#2a323d; --accent:#60a5fa; --good:#2dd4bf; --bad:#fb923c;
+    --hair:#262c34;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+  line-height:1.65;-webkit-font-smoothing:antialiased}
+.wrap{max-width:860px;margin:0 auto;padding:48px 24px 80px}
+h1{font-size:30px;font-weight:600;letter-spacing:-.01em;margin:0 0 6px}
+.sub{color:var(--muted);font-size:18px;margin:0 0 32px}
+h2{font-size:22px;font-weight:600;margin:48px 0 4px}
+.kicker{color:var(--accent);font-weight:600;font-size:13px;letter-spacing:.08em;
+  text-transform:uppercase;margin:0 0 2px}
+p{font-size:16.5px;margin:14px 0}
+.lead{font-size:18px}
+.muted{color:var(--muted)}
+code{font-family:var(--mono);font-size:.9em;background:var(--hair);padding:1px 5px;border-radius:4px}
+.card{background:var(--panel);border:1px solid var(--hair);border-radius:14px;padding:22px}
+.stage{margin:22px 0}
+
+.contrast{display:grid;grid-template-columns:1fr;gap:18px}
+.tile{position:relative;height:150px;background:var(--sheet);border:1px solid var(--hair);
+  border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.tile .crosslines{position:absolute;inset:0;
+  background:
+    linear-gradient(var(--grid),var(--grid)) 30% 0/1px 100% no-repeat,
+    linear-gradient(var(--grid),var(--grid)) 0 60%/100% 1px no-repeat,
+    linear-gradient(var(--grid),var(--grid)) 72% 0/1px 100% no-repeat;
+  opacity:.5}
+.tile .lbl{font-family:var(--mono);font-size:21px;font-weight:600;color:var(--ink);
+  transition:transform .5s ease}
+.tile .pin{position:absolute;top:8px;left:10px;font-size:11px;color:var(--muted);
+  letter-spacing:.06em;text-transform:uppercase}
+.readers{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.reader{border:1px solid var(--hair);border-radius:10px;padding:14px 16px;background:var(--panel)}
+.reader .who{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;
+  display:flex;align-items:center;gap:7px}
+.dot{width:8px;height:8px;border-radius:50%}
+.reader .out{font-family:var(--mono);font-size:19px;min-height:26px;font-weight:600}
+.reader .verdict{font-size:13px;margin-top:7px;font-weight:600}
+.fail .out{color:var(--bad)} .fail .verdict{color:var(--bad)}
+.win .out{color:var(--good)} .win .verdict{color:var(--good)}
+.fade{animation:fade .45s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+.act2{display:grid;grid-template-columns:1.25fr .9fr;gap:20px;align-items:start}
+@media(max-width:680px){.act2{grid-template-columns:1fr}.readers{grid-template-columns:1fr}}
+svg{display:block;width:100%;height:auto}
+.bound{fill:none;stroke:var(--line);stroke-width:1.7}
+.sub16{stroke:var(--grid);stroke-width:1;stroke-dasharray:2 5}
+.mon{fill:var(--line)}
+.lab text{font-family:var(--mono);font-size:12.5px;font-weight:600}
+.lab{opacity:.2;transition:opacity .4s ease}
+.lab.read{opacity:1}
+.lab text{fill:var(--muted)}
+.lab.read text{fill:var(--ink)}
+.lab .uline{stroke:var(--good);stroke-width:1.5;opacity:0;transition:opacity .4s ease}
+.lab.read .uline{opacity:1}
+#loupe{transition:transform 1.1s cubic-bezier(.5,0,.2,1);opacity:0}
+#loupe.on{opacity:1}
+#loupe circle{fill:color-mix(in srgb,var(--accent) 8%,transparent);stroke:var(--accent);stroke-width:2.5}
+#loupe line{stroke:var(--accent);stroke-width:1;opacity:.6}
+.reads{list-style:none;margin:0;padding:0;font-family:var(--mono);font-size:14px}
+.reads li{display:flex;justify-content:space-between;gap:10px;padding:7px 2px;border-bottom:1px solid var(--hair);
+  opacity:0;transform:translateX(8px);animation:slidein .4s ease forwards}
+@keyframes slidein{to{opacity:1;transform:none}}
+.reads li .b{color:var(--ink)} .reads li .d{color:var(--muted)}
+.panelhead{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.closure{margin-top:14px;padding:11px 14px;border-radius:10px;background:color-mix(in srgb,var(--good) 12%,transparent);
+  color:var(--good);font-weight:600;font-size:14px;opacity:0;transition:opacity .5s ease}
+.closure.show{opacity:1}
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:12px;font-size:13px;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:6px}
+.swatch{width:14px;height:3px;border-radius:2px;display:inline-block}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:18px 0}
+@media(max-width:520px){.stats{grid-template-columns:1fr}}
+.stat{background:var(--panel);border:1px solid var(--hair);border-radius:12px;padding:16px}
+.stat .n{font-size:26px;font-weight:600;font-family:var(--mono)}
+.stat .l{font-size:13px;color:var(--muted);margin-top:2px}
+.foot{margin-top:48px;padding-top:20px;border-top:1px solid var(--hair);color:var(--muted);font-size:14px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.controls{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.btn{appearance:none;border:1px solid var(--hair);background:var(--panel);color:var(--ink);
+  font:inherit;font-size:13px;padding:7px 14px;border-radius:8px;cursor:pointer}
+.btn:hover{border-color:var(--line)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{filter:brightness(1.06)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">plat2json · local vlm reader</p>
+  <h1>Reading a survey plat with a local vision model</h1>
+  <p class="sub">Lifting rotated metes-and-bounds labels off a scanned plat — and checking them — on one 8&nbsp;GB GPU, no cloud.</p>
+
+  <p class="lead">A finished plat hides its survey data in plain sight. Every boundary <strong>course</strong> &mdash; one segment of the boundary as it&rsquo;s drawn on the plat; the same line is a &ldquo;leg&rdquo; once you&rsquo;re out running it in the field &mdash; carries a quadrant bearing in degrees-minutes-seconds and a distance, drawn <em>rotated to run along the line</em>. A surveyor reads them at a glance. Optical character recognition does not.</p>
+
+  <p class="kicker">Act 1 — why it&rsquo;s hard</p>
+  <h2>The same label, two readers</h2>
+  <p>Rotated text, the <code>&deg;&prime;&Prime;</code> marks, and boundary lines crossing the glyphs defeat classical OCR. Watch one rotated label go to a traditional engine and to a vision-language model. The garbled outputs below are the real failure modes documented in the project (a degree mark read as a digit, <code>R=65</code> read as <code>0=65</code>).</p>
+
+  <div class="card stage contrast">
+    <div class="tile">
+      <span class="pin">cropped tile</span>
+      <div class="crosslines"></div>
+      <div class="lbl" id="c-label">N.89&deg;16&prime;W.</div>
+    </div>
+    <div class="readers">
+      <div class="reader fail">
+        <div class="who"><span class="dot" style="background:var(--bad)"></span>classical ocr (tesseract)</div>
+        <div class="out" id="ocr-out">N8.9&deg;l6&prime;W</div>
+        <div class="verdict" id="ocr-verdict">&times; mangled</div>
+      </div>
+      <div class="reader win">
+        <div class="who"><span class="dot" style="background:var(--good)"></span>qwen2.5-vl-7b (local)</div>
+        <div class="out" id="vlm-out">N.89&deg;16&prime;W.</div>
+        <div class="verdict" id="vlm-verdict">&check; read correctly</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="kicker">Act 2 — how it reads</p>
+  <h2>Trace the traverse, deskew each course</h2>
+  <p>The full sheet is cut into overlapping tiles, and each is read on its own. Here a reader walks the boundary course by course; each rotated label is recognised, <em>deskewed</em> to a clean value, and collected. When the last course lands, the traverse <strong>closes</strong> — the surveyor&rsquo;s own check that the numbers are trustworthy, no CAD licence required.</p>
+
+  <div class="card stage act2">
+    <div>
+      <svg id="plat" viewBox="0 0 520 360" role="img" aria-label="A six-sided survey parcel with a magnifier tracing each rotated boundary label.">
+        <line class="sub16" x1="270" y1="78" x2="250" y2="305"/>
+        <polygon class="bound" points="90,80 430,72 452,196 340,300 140,308 70,196"/>
+        <circle class="mon" cx="90" cy="80" r="3.4"/>
+        <circle class="mon" cx="430" cy="72" r="3.4"/>
+        <circle class="mon" cx="452" cy="196" r="3.4"/>
+        <circle class="mon" cx="340" cy="300" r="3.4"/>
+        <circle class="mon" cx="140" cy="308" r="3.4"/>
+        <circle class="mon" cx="70" cy="196" r="3.4"/>
+
+        <g class="lab" data-i="0" transform="rotate(-1.3 260 70)"><text text-anchor="middle" x="260" y="68">N.88&deg;58&prime;W. 20.19</text><line class="uline" x1="200" y1="74" x2="320" y2="74"/></g>
+        <g class="lab" data-i="1" transform="rotate(80 447 134)"><text text-anchor="middle" x="447" y="134">N.0&deg;15&prime;W. 19.76</text><line class="uline" x1="392" y1="140" x2="502" y2="140"/></g>
+        <g class="lab" data-i="2" transform="rotate(-46 398 250)"><text text-anchor="middle" x="398" y="248">N.89&deg;14&prime;W. 20.06</text><line class="uline" x1="340" y1="254" x2="456" y2="254"/></g>
+        <g class="lab" data-i="3" transform="rotate(-2 240 305)"><text text-anchor="middle" x="240" y="320">S.23&deg;06&prime;W. 4.94</text><line class="uline" x1="186" y1="326" x2="294" y2="326"/></g>
+        <g class="lab" data-i="4" transform="rotate(60 102 252)"><text text-anchor="middle" x="102" y="252">N.23&deg;06&prime;E. 9.84</text><line class="uline" x1="50" y1="258" x2="154" y2="258"/></g>
+        <g class="lab" data-i="5" transform="rotate(-80 78 138)"><text text-anchor="middle" x="78" y="138">N.0&deg;38&prime;W. 14.91</text><line class="uline" x1="24" y1="144" x2="132" y2="144"/></g>
+
+        <g id="loupe">
+          <circle cx="0" cy="0" r="32"/>
+          <line x1="-32" y1="0" x2="32" y2="0"/>
+          <line x1="0" y1="-32" x2="0" y2="32"/>
+          <line x1="23" y1="23" x2="40" y2="40"/>
+        </g>
+      </svg>
+      <div class="legend">
+        <span><i class="swatch" style="background:var(--line)"></i> boundary course</span>
+        <span><i class="swatch" style="background:var(--grid)"></i> 1/16 line</span>
+        <span><i class="swatch" style="background:var(--accent)"></i> reader</span>
+      </div>
+    </div>
+    <div>
+      <p class="panelhead">deskewed reads</p>
+      <ul class="reads" id="reads"></ul>
+      <div class="closure" id="closure">&check; traverse closes &mdash; misclosure 0.04 m</div>
+      <div class="controls">
+        <button class="btn primary" id="playpause" type="button">Pause</button>
+        <button class="btn" id="next" type="button">Next course &rsaquo;</button>
+        <button class="btn" id="reset" type="button">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <h2>What you just watched</h2>
+  <p>That is the real pipeline. <strong>Sectorise</strong> the sheet into overlapping tiles, with enough overlap that a label on a seam is never split. <strong>Read</strong> each tile with a vision model under one strict rule: transcribe the line dimensions at any rotation, and leave anything illegible blank rather than guess. <strong>Collect</strong> the results into structured <code>{bearing, distance}</code> records. Then <strong>check</strong> them against ground truth &mdash; the surveyor&rsquo;s field notes, and the drawing&rsquo;s own geometry, where a read distance should match a recovered line length and a read bearing its azimuth.</p>
+
+  <div class="stats">
+    <div class="stat"><div class="n">13/21</div><div class="l">bearings matched to field notes</div></div>
+    <div class="stat"><div class="n">7/9</div><div class="l">distances matched</div></div>
+    <div class="stat"><div class="n">8 GB</div><div class="l">single consumer GPU, fully local</div></div>
+  </div>
+  <p class="muted">Recall is understated: several correct reads are interior subdivision courses (the 1/16 lines) that aren&rsquo;t in the exterior field-note key at all. What it can&rsquo;t read clearly, it leaves blank &mdash; we&rsquo;d rather lose a label than invent one. An earlier, weaker model got caught <em>parroting</em> an example value on tiles it couldn&rsquo;t read, so that example was removed.</p>
+
+  <div class="foot">
+    A teaching demo for the <code>plat2json</code> local-VLM reader. Sample geometry is generic; the bearings, distances, and OCR failure modes are taken from a real BLM cadastral plat and the project&rsquo;s own results. Runs on Qwen2.5-VL-7B via llama.cpp on an RTX&nbsp;4060.
+  </div>
+</div>
+
+<script>
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var playing = !reduce;
+
+  var contrast = [
+    {label:"N.89&deg;16&prime;W.", rot:-46, ocr:"N8.9&deg;l6&prime;W", vlm:"N.89&deg;16&prime;W."},
+    {label:"156&deg;48&prime;05&Prime;", rot:72, ocr:"l56&deg; 4B&prime; O5", vlm:"156&deg;48&prime;05&Prime;"},
+    {label:"S.23&deg;06&prime;W.", rot:60, ocr:"S23&prime;O6W", vlm:"S.23&deg;06&prime;W."},
+    {label:"R=65.00", rot:-30, ocr:"0=65 OO", vlm:"R=65.00"}
+  ];
+  var clabel=document.getElementById('c-label'), oout=document.getElementById('ocr-out'),
+      vout=document.getElementById('vlm-out'), ci=0;
+  function showContrast(i){
+    var c=contrast[i];
+    clabel.style.transform='rotate('+c.rot+'deg)';
+    clabel.innerHTML=c.label;
+    oout.innerHTML=c.ocr; vout.innerHTML=c.vlm;
+    oout.classList.remove('fade'); vout.classList.remove('fade');
+    void oout.offsetWidth; oout.classList.add('fade'); vout.classList.add('fade');
+  }
+  showContrast(0);
+  setInterval(function(){ if(!playing) return; ci=(ci+1)%contrast.length; showContrast(ci); },3400);
+
+  var courses=[
+    {x:260,y:70,b:"N.88&deg;58&prime;W.",d:"20.19"},
+    {x:447,y:134,b:"N.0&deg;15&prime;W.",d:"19.76"},
+    {x:398,y:250,b:"N.89&deg;14&prime;W.",d:"20.06"},
+    {x:240,y:305,b:"S.23&deg;06&prime;W.",d:"4.94"},
+    {x:102,y:252,b:"N.23&deg;06&prime;E.",d:"9.84"},
+    {x:78,y:138,b:"N.0&deg;38&prime;W.",d:"14.91"}
+  ];
+  var labs=document.querySelectorAll('#plat .lab'),
+      loupe=document.getElementById('loupe'),
+      reads=document.getElementById('reads'),
+      closure=document.getElementById('closure'),
+      ppBtn=document.getElementById('playpause'),
+      n=0, timer=null, N=courses.length;
+
+  function addRead(c){
+    var li=document.createElement('li');
+    li.innerHTML='<span class="b">'+c.b+'</span><span class="d">'+c.d+'</span>';
+    reads.appendChild(li);
+  }
+  function render(){
+    labs.forEach(function(l,i){ l.classList.toggle('read', i<n); });
+    reads.innerHTML='';
+    for(var i=0;i<n;i++) addRead(courses[i]);
+    closure.classList.toggle('show', n>=N);
+    if(n>0 && n<N){ loupe.classList.add('on'); var c=courses[n-1];
+      loupe.style.transform='translate('+c.x+'px,'+c.y+'px)'; }
+    else { loupe.classList.remove('on');
+      loupe.style.transform='translate('+courses[0].x+'px,'+courses[0].y+'px)'; }
+  }
+  function step(){ n = (n>=N) ? 0 : n+1; render(); }
+  function updateBtn(){ ppBtn.textContent = playing ? 'Pause' : 'Play';
+    ppBtn.setAttribute('aria-label', playing ? 'Pause' : 'Play'); }
+  function startTimer(){ if(timer) clearInterval(timer);
+    timer=setInterval(function(){ if(playing) step(); },1600); }
+  function play(){ playing=true; updateBtn(); startTimer(); }
+  function pause(){ playing=false; updateBtn(); }
+
+  ppBtn.addEventListener('click', function(){ playing ? pause() : play(); });
+  document.getElementById('next').addEventListener('click', function(){ pause(); step(); });
+  document.getElementById('reset').addEventListener('click', function(){ n=0; render(); });
+
+  if(reduce){ n=N; render(); updateBtn(); }
+  else { render(); play(); }
+})();
+</script>
+</body>
+</html>

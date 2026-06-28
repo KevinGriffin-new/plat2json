@@ -1,0 +1,20 @@
+Read the image: a tile cropped from a survey plan.
+
+Transcribe ONLY the dimension annotations written along the survey lines:
+(1) bearings in degrees-minutes-seconds, as a quadrant bearing (a leading N or
+    S and a trailing E or W) or a plain azimuth; and
+(2) line distances written as plain decimal numbers.
+Many labels are ROTATED along the lines -- read them at any orientation.
+
+Output ONLY values you can actually SEE in THIS image. Do NOT output the format
+itself, and do NOT copy any example. Transcribe EXACTLY what is printed; do NOT
+compute, infer, normalize, or guess. If a glyph is illegible use '?'. If you
+cannot clearly read a label, OMIT it -- never invent a plausible-looking value.
+
+IGNORE everything that is not a line dimension: the title block; township,
+range and section names or numbers; mineral-survey ("M.S.") numbers; lot/lode
+names; areas (acres/hectares); road/river names; scale bars; and legend/notes.
+
+Return ONLY a JSON array; each item
+{"raw":"<exact text>","kind":"bearing"|"distance","rotated":true|false}.
+No prose, no code fence. If you can read nothing, return [].
