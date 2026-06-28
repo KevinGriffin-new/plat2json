@@ -97,9 +97,13 @@ svg{display:block;width:100%;height:auto}
 .foot{margin-top:48px;padding-top:20px;border-top:1px solid var(--hair);color:var(--muted);font-size:14px}
 a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline}
-.replay{appearance:none;border:1px solid var(--hair);background:var(--panel);color:var(--ink);
-  font:inherit;font-size:13px;padding:6px 12px;border-radius:8px;cursor:pointer;margin-top:12px}
-.replay:hover{border-color:var(--line)}
+.controls{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.btn{appearance:none;border:1px solid var(--hair);background:var(--panel);color:var(--ink);
+  font:inherit;font-size:13px;padding:7px 14px;border-radius:8px;cursor:pointer}
+.btn:hover{border-color:var(--line)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{filter:brightness(1.06)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </style>
 </head>
 <body>
@@ -175,7 +179,11 @@ a:hover{text-decoration:underline}
       <p class="panelhead">deskewed reads</p>
       <ul class="reads" id="reads"></ul>
       <div class="closure" id="closure">&check; traverse closes &mdash; misclosure 0.04 m</div>
-      <button class="replay" id="replay" type="button">Replay</button>
+      <div class="controls">
+        <button class="btn primary" id="playpause" type="button">Pause</button>
+        <button class="btn" id="next" type="button">Next course &rsaquo;</button>
+        <button class="btn" id="reset" type="button">Reset</button>
+      </div>
     </div>
   </div>
 
@@ -197,6 +205,7 @@ a:hover{text-decoration:underline}
 <script>
 (function(){
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var playing = !reduce;
 
   var contrast = [
     {label:"N.89&deg;16&prime;W.", rot:-46, ocr:"N8.9&deg;l6&prime;W", vlm:"N.89&deg;16&prime;W."},
@@ -215,7 +224,7 @@ a:hover{text-decoration:underline}
     void oout.offsetWidth; oout.classList.add('fade'); vout.classList.add('fade');
   }
   showContrast(0);
-  if(!reduce) setInterval(function(){ci=(ci+1)%contrast.length;showContrast(ci);},3400);
+  setInterval(function(){ if(!playing) return; ci=(ci+1)%contrast.length; showContrast(ci); },3400);
 
   var courses=[
     {x:260,y:70,b:"N.88&deg;58&prime;W.",d:"20.19"},
@@ -229,44 +238,38 @@ a:hover{text-decoration:underline}
       loupe=document.getElementById('loupe'),
       reads=document.getElementById('reads'),
       closure=document.getElementById('closure'),
-      timers=[];
+      ppBtn=document.getElementById('playpause'),
+      n=0, timer=null, N=courses.length;
 
-  function reset(){
-    timers.forEach(clearTimeout); timers=[];
-    labs.forEach(function(l){l.classList.remove('read');});
-    reads.innerHTML=''; closure.classList.remove('show');
-    loupe.classList.remove('on');
-    loupe.style.transform='translate('+courses[0].x+'px,'+courses[0].y+'px)';
-  }
   function addRead(c){
     var li=document.createElement('li');
     li.innerHTML='<span class="b">'+c.b+'</span><span class="d">'+c.d+'</span>';
     reads.appendChild(li);
   }
-  function finalState(){
-    labs.forEach(function(l){l.classList.add('read');});
-    courses.forEach(addRead); closure.classList.add('show');
-    loupe.classList.remove('on');
+  function render(){
+    labs.forEach(function(l,i){ l.classList.toggle('read', i<n); });
+    reads.innerHTML='';
+    for(var i=0;i<n;i++) addRead(courses[i]);
+    closure.classList.toggle('show', n>=N);
+    if(n>0 && n<N){ loupe.classList.add('on'); var c=courses[n-1];
+      loupe.style.transform='translate('+c.x+'px,'+c.y+'px)'; }
+    else { loupe.classList.remove('on');
+      loupe.style.transform='translate('+courses[0].x+'px,'+courses[0].y+'px)'; }
   }
-  function run(){
-    reset();
-    if(reduce){ finalState(); return; }
-    loupe.classList.add('on');
-    courses.forEach(function(c,i){
-      timers.push(setTimeout(function(){
-        loupe.style.transform='translate('+c.x+'px,'+c.y+'px)';
-        timers.push(setTimeout(function(){
-          labs[i].classList.add('read'); addRead(c);
-        },650));
-      }, 350 + i*1500));
-    });
-    timers.push(setTimeout(function(){
-      loupe.classList.remove('on'); closure.classList.add('show');
-    }, 350 + courses.length*1500 + 400));
-    timers.push(setTimeout(run, 350 + courses.length*1500 + 3600));
-  }
-  document.getElementById('replay').addEventListener('click',run);
-  run();
+  function step(){ n = (n>=N) ? 0 : n+1; render(); }
+  function updateBtn(){ ppBtn.textContent = playing ? 'Pause' : 'Play';
+    ppBtn.setAttribute('aria-label', playing ? 'Pause' : 'Play'); }
+  function startTimer(){ if(timer) clearInterval(timer);
+    timer=setInterval(function(){ if(playing) step(); },1600); }
+  function play(){ playing=true; updateBtn(); startTimer(); }
+  function pause(){ playing=false; updateBtn(); }
+
+  ppBtn.addEventListener('click', function(){ playing ? pause() : play(); });
+  document.getElementById('next').addEventListener('click', function(){ pause(); step(); });
+  document.getElementById('reset').addEventListener('click', function(){ n=0; render(); });
+
+  if(reduce){ n=N; render(); updateBtn(); }
+  else { render(); play(); }
 })();
 </script>
 </body>
