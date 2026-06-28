@@ -124,6 +124,9 @@ def main():
     ap.add_argument("--timeout", type=int, default=180)
     ap.add_argument("--limit", type=int, default=0,
                     help="only the first N tiles (smoke test)")
+    ap.add_argument("--prompt-file", default=None,
+                    help="override the read prompt (e.g. eval/read_prompt_local.txt); "
+                         "default: _readplan.json template, else read_prompt.txt")
     ap.add_argument("--out", default=None)
     a = ap.parse_args()
 
@@ -133,8 +136,11 @@ def main():
         tiles = tiles[:a.limit]
     if not tiles:
         sys.exit("no tiles in _readplan.json")
-    prompt_tmpl = plan.get("read_prompt_template") or \
-        open(os.path.join(HERE, "..", "read_prompt.txt"), encoding="utf-8").read()
+    if a.prompt_file:
+        prompt_tmpl = open(a.prompt_file, encoding="utf-8").read()
+    else:
+        prompt_tmpl = plan.get("read_prompt_template") or \
+            open(os.path.join(HERE, "..", "read_prompt.txt"), encoding="utf-8").read()
     out_path = a.out or os.path.join(base, "_vlm_reads.json")
 
     print(f"[{a.slug}] {len(tiles)} tiles -> {a.url}  "
