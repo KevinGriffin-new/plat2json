@@ -29,6 +29,7 @@ import json
 import os
 import re
 import sys
+import urllib.error
 import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -90,8 +91,14 @@ def read_tile(path, prompt_tmpl, url, model, max_side, temp, timeout):
     req = urllib.request.Request(url.rstrip("/") + "/v1/chat/completions",
                                  data=body,
                                  headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        out = json.load(r)
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            out = json.load(r)
+    except urllib.error.HTTPError as e:
+        # surface the server's actual reason (e.g. "model has no vision encoder",
+        # CUDA OOM) instead of a bare "500 Internal Server Error"
+        detail = e.read().decode("utf-8", "replace")[:300].replace("\n", " ")
+        raise RuntimeError(f"HTTP {e.code}: {detail}") from None
     txt = out["choices"][0]["message"]["content"]
     clean = []
     for it in extract_array(txt):
