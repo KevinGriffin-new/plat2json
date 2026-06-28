@@ -26,6 +26,6 @@ exec "$BIN" \
   --host 0.0.0.0 --port 8080 \
   -ngl 99 -fa on \
   --parallel 1 --cache-ram 0 \
-  -c 16384 -b 2048 -ub 2048 \
+  -c 8192 \
   -lv 1 \
   >"$LOG" 2>&1
