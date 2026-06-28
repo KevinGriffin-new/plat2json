@@ -4,6 +4,8 @@ Extract drawable geometry from a **vector survey-plat PDF** into a `plan-JSON`
 that Open CAD Studio's LandSurvey plugin (`LS_IMPORTPLAN`) — or any CAD — can
 draw. One extraction, many sinks (OpenCAD / MicroSurvey / Civil 3D / FreeCAD).
 
+**▶ [Live demo](https://kevingriffin-new.github.io/plat2json/plat-reader-demo.html)** — watch a local vision model trace a plat, read its rotated bearings and distances, and close the traverse.
+
 > **Status: experimental / work-in-progress.** It produces a rough geometry
 > *skeleton*, not survey-grade output. Read [STATUS.md](STATUS.md) before relying
 > on it. Honest summary:
@@ -11,8 +13,12 @@ draw. One extraction, many sinks (OpenCAD / MicroSurvey / Civil 3D / FreeCAD).
 >   segments for ~10 real edges); needs **skeleton path-tracing** to clean up.
 > - **Arcs** aren't fitted by the main pass. `fit_arcs.py` fits them from the
 >   geometry; `arc_refine.py` snaps them to a human-read curve table.
-> - **Labels** (bearings, curve `r=`/`a=`) are **not** read — that's the unsolved
->   OCR problem (six approaches tried; see STATUS.md and `experiments/`).
+> - **Labels** (bearings, distances) are now read by a **local vision model**
+>   (Qwen2.5-VL via llama.cpp) — 13/21 bearings and 7/9 distances on the first
+>   real sheet, cross-checked against the field notes. See
+>   [LOCAL_VLM_READER.md](LOCAL_VLM_READER.md). Classical OCR (six approaches in
+>   `experiments/`) is what *failed* here; STATUS.md keeps that history. Curve-table
+>   values (`r=`/`a=`) aren't read yet — next.
 
 ## Why this exists
 
@@ -53,6 +59,9 @@ Coordinates are world metres, north-up — matching `LS_IMPORTPLAN`.
 - `fit_arcs.py`, `arc_refine.py` — arc fitting / curve-table refinement on a plan-JSON
 - `experiments/` — WIP label-OCR research stages (Tesseract baseline, cv2
   morphology, EasyOCR/CRAFT, vector + geometry-guided deskew). See STATUS.md.
+- `eval/harness/vlm_read.py` + `serve_vl7.sh` + `LOCAL_VLM_READER.md` — the
+  **local-VLM label reader** (the working approach) and its 8 GB tuning journey
+- `docs/plat-reader-demo.html` — the interactive teaching demo (live link above)
 - `STATUS.md` — honest pipeline status, findings per iteration, and next steps
 
 ## Next step
