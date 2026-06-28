@@ -113,7 +113,7 @@ a:hover{text-decoration:underline}
   <h1>Reading a survey plat with a local vision model</h1>
   <p class="sub">Lifting rotated metes-and-bounds labels off a scanned plat — and checking them — on one 8&nbsp;GB GPU, no cloud.</p>
 
-  <p class="lead">A finished plat hides its survey data in plain sight. Every boundary <strong>course</strong> &mdash; one segment of the boundary as it&rsquo;s drawn on the plat; the same line is a &ldquo;leg&rdquo; once you&rsquo;re out running it in the field &mdash; carries a quadrant bearing in degrees-minutes-seconds and a distance, drawn <em>rotated to run along the line</em>. A surveyor reads them at a glance. Optical character recognition does not &mdash; and that gap is the whole problem.</p>
+  <p class="lead">A finished plat hides its survey data in plain sight. Every boundary <strong>course</strong> &mdash; one segment of the boundary as it&rsquo;s drawn on the plat; the same line is a &ldquo;leg&rdquo; once you&rsquo;re out running it in the field &mdash; carries a quadrant bearing in degrees-minutes-seconds and a distance, drawn <em>rotated to run along the line</em>. A surveyor reads them at a glance. Optical character recognition does not.</p>
 
   <p class="kicker">Act 1 — why it&rsquo;s hard</p>
   <h2>The same label, two readers</h2>
@@ -188,14 +188,14 @@ a:hover{text-decoration:underline}
   </div>
 
   <h2>What you just watched</h2>
-  <p>That is the real pipeline: <strong>sectorise</strong> the sheet into overlapping tiles (overlap so a label on a seam is never split), <strong>read</strong> each tile with a vision model under one strict rule — transcribe the line dimensions at any rotation, and omit anything illegible rather than guess — <strong>collect</strong> the results into structured <code>{bearing, distance}</code> records, then <strong>check</strong> them against ground truth: the surveyor&rsquo;s field notes, and the drawing&rsquo;s own geometry (a read distance should match a recovered line length; a read bearing should match its azimuth).</p>
+  <p>That is the real pipeline. <strong>Sectorise</strong> the sheet into overlapping tiles, with enough overlap that a label on a seam is never split. <strong>Read</strong> each tile with a vision model under one strict rule: transcribe the line dimensions at any rotation, and leave anything illegible blank rather than guess. <strong>Collect</strong> the results into structured <code>{bearing, distance}</code> records. Then <strong>check</strong> them against ground truth &mdash; the surveyor&rsquo;s field notes, and the drawing&rsquo;s own geometry, where a read distance should match a recovered line length and a read bearing its azimuth.</p>
 
   <div class="stats">
     <div class="stat"><div class="n">13/21</div><div class="l">bearings matched to field notes</div></div>
     <div class="stat"><div class="n">7/9</div><div class="l">distances matched</div></div>
     <div class="stat"><div class="n">8 GB</div><div class="l">single consumer GPU, fully local</div></div>
   </div>
-  <p class="muted">Recall is understated: several correct reads are interior subdivision courses (the 1/16 lines) that aren&rsquo;t in the exterior field-note key at all. The honesty rule matters more than the score &mdash; a blank is safe, a fabricated bearing is dangerous. Earlier a weaker model was caught <em>parroting</em> an example value on every tile it couldn&rsquo;t read; the example was removed so failures fail safe.</p>
+  <p class="muted">Recall is understated: several correct reads are interior subdivision courses (the 1/16 lines) that aren&rsquo;t in the exterior field-note key at all. What it can&rsquo;t read clearly, it leaves blank &mdash; we&rsquo;d rather lose a label than invent one. An earlier, weaker model got caught <em>parroting</em> an example value on tiles it couldn&rsquo;t read, so that example was removed.</p>
 
   <div class="foot">
     A teaching demo for the <code>plat2json</code> local-VLM reader. Sample geometry is generic; the bearings, distances, and OCR failure modes are taken from a real BLM cadastral plat and the project&rsquo;s own results. Runs on Qwen2.5-VL-7B via llama.cpp on an RTX&nbsp;4060.
