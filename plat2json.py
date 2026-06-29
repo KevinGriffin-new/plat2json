@@ -26,6 +26,69 @@ import json
 import sys
 
 
+def trace_polylines(skel, eps, min_len):
+    """Walk a 1-px skeleton into ordered polylines, replacing Hough's fragment-
+    soup (one curve -> many short stray segments) with one ordered polyline per
+    edge. Split the skeleton graph at endpoints/junctions (degree != 2), trace
+    each degree-2 chain between them, then seed any remaining closed loops (a
+    boundary ring has no endpoints); drop chains shorter than min_len px (skeleton
+    spurs, tick marks, stroked-glyph debris); Douglas-Peucker each survivor down
+    to its vertices. Returns a list of polylines, each a list of (x, y) px points."""
+    import numpy as np
+    import cv2
+    ys, xs = np.where(skel > 0)
+    pts = set(zip(ys.tolist(), xs.tolist()))
+    N8 = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
+
+    def nbrs(p):
+        r, c = p
+        return [q for q in ((r + dr, c + dc) for dr, dc in N8) if q in pts]
+
+    deg = {p: len(nbrs(p)) for p in pts}
+    used = set()  # consumed edges, as frozenset({a, b})
+
+    def walk(start, nxt):
+        path = [start, nxt]
+        used.add(frozenset((start, nxt)))
+        prev, cur = start, nxt
+        while deg.get(cur, 0) == 2:  # follow the chain until a node or dead end
+            ahead = [q for q in nbrs(cur)
+                     if q != prev and frozenset((cur, q)) not in used]
+            if not ahead:
+                break
+            q = ahead[0]
+            used.add(frozenset((cur, q)))
+            path.append(q)
+            prev, cur = cur, q
+        return path
+
+    chains = []
+    for p in pts:                      # branches anchored at endpoints/junctions
+        if deg[p] != 2:
+            for q in nbrs(p):
+                if frozenset((p, q)) not in used:
+                    chains.append(walk(p, q))
+    for p in pts:                      # leftover closed loops (all degree-2)
+        if deg[p] == 2:
+            for q in nbrs(p):
+                if frozenset((p, q)) not in used:
+                    chains.append(walk(p, q))
+
+    def plen(a):  # polyline pixel length
+        return float(np.hypot(np.diff(a[:, 0]), np.diff(a[:, 1])).sum()) if len(a) > 1 else 0.0
+
+    out = []
+    for ch in chains:
+        a = np.array([[c, r] for r, c in ch], dtype=np.float64)  # (x, y) = (col, row)
+        if plen(a) < min_len:
+            continue  # spur / tick / glyph debris
+        if len(a) >= 3:
+            s = cv2.approxPolyDP(a.astype(np.int32).reshape(-1, 1, 2), eps, False)
+            a = s.reshape(-1, 2).astype(np.float64)
+        out.append([(float(x), float(y)) for x, y in a])
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser(description="Vector survey-plat PDF -> plan-JSON geometry.")
     ap.add_argument("pdf", help="input vector plat PDF")
@@ -35,6 +98,15 @@ def main():
                     help="plot scale denominator, e.g. 250 for 1:250 (default 250)")
     ap.add_argument("--layer", default="PROPERTY_LINE", help="layer name for output lines")
     ap.add_argument("--page", type=int, default=0, help="page index (default 0)")
+    ap.add_argument("--vectorize", choices=["trace", "hough"], default="trace",
+                    help="skeleton -> geometry: 'trace' = ordered polylines "
+                         "(default, clean); 'hough' = legacy fragment segments")
+    ap.add_argument("--simplify-eps", type=float, default=2.0,
+                    help="Douglas-Peucker epsilon (px) for --vectorize trace (default 2.0)")
+    ap.add_argument("--min-len", type=float, default=0.0,
+                    help="drop traced polylines shorter than N px (default 0 = 3x the "
+                         "linework threshold; filters spurs + stroked-glyph debris. "
+                         "Raise on text-dense sheets, lower to keep short lot lines)")
     args = ap.parse_args()
 
     try:
@@ -78,19 +150,33 @@ def main():
     x1, y1 = min(W, px + pw + m), min(H, py + ph + m)
 
     skel = skeletonize(geom[y0:y1, x0:x1] > 0).astype(np.uint8) * 255
-    segs = cv2.HoughLinesP(skel, 1, np.pi / 360, threshold=22, minLineLength=14, maxLineGap=6)
-    segs = [] if segs is None else segs[:, 0, :]
 
     def tf(xpx, ypx):
         xpt, ypt = (xpx + x0) / sc, (ypx + y0) / sc
         return [round(xpt * pt2m, 4), round((h_pt - ypt) * pt2m, 4)]  # metres, north-up
 
-    lines = []
-    for sx0, sy0, sx1, sy1 in segs:
-        a, b = tf(sx0, sy0), tf(sx1, sy1)
-        lines.append([a[0], a[1], b[0], b[1], args.layer])
+    lines, polylines, npoly = [], [], 0
+    if args.vectorize == "trace":
+        polys = trace_polylines(skel, args.simplify_eps, args.min_len or line_px * 3)
+        npoly = len(polys)
+        for poly in polys:
+            world = [tf(x, y) for x, y in poly]
+            polylines.append([[p[0], p[1]] for p in world] + [args.layer])
+            for i in range(len(world) - 1):
+                a, b = world[i], world[i + 1]
+                if a != b:
+                    lines.append([a[0], a[1], b[0], b[1], args.layer])
+    else:
+        segs = cv2.HoughLinesP(skel, 1, np.pi / 360, threshold=22, minLineLength=14, maxLineGap=6)
+        segs = [] if segs is None else segs[:, 0, :]
+        for sx0, sy0, sx1, sy1 in segs:
+            a, b = tf(sx0, sy0), tf(sx1, sy1)
+            lines.append([a[0], a[1], b[0], b[1], args.layer])
 
-    json.dump({"lines": lines, "arcs": [], "circles": [], "texts": []}, open(args.out, "w"))
+    out = {"lines": lines, "arcs": [], "circles": [], "texts": []}
+    if polylines:  # ordered chains: clean input for arc-fitting (fit_arcs.py)
+        out["polylines"] = polylines
+    json.dump(out, open(args.out, "w"))
 
     if lines:
         xs = [c for L in lines for c in (L[0], L[2])]
@@ -98,7 +184,8 @@ def main():
         ext = f"{max(xs) - min(xs):.1f} x {max(ys) - min(ys):.1f} m"
     else:
         ext = "empty"
-    print(f"{len(lines)} segments -> {args.out}  (extent {ext})")
+    how = f"{npoly} ordered polylines" if args.vectorize == "trace" else "hough fragments"
+    print(f"{len(lines)} segments ({how}) -> {args.out}  (extent {ext})")
     print("NOTE: geometry only (no arcs/labels). Run fit_arcs.py for arcs; see STATUS.md.")
 
 
