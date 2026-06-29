@@ -25,6 +25,13 @@ PLANTED_BEARINGS = [
     "S45°30'15\"E", "N0°38'32\"E", "N7°15'51\"W",
 ]
 PLANTED_DISTANCES = [7.23, 25.0, 43.44, 100.0, 152.31, 1319.61]
+# A "Segment#/Course/Length/North/East" listing (the Adams County format): the
+# Length: value IS a distance and must be kept; the comma North:/East: are
+# coordinates and must be rejected (not fragmented into a fake small distance).
+STRUCTURED = ("Segment# 7: Line\nCourse: N12°00'00\"E\nLength: 333.33'\n"
+              "North: 702,613.8799'\nEast: 324,308.5163'")
+EXPECTED_DISTANCES = PLANTED_DISTANCES + [333.33]
+EXPECTED_BEARINGS = PLANTED_BEARINGS + ["N12°00'00\"E"]  # the structured Course:
 # Each decoy is a single contiguous token so the curve-prefix / area-suffix
 # context tests fire the way they will on a real sheet.
 DECOYS = [
@@ -32,7 +39,8 @@ DECOYS = [
     "Area = 929.9 m2", "12345.6 SF",                    # areas
     "Lot 12", "Plan EPP12345", "2018", "Scale 1:250",   # integers / scale
 ]
-DECOY_VALUES = {15.5, 12.778, 29.047, 14.4, 929.9, 12345.6}
+# includes the coordinate FRAGMENTS the old comma bug produced (613.879, 308.516)
+DECOY_VALUES = {15.5, 12.778, 29.047, 14.4, 929.9, 12345.6, 613.88, 613.879, 308.516, 158.525}
 
 
 def make_pdf(path):
@@ -49,6 +57,7 @@ def make_pdf(path):
     for dec in DECOYS:
         page.insert_text((400, y), dec, fontsize=9)
         y += 28
+    page.insert_text((60, 380), STRUCTURED, fontsize=8)
     doc.save(path)
     doc.close()
 
@@ -64,12 +73,12 @@ def main():
         unit = vg.guess_unit(text)
 
         fails = []
-        if set(bearings) != set(PLANTED_BEARINGS):
+        if set(bearings) != set(EXPECTED_BEARINGS):
             fails.append(f"bearings: got {sorted(bearings)}\n"
-                         f"          want {sorted(PLANTED_BEARINGS)}")
-        if set(distances) != set(PLANTED_DISTANCES):
+                         f"          want {sorted(EXPECTED_BEARINGS)}")
+        if set(distances) != set(EXPECTED_DISTANCES):
             fails.append(f"distances: got {distances}\n"
-                         f"           want {sorted(PLANTED_DISTANCES)}")
+                         f"           want {sorted(EXPECTED_DISTANCES)}")
         leaked = DECOY_VALUES & set(distances)
         if leaked:
             fails.append(f"decoys leaked into distances: {sorted(leaked)}")
