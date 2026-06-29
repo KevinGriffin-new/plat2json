@@ -9,6 +9,8 @@ venv/
 *.png
 *.json
 _*.png
+# ...but the committed goldens ARE facts we keep (license-free numeric keys).
+!eval/goldens/*.json
 
 # IDE / OS
 .vscode/

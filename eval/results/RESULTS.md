@@ -116,6 +116,37 @@ Fixture: `reads/blm_ms52a.reads.json`.
 
 ---
 
+## Vector-golden recall curve — 4 county plats, local 7B VLM (R-VEC)
+`vector_golden.py` harvests an exact golden straight from a vector plat's text
+layer (no OCR, no scope guessing); the reader stays blind on the rendered raster.
+All four sheets read at the validated quality setting (`--tile 1100` full-res
+tiles, `--max-side 1536`, 7B Qwen2.5-VL on an 8 GB RTX 4060), scored vs the
+published-values golden:
+
+| sheet | density | bearing recall | distance recall |
+|-------|---------|----------------|-----------------|
+| county_test (Boise) | dense (48 brg) | 36/48 (75%) | 51/71 (72%) |
+| adams_prc24_12 | dense (27 brg) | 23/27 (85%) | 61/89 (69%) |
+| adams_prc2025 | small (15 brg) | 15/15 (100%) | 12/23 (52%) |
+| adams_wolfcreek | tiny (4 brg) | 4/4 (100%) | 6/18 (33%) |
+
+Two findings: (1) **bearings read robustly** on a clean vector render — 75–85% on
+dense sheets, 100% on simple ones; the `--tile 1100` lever holds across all four
+(it ~doubled county_test bearings 40%→75% vs the 2200px→1536 baseline). (2)
+**distances are now the weak axis, and degrade on *smaller* sheets** (72% → 33% as
+the sheet shrinks) — the opposite of intuition. The golden distances are
+legitimate leg lengths; the likely cause is that minor-subdivision plats push most
+distances into compact line/curve **tables** (note Wolf Creek's 3-decimal table
+precision — `308.516`, `25.472` — vs 2-decimal drawing labels), which the VLM
+reads far worse than large on-drawing labels. Next lever is a line/curve-table
+reader, not more tile resolution.
+
+Goldens: `goldens/{county_test.key_p0,adams_prc24_12.key_p42,adams_prc2025.key_p1,adams_wolfcreek.key_p19}.json`.
+Source images URL-only (Adams County = public record, not public domain) —
+re-fetch + render locally via the manifest URLs; only the numeric keys are committed.
+
+---
+
 ## Net
 Three independent real-scan points revise the synthetic "cliff at 7–8 px" to:
 **reading degrades gracefully with resolution; the cliff appears only under

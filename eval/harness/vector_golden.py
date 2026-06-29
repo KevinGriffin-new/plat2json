@@ -152,6 +152,11 @@ def main():
                     help="only write the golden; skip staging blind tiles")
     ap.add_argument("--tiles-only", action="store_true",
                     help="when prepping, skip the slow plat2json geometry pass")
+    ap.add_argument("--tile", type=int, default=1100,
+                    help="blind-read tile size px (default 1100: full-res small "
+                         "tiles keep DMS glyphs sharp - the validated quality setting)")
+    ap.add_argument("--overlap", type=int, default=200,
+                    help="tile overlap px (default 200)")
     ap.add_argument("--dpi", type=int, default=300)
     ap.add_argument("--scale", type=float, default=250.0)
     a = ap.parse_args()
@@ -200,7 +205,8 @@ def main():
         return
 
     cmd = [sys.executable, PREP_PLAN, os.path.abspath(a.pdf), a.slug,
-           "--page", str(page), "--dpi", str(a.dpi), "--scale", str(a.scale)]
+           "--page", str(page), "--dpi", str(a.dpi), "--scale", str(a.scale),
+           "--tile", str(a.tile), "--overlap", str(a.overlap)]
     if a.tiles_only:
         cmd.append("--tiles-only")
     print(f"  staging blind tiles: prep_plan.py {a.slug} --page {page}")
