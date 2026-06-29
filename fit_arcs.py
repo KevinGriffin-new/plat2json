@@ -19,6 +19,9 @@ ap.add_argument("--sweep-min", type=float, default=12.0, help="min angular sweep
 ap.add_argument("--no-preview", action="store_true", help="skip the PNG preview")
 ap.add_argument("--rechain", action="store_true",
                 help="ignore the tracer's ordered 'polylines' and re-chain from raw lines")
+ap.add_argument("--merge-arcs", action=argparse.BooleanOptionalAction, default=True,
+                help="co-circular merge: greedily join adjacent same-circle chains "
+                     "across junctions into whole arcs before fitting (default on)")
 args = ap.parse_args()
 IN, OUT = args.inp, args.out
 TOL, RESID_MAX = args.tol, args.resid_max
@@ -81,6 +84,69 @@ def fit_circle(P):
     r = math.sqrt(max(c[2] + cx*cx + cy*cy, 0))
     resid = float(np.hypot(x - cx, y - cy).std())
     return cx, cy, r, resid
+
+
+def merge_cocircular(chains):
+    """Greedily join adjacent chains that lie on the SAME circle into whole arcs.
+    A boundary curve is split into partial-arc polylines wherever a lot line meets
+    it; each fragment fits the right radius but only a slice of the sweep. Seed
+    from a curved fragment, then at each end absorb a neighbouring chain (endpoints
+    within TOL) iff the combined points still circle-fit with low residual and the
+    same radius - which keeps the next arc fragment and rejects the straight lot
+    line meeting the junction (a line spikes the residual). Centres of small arcs
+    are too noisy to cluster on, so we grow by adjacency + re-fit, not by centre."""
+    items = [np.asarray(c, float) for c in chains if len(c) >= 2]
+    used = [False] * len(items)
+    tol2 = TOL * TOL
+
+    def near(p, q):
+        return (p[0]-q[0])**2 + (p[1]-q[1])**2 <= tol2
+
+    out = []
+    for i, ci in enumerate(items):
+        if used[i]:
+            continue
+        cx, cy, r, resid = fit_circle(ci)
+        if not (len(ci) >= 4 and resid <= RESID_MAX and R_MIN <= r <= R_MAX):
+            out.append(ci); used[i] = True; continue  # not a seed arc
+        merged = ci; used[i] = True
+        grew = True
+        while grew:
+            grew = False
+            for j, cj in enumerate(items):
+                if used[j]:
+                    continue
+                a0, a1 = merged[0], merged[-1]
+                cand = None
+                for (pa, pb, where, rev) in (
+                        (a1, cj[0], "app", False), (a1, cj[-1], "app", True),
+                        (a0, cj[-1], "pre", False), (a0, cj[0], "pre", True)):
+                    if near(pa, pb):
+                        cj2 = cj[::-1] if rev else cj
+                        cand = np.vstack([merged, cj2] if where == "app" else [cj2, merged])
+                        break
+                if cand is None:
+                    continue
+                # Gate on cj's OWN curvature, not the seed's (small-arc centres are
+                # too noisy to trust): a straight lot line fits a huge-radius circle
+                # -> rejected; a curve fragment fits a sane radius -> allowed. Then
+                # require the COMBINED fit to stay tight (rejects joining two
+                # different-radius curves that merely touch at a junction).
+                if len(cj) >= 3:
+                    _, _, rj, rij = fit_circle(cj)
+                    if rj > R_MAX or rij > RESID_MAX:
+                        continue
+                _, _, rr, rid = fit_circle(cand)
+                if rid <= RESID_MAX and R_MIN <= rr <= R_MAX:
+                    merged = cand; used[j] = True; grew = True
+        out.append(merged)
+    return out
+
+
+if args.merge_arcs:
+    before = len(chains)
+    chains = merge_cocircular(chains)
+    print(f"co-circular merge: {before} -> {len(chains)} chains")
 
 lines, arcs = [], []
 nfit = 0
