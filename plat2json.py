@@ -107,6 +107,10 @@ def main():
                     help="drop traced polylines shorter than N px (default 0 = 3x the "
                          "linework threshold; filters spurs + stroked-glyph debris. "
                          "Raise on text-dense sheets, lower to keep short lot lines)")
+    ap.add_argument("--mask-text", action=argparse.BooleanOptionalAction, default=True,
+                    help="erase the PDF text layer's word boxes from the raster before "
+                         "skeletonizing, so labels don't pollute the linework (default on; "
+                         "no-ops on scans / stroked-glyph plats with no text layer)")
     args = ap.parse_args()
 
     try:
@@ -127,6 +131,22 @@ def main():
     g = np.frombuffer(pix.samples, np.uint8).reshape(pix.height, pix.width)
     H, W = g.shape
     _, bw = cv2.threshold(g, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+
+    # Erase the text layer's word boxes so published labels don't pollute the
+    # linework skeleton (the big noise source on text-dense vector plats). Exact
+    # boxes from the PDF, so no fragile text/line heuristic; no-ops when the page
+    # has no text layer (scans, stroked-glyph plats). Small gaps where a label sat
+    # on a line are harmless to tracing (the chain just splits and re-traces).
+    nmask = 0
+    if args.mask_text:
+        ox, oy = page.rect.x0, page.rect.y0
+        pad = 2
+        for wx0, wy0, wx1, wy1, *_ in page.get_text("words"):
+            X0, Y0 = max(0, int((wx0 - ox) * sc) - pad), max(0, int((wy0 - oy) * sc) - pad)
+            X1, Y1 = min(W, int((wx1 - ox) * sc) + pad), min(H, int((wy1 - oy) * sc) + pad)
+            if X1 > X0 and Y1 > Y0:
+                bw[Y0:Y1, X0:X1] = 0
+                nmask += 1
 
     # long connected components = linework; short ones = stroked glyphs (dropped).
     n, lab, stats, _ = cv2.connectedComponentsWithStats(bw, 8)
@@ -185,7 +205,8 @@ def main():
     else:
         ext = "empty"
     how = f"{npoly} ordered polylines" if args.vectorize == "trace" else "hough fragments"
-    print(f"{len(lines)} segments ({how}) -> {args.out}  (extent {ext})")
+    masked = f", masked {nmask} text boxes" if nmask else ""
+    print(f"{len(lines)} segments ({how}{masked}) -> {args.out}  (extent {ext})")
     print("NOTE: geometry only (no arcs/labels). Run fit_arcs.py for arcs; see STATUS.md.")
 
 
