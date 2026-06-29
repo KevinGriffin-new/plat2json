@@ -31,9 +31,9 @@ def trace_polylines(skel, eps, min_len):
     soup (one curve -> many short stray segments) with one ordered polyline per
     edge. Split the skeleton graph at endpoints/junctions (degree != 2), trace
     each degree-2 chain between them, then seed any remaining closed loops (a
-    boundary ring has no endpoints); drop chains shorter than min_len px (skeleton
-    spurs, tick marks, stroked-glyph debris); Douglas-Peucker each survivor down
-    to its vertices. Returns a list of polylines, each a list of (x, y) px points."""
+    boundary ring has no endpoints); drop chains shorter than min_len px (spurs,
+    ticks, mesh detail, stroked-glyph debris); Douglas-Peucker each survivor down
+    to its vertices. Returns a list of polylines, each a list of (x, y) px pts."""
     import numpy as np
     import cv2
     ys, xs = np.where(skel > 0)
@@ -77,11 +77,15 @@ def trace_polylines(skel, eps, min_len):
     def plen(a):  # polyline pixel length
         return float(np.hypot(np.diff(a[:, 0]), np.diff(a[:, 1])).sum()) if len(a) > 1 else 0.0
 
+    # NOTE: a topology-aware "spur prune" (drop only chains that dead-end at a
+    # degree-1 pixel) was tried and reverted - busy-sheet noise is a connected
+    # MESH of short junction-to-junction segments (hatching, dimension structure,
+    # fine detail), not dead-end spurs, so length is the robust discriminator.
     out = []
     for ch in chains:
         a = np.array([[c, r] for r, c in ch], dtype=np.float64)  # (x, y) = (col, row)
         if plen(a) < min_len:
-            continue  # spur / tick / glyph debris
+            continue  # spur / tick / mesh-detail / glyph debris
         if len(a) >= 3:
             s = cv2.approxPolyDP(a.astype(np.int32).reshape(-1, 1, 2), eps, False)
             a = s.reshape(-1, 2).astype(np.float64)
@@ -105,8 +109,8 @@ def main():
                     help="Douglas-Peucker epsilon (px) for --vectorize trace (default 2.0)")
     ap.add_argument("--min-len", type=float, default=0.0,
                     help="drop traced polylines shorter than N px (default 0 = 3x the "
-                         "linework threshold; filters spurs + stroked-glyph debris. "
-                         "Raise on text-dense sheets, lower to keep short lot lines)")
+                         "linework threshold; filters spurs/ticks/mesh-detail/glyphs. "
+                         "Raise on detail-dense sheets, lower to keep short lot lines)")
     ap.add_argument("--mask-text", action=argparse.BooleanOptionalAction, default=True,
                     help="erase the PDF text layer's word boxes from the raster before "
                          "skeletonizing, so labels don't pollute the linework (default on; "
