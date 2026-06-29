@@ -17,6 +17,8 @@ ap.add_argument("--r-min", type=float, default=2.0)
 ap.add_argument("--r-max", type=float, default=400.0)
 ap.add_argument("--sweep-min", type=float, default=12.0, help="min angular sweep (deg)")
 ap.add_argument("--no-preview", action="store_true", help="skip the PNG preview")
+ap.add_argument("--rechain", action="store_true",
+                help="ignore the tracer's ordered 'polylines' and re-chain from raw lines")
 args = ap.parse_args()
 IN, OUT = args.inp, args.out
 TOL, RESID_MAX = args.tol, args.resid_max
@@ -24,44 +26,52 @@ R_MIN, R_MAX = args.r_min, args.r_max
 SWEEP_MIN = args.sweep_min
 
 plan = json.load(open(IN))
-segs = [(L[0], L[1], L[2], L[3]) for L in plan["lines"]]
 
-nodes = []
-def node_id(p):
-    for i, q in enumerate(nodes):
-        if (q[0]-p[0])**2 + (q[1]-p[1])**2 <= TOL*TOL:
-            return i
-    nodes.append(p)
-    return len(nodes) - 1
+if plan.get("polylines") and not args.rechain:
+    # Use the ordered chains the tracer already produced - this keeps whole curves
+    # intact. Re-chaining raw 'lines' through a node graph mis-merges a curve and
+    # the straight line it meets at a junction, which fragments arcs (the boundary
+    # curves were lost that way); the tracer already split cleanly at junctions.
+    chains = [np.array(pl[:-1], float) for pl in plan["polylines"]]  # drop layer tag
+    print(f"using {len(chains)} ordered polylines from the tracer")
+else:
+    segs = [(L[0], L[1], L[2], L[3]) for L in plan["lines"]]
+    nodes = []
+    def node_id(p):
+        for i, q in enumerate(nodes):
+            if (q[0]-p[0])**2 + (q[1]-p[1])**2 <= TOL*TOL:
+                return i
+        nodes.append(p)
+        return len(nodes) - 1
 
-adj = {}
-for si, (x0, y0, x1, y1) in enumerate(segs):
-    a, b = node_id((x0, y0)), node_id((x1, y1))
-    if a == b:
-        continue
-    adj.setdefault(a, []).append((b, si))
-    adj.setdefault(b, []).append((a, si))
-deg = {k: len(v) for k, v in adj.items()}
-
-# trace maximal chains starting at junctions/endpoints (deg != 2)
-used = set()
-chains = []
-for n in [k for k in adj if deg[k] != 2]:
-    for nb, si in adj[n]:
-        if si in used:
+    adj = {}
+    for si, (x0, y0, x1, y1) in enumerate(segs):
+        a, b = node_id((x0, y0)), node_id((x1, y1))
+        if a == b:
             continue
-        used.add(si)
-        seq = [nodes[n], nodes[nb]]
-        cur, prev = nb, si
-        while deg.get(cur, 0) == 2:
-            nxt = [(x, s) for x, s in adj[cur] if s != prev and s not in used]
-            if not nxt:
-                break
-            x, s = nxt[0]
-            used.add(s)
-            seq.append(nodes[x])
-            cur, prev = x, s
-        chains.append(np.array(seq, float))
+        adj.setdefault(a, []).append((b, si))
+        adj.setdefault(b, []).append((a, si))
+    deg = {k: len(v) for k, v in adj.items()}
+
+    # trace maximal chains starting at junctions/endpoints (deg != 2)
+    used = set()
+    chains = []
+    for n in [k for k in adj if deg[k] != 2]:
+        for nb, si in adj[n]:
+            if si in used:
+                continue
+            used.add(si)
+            seq = [nodes[n], nodes[nb]]
+            cur, prev = nb, si
+            while deg.get(cur, 0) == 2:
+                nxt = [(x, s) for x, s in adj[cur] if s != prev and s not in used]
+                if not nxt:
+                    break
+                x, s = nxt[0]
+                used.add(s)
+                seq.append(nodes[x])
+                cur, prev = x, s
+            chains.append(np.array(seq, float))
 
 def fit_circle(P):
     x, y = P[:, 0], P[:, 1]
