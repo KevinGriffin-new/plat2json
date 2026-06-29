@@ -97,7 +97,13 @@ spike**, so trade *image size* (`--max-side`) before *context* (`-c`).
 ## Next levers (to chase the remaining misses)
 
 The stragglers are the faintest/smallest glyphs. In impact order:
-1. **Smaller tiles at full resolution** — `prep_plan.py --tile 1100`: each glyph stays
-   sharp without a huge image blowing VRAM (decouples glyph sharpness from image size).
+1. **Smaller tiles at full resolution — VALIDATED.** `prep_plan.py --tile 1100
+   --overlap 200 --tiles-only`: each glyph stays sharp without a huge image blowing
+   VRAM (decouples glyph sharpness from image size). On the `county_test` vector
+   plat (Boise), going from 12 tiles (2200px → `--max-side 1536`) to **46 full-res
+   1100² tiles lifted bearing recall 19/48 → 36/48 (40% → 75%)**; distances barely
+   moved (49/71 → 51/71, already large text). Bearings are the glyph-sharpness-
+   limited case, so they benefit most. Cost is ~4× the reads / longer wall time —
+   use `--tile 1100` for quality runs, the bigger-tile config for smoke tests.
 2. **Tighten the ignore-list** — `M.S.`/lode-name/`A.P.` labels still slip in tagged as
    bearings; harmless to recall, but post-filter or harden the prompt.
