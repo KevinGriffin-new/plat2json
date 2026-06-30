@@ -172,6 +172,42 @@ committed per-sheet here; regenerate via the manifest + the local server of choi
 
 ---
 
+## Resolution sweep — 7B vs 32B (R-RES)
+Overnight matrix: both local models read the SAME tiles of all 4 vector-golden
+sheets at a max-side ladder (1100→512 px), scored vs the published goldens. 7B
+Q4_K_M on the 8 GB RTX 4060; 32B Q4_K_M on the 32 GB M1 Max (llama.cpp Metal).
+Recall below is POOLED across the 4 sheets (94 bearings, 192 distances total).
+
+| max-side | 7B bearings | 32B bearings | 7B distances | 32B distances |
+|----------|-------------|--------------|--------------|---------------|
+| 1100 | 78/94 (83%) | 85/94 (90%) | 133/192 (69%) | 160/192 (83%) |
+| 1024 | 79/94 (84%) | 84/94 (89%) | 133/192 (69%) | 156/192 (81%) |
+|  896 | 78/94 (83%) | 88/94 (94%) | 144/192 (75%) | 157/192 (82%) |
+|  768 | 77/94 (82%) | 87/94 (93%) | 134/192 (70%) | 160/192 (83%) |
+|  640 | 77/94 (82%) | 84/94 (89%) | 133/192 (69%) | 160/192 (83%) |
+|  512 | 70/94 (74%) | 84/94 (89%) | 119/192 (62%) | 157/192 (82%) |
+
+Findings:
+1. **The 32B leads at every resolution, on both axes** — biggest on distances
+   (~+13–20 pts), the 7B's weak axis. Its full-res edge (R-MODEL) is not a
+   resolution artifact; it holds all the way down the ladder.
+2. **The 32B is resolution-robust to 512 px** — pooled recall barely moves from
+   1100→512 (bearings 90%→89%, distances 83%→82%). The 7B has a cliff at 512
+   (bearings 83%→74%, distances 69%→62%): same "small-glyph cliff" the synthetic
+   sweep showed, but the bigger model rides through it.
+3. **Neither model gains from >~896 px.** Both are flat from 768–1100 (the 7B's
+   distance recall actually peaks at 896). 1100 px buys nothing over ~768–896 and
+   costs the most time → ~768–896 px is the efficient operating point.
+4. **Cost** (whole 24-read matrix): 7B **37 min** total; 32B **302 min** (~8×).
+   The 32B scales with resolution (1100: 4244 s/row → 512: 1831 s/row), so
+   dropping 1100→768 trims ~40% off the 32B with no recall loss.
+
+Operative guidance: 32B at max-side ~768 for the best accuracy/throughput; 7B at
+≥640 for fast corpus sweeps (avoid 512 on the 7B). Reads archived under
+`~/overnight-{vlm,7b}/results/reads/` (regenerable; not committed).
+
+---
+
 ## Net
 Three independent real-scan points revise the synthetic "cliff at 7–8 px" to:
 **reading degrades gracefully with resolution; the cliff appears only under
