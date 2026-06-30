@@ -1,0 +1,105 @@
+{
+ "curves": [
+  {
+   "id": "C1",
+   "src": "table",
+   "radius": 1372.39,
+   "delta": "11°56'37\"",
+   "length": 286.08,
+   "chord_brg": "S42°46'04\"E",
+   "chord_len": 285.56,
+   "tangent": null
+  },
+  {
+   "id": "C2",
+   "src": "table",
+   "radius": 2914.79,
+   "delta": "1°04'47\"",
+   "length": 54.93,
+   "chord_brg": "S69°30'32\"W",
+   "chord_len": 54.92,
+   "tangent": null
+  },
+  {
+   "id": "C3",
+   "src": "table",
+   "radius": 50.0,
+   "delta": "127°56'49\"",
+   "length": 111.65,
+   "chord_brg": "N85°32'19\"W",
+   "chord_len": 89.86,
+   "tangent": null
+  },
+  {
+   "id": "C4",
+   "src": "table",
+   "radius": 50.0,
+   "delta": "36°17'31\"",
+   "length": 31.67,
+   "chord_brg": "S48°38'02\"W",
+   "chord_len": 31.14,
+   "tangent": null
+  },
+  {
+   "id": "C5",
+   "src": "table",
+   "radius": 2944.79,
+   "delta": "3°14'27\"",
+   "length": 166.57,
+   "chord_brg": "N65°08'18\"E",
+   "chord_len": 166.55,
+   "tangent": null
+  },
+  {
+   "id": "C6",
+   "src": "table",
+   "radius": 50.0,
+   "delta": "82°03'25\"",
+   "length": 71.61,
+   "chord_brg": "S75°11'16\"E",
+   "chord_len": 65.64,
+   "tangent": null
+  },
+  {
+   "id": "C7",
+   "src": "table",
+   "radius": 1372.39,
+   "delta": "12°46'25\"",
+   "length": 305.96,
+   "chord_brg": "N43°46'27\"W",
+   "chord_len": 305.33,
+   "tangent": null
+  },
+  {
+   "id": "C8",
+   "src": "table",
+   "radius": 2914.78,
+   "delta": "1°04'37\"",
+   "length": 54.79,
+   "chord_brg": "N68°51'52\"E",
+   "chord_len": 54.79,
+   "tangent": null
+  },
+  {
+   "id": "C9",
+   "src": "table",
+   "radius": 50.0,
+   "delta": "127°56'49\"",
+   "length": 111.65,
+   "chord_brg": "N86°08'12\"W",
+   "chord_len": 89.86,
+   "tangent": null
+  },
+  {
+   "id": "C10",
+   "src": "table",
+   "radius": 50.0,
+   "delta": "36°17'31\"",
+   "length": 31.67,
+   "chord_brg": "S48°02'09\"W",
+   "chord_len": 31.14,
+   "tangent": null
+  }
+ ],
+ "note": "county_test page-0 curve table (text layer); units=feet; L=R*delta verified"
+}

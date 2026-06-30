@@ -1,0 +1,115 @@
+{
+ "curves": [
+  {
+   "id": "C1",
+   "src": "table",
+   "radius": 38.0,
+   "delta": "9°04'20\"",
+   "length": 6.02,
+   "chord_brg": null,
+   "chord_len": null,
+   "tangent": null
+  },
+  {
+   "id": "C2",
+   "src": "table",
+   "radius": 38.0,
+   "delta": "42°01'36\"",
+   "length": 27.87,
+   "chord_brg": null,
+   "chord_len": null,
+   "tangent": null
+  },
+  {
+   "id": "C3",
+   "src": "table",
+   "radius": 60.0,
+   "delta": "30°17'17\"",
+   "length": 31.72,
+   "chord_brg": null,
+   "chord_len": null,
+   "tangent": null
+  },
+  {
+   "id": "C4",
+   "src": "table",
+   "radius": 6.0,
+   "delta": "90°00'27\"",
+   "length": 9.43,
+   "chord_brg": null,
+   "chord_len": null,
+   "tangent": null
+  },
+  {
+   "id": "C5",
+   "src": "table",
+   "radius": 6.0,
+   "delta": "89°59'33\"",
+   "length": 9.42,
+   "chord_brg": null,
+   "chord_len": null,
+   "tangent": null
+  },
+  {
+   "id": "C6",
+   "src": "table",
+   "radius": 6.0,
+   "delta": "90°00'27\"",
+   "length": 9.43,
+   "chord_brg": null,
+   "chord_len": null,
+   "tangent": null
+  },
+  {
+   "id": "C7",
+   "src": "table",
+   "radius": 6.0,
+   "delta": "89°59'33\"",
+   "length": 9.42,
+   "chord_brg": null,
+   "chord_len": null,
+   "tangent": null
+  },
+  {
+   "id": null,
+   "src": "inline",
+   "radius": 63.0,
+   "length": 98.96,
+   "delta": "90°00'00\"",
+   "chord_brg": null,
+   "chord_len": null,
+   "tangent": null
+  },
+  {
+   "id": null,
+   "src": "inline",
+   "radius": 63.0,
+   "length": 98.96,
+   "delta": null,
+   "chord_brg": null,
+   "chord_len": null,
+   "tangent": null
+  },
+  {
+   "id": null,
+   "src": "inline",
+   "radius": 37.5,
+   "length": 58.91,
+   "delta": null,
+   "chord_brg": "S44°59'39\"E",
+   "chord_len": 53.03,
+   "tangent": null
+  },
+  {
+   "id": null,
+   "src": "inline",
+   "radius": 36.0,
+   "length": 56.55,
+   "delta": null,
+   "chord_brg": "N44°59'39\"W",
+   "chord_len": 50.91,
+   "tangent": null
+  }
+ ],
+ "note": "adams_prc24_12 page-42 curve table (text layer); units=feet; L=R*delta verified"
+}
