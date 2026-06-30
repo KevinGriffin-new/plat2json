@@ -150,6 +150,28 @@ re-fetch + render locally via the manifest URLs; only the numeric keys are commi
 
 ---
 
+## Local model size — 7B vs 32B (R-MODEL)
+Same blind instrument, same tiles (`--tile 1100`, `--max-side 1536`), two local
+models: **Qwen2.5-VL-7B Q4_K_M on an 8 GB RTX 4060** vs **Qwen2.5-VL-32B Q4_K_M on
+a 32 GB M1 Max** (llama.cpp Metal). The 32B does not fit the 4060's 8 GB at all —
+the Mac's unified memory is what makes the comparison possible.
+
+| sheet | metric | 7B (4060) | 32B (M1 Max) |
+|-------|--------|-----------|--------------|
+| county_test | bearings | 36/48 (75%) | 42/48 (88%) |
+| county_test | distances | 51/71 (72%) | 61/71 (86%) |
+| adams_prc24_12 | bearings | 23/27 (85%) | 24/27 (89%) |
+| adams_prc24_12 | distances | 61/89 (69%) | 73/89 (82%) |
+
+The 32B lifts recall on both sheets, **most on distances (+10, +12 pts)** — the axis
+the 7B was weakest on — and on bearings where the 7B had headroom (county +13 pts;
+adams was already at 85%). Cost: **~27 s/tile vs ~2–4 s** (~7× slower; ~20 min vs
+~3 min per sheet). Operative takeaway: 7B for fast corpus sweeps, 32B for a
+high-accuracy pass on a sheet that matters. (Reads are the blind instrument's, not
+committed per-sheet here; regenerate via the manifest + the local server of choice.)
+
+---
+
 ## Net
 Three independent real-scan points revise the synthetic "cliff at 7–8 px" to:
 **reading degrades gracefully with resolution; the cliff appears only under
