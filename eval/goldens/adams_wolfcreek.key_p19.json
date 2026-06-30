@@ -1,0 +1,22 @@
+{
+ "bearings_dms": [
+  "S0\u00b037'55\"E",
+  "N89\u00b022'05\"E",
+  "N0\u00b037'55\"W",
+  "S89\u00b022'05\"W"
+ ],
+ "distances_m": [
+  10.5,
+  99.5,
+  110.0,
+  125.0,
+  135.85,
+  150.0,
+  215.11,
+  554.5,
+  727.5
+ ],
+ "unit": "ft",
+ "page": 19,
+ "note": "page-19 vector text-layer key, slug=adams_wolfcreek; distances are as-printed in ft (key name is the scorer's)"
+}

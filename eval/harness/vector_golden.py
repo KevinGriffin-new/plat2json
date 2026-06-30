@@ -47,17 +47,25 @@ BEARING_RE = re.compile(
 
 # A decimal number = a distance candidate. Integers are dropped on purpose: lot
 # numbers, plan numbers, years, and "1:250" scales are integers, while published
-# leg lengths carry a decimal (the sheet writes 50.00, 25.0, 237.16).
-DECIMAL_RE = re.compile(r"\d{1,6}\.\d{1,3}")
+# leg lengths carry a decimal (the sheet writes 50.00, 25.0, 237.16). Comma
+# thousands groups are matched WHOLE (e.g. a coordinate 702,613.8799) so they
+# aren't fragmented into a fake small distance - the joined value then fails the
+# range gate below.
+DECIMAL_RE = re.compile(r"\d{1,3}(?:,\d{3})+\.\d{1,4}|\d{1,6}\.\d{1,4}")
 
 # Curve-table params and bookkeeping that are decimals but NOT straight-leg
 # lengths. Reject signals on the text immediately BEFORE a number:
-#  - '=' or ':' RIGHT before it (<=1 space) -> a LABELED value (R=, L=, Δ=,
-#    Area =, coordinate N:), never a bare leg length. The adjacency matters:
-#    record courses read "(R1: <bearing> 1319.61')" - after the bearing is
-#    erased the colon is several chars back, so the distance is still kept;
+#  - '=' right before it -> a labeled param (R=, L=, Δ=, A=);
+#  - a COORDINATE label right before it (Northing/Easting/N:/E:/Lat/Long/Station)
+#    -> a coordinate, not a distance. We deliberately do NOT reject every ':' -
+#    a survey listing's "Length: 215.11" IS a distance, and record-course tags
+#    like "(R1: <bearing> 1319.61')" precede real legs (the bearing is erased
+#    first, so the colon ends up several chars back and doesn't match anyway);
 #  - an unlabeled curve word (RADIUS/ARC/CHORD/DELTA/TANGENT/CH).
-LABEL_PREFIX_RE = re.compile(r"[=:]\s?$")
+EQUALS_PREFIX_RE = re.compile(r"=\s?$")
+COORD_PREFIX_RE = re.compile(
+    r"(?:NORTH(?:ING)?|EAST(?:ING)?|\bN|\bE|LAT|LON[G]?|STA(?:TION)?)\s*:\s?$",
+    re.IGNORECASE)
 CURVE_WORD_RE = re.compile(
     r"(?:RAD(?:IUS)?|ARC|CHORD|DELTA|TAN(?:GENT)?|CH)\s*$", re.IGNORECASE)
 # A number trailed by an inch mark is a monument cap SIZE (FOUND 3.25" CAP),
@@ -100,11 +108,12 @@ def harvest_distances(text):
     for m in DECIMAL_RE.finditer(clean):
         pre = clean[max(0, m.start() - 8):m.start()]
         post = clean[m.end():m.end() + 8]
-        if LABEL_PREFIX_RE.search(pre) or CURVE_WORD_RE.search(pre):
+        if (EQUALS_PREFIX_RE.search(pre) or COORD_PREFIX_RE.search(pre)
+                or CURVE_WORD_RE.search(pre)):
             continue
         if AREA_SUFFIX_RE.match(post) or INCH_SUFFIX_RE.match(post):
             continue
-        v = float(m.group())
+        v = float(m.group().replace(",", ""))
         if DIST_MIN <= v <= DIST_MAX:
             vals.add(round(v, 3))
     return sorted(vals)
@@ -152,6 +161,11 @@ def main():
                     help="only write the golden; skip staging blind tiles")
     ap.add_argument("--tiles-only", action="store_true",
                     help="when prepping, skip the slow plat2json geometry pass")
+    ap.add_argument("--tile", type=int, default=1100,
+                    help="blind-read tile size px (default 1100: full-res small "
+                         "tiles keep DMS glyphs sharp - the validated quality setting)")
+    ap.add_argument("--overlap", type=int, default=200,
+                    help="tile overlap px (default 200)")
     ap.add_argument("--dpi", type=int, default=300)
     ap.add_argument("--scale", type=float, default=250.0)
     a = ap.parse_args()
@@ -200,7 +214,8 @@ def main():
         return
 
     cmd = [sys.executable, PREP_PLAN, os.path.abspath(a.pdf), a.slug,
-           "--page", str(page), "--dpi", str(a.dpi), "--scale", str(a.scale)]
+           "--page", str(page), "--dpi", str(a.dpi), "--scale", str(a.scale),
+           "--tile", str(a.tile), "--overlap", str(a.overlap)]
     if a.tiles_only:
         cmd.append("--tiles-only")
     print(f"  staging blind tiles: prep_plan.py {a.slug} --page {page}")

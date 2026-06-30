@@ -26,6 +26,73 @@ import json
 import sys
 
 
+def trace_polylines(skel, eps, min_len):
+    """Walk a 1-px skeleton into ordered polylines, replacing Hough's fragment-
+    soup (one curve -> many short stray segments) with one ordered polyline per
+    edge. Split the skeleton graph at endpoints/junctions (degree != 2), trace
+    each degree-2 chain between them, then seed any remaining closed loops (a
+    boundary ring has no endpoints); drop chains shorter than min_len px (spurs,
+    ticks, mesh detail, stroked-glyph debris); Douglas-Peucker each survivor down
+    to its vertices. Returns a list of polylines, each a list of (x, y) px pts."""
+    import numpy as np
+    import cv2
+    ys, xs = np.where(skel > 0)
+    pts = set(zip(ys.tolist(), xs.tolist()))
+    N8 = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
+
+    def nbrs(p):
+        r, c = p
+        return [q for q in ((r + dr, c + dc) for dr, dc in N8) if q in pts]
+
+    deg = {p: len(nbrs(p)) for p in pts}
+    used = set()  # consumed edges, as frozenset({a, b})
+
+    def walk(start, nxt):
+        path = [start, nxt]
+        used.add(frozenset((start, nxt)))
+        prev, cur = start, nxt
+        while deg.get(cur, 0) == 2:  # follow the chain until a node or dead end
+            ahead = [q for q in nbrs(cur)
+                     if q != prev and frozenset((cur, q)) not in used]
+            if not ahead:
+                break
+            q = ahead[0]
+            used.add(frozenset((cur, q)))
+            path.append(q)
+            prev, cur = cur, q
+        return path
+
+    chains = []
+    for p in pts:                      # branches anchored at endpoints/junctions
+        if deg[p] != 2:
+            for q in nbrs(p):
+                if frozenset((p, q)) not in used:
+                    chains.append(walk(p, q))
+    for p in pts:                      # leftover closed loops (all degree-2)
+        if deg[p] == 2:
+            for q in nbrs(p):
+                if frozenset((p, q)) not in used:
+                    chains.append(walk(p, q))
+
+    def plen(a):  # polyline pixel length
+        return float(np.hypot(np.diff(a[:, 0]), np.diff(a[:, 1])).sum()) if len(a) > 1 else 0.0
+
+    # NOTE: a topology-aware "spur prune" (drop only chains that dead-end at a
+    # degree-1 pixel) was tried and reverted - busy-sheet noise is a connected
+    # MESH of short junction-to-junction segments (hatching, dimension structure,
+    # fine detail), not dead-end spurs, so length is the robust discriminator.
+    out = []
+    for ch in chains:
+        a = np.array([[c, r] for r, c in ch], dtype=np.float64)  # (x, y) = (col, row)
+        if plen(a) < min_len:
+            continue  # spur / tick / mesh-detail / glyph debris
+        if len(a) >= 3:
+            s = cv2.approxPolyDP(a.astype(np.int32).reshape(-1, 1, 2), eps, False)
+            a = s.reshape(-1, 2).astype(np.float64)
+        out.append([(float(x), float(y)) for x, y in a])
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser(description="Vector survey-plat PDF -> plan-JSON geometry.")
     ap.add_argument("pdf", help="input vector plat PDF")
@@ -35,6 +102,19 @@ def main():
                     help="plot scale denominator, e.g. 250 for 1:250 (default 250)")
     ap.add_argument("--layer", default="PROPERTY_LINE", help="layer name for output lines")
     ap.add_argument("--page", type=int, default=0, help="page index (default 0)")
+    ap.add_argument("--vectorize", choices=["trace", "hough"], default="trace",
+                    help="skeleton -> geometry: 'trace' = ordered polylines "
+                         "(default, clean); 'hough' = legacy fragment segments")
+    ap.add_argument("--simplify-eps", type=float, default=2.0,
+                    help="Douglas-Peucker epsilon (px) for --vectorize trace (default 2.0)")
+    ap.add_argument("--min-len", type=float, default=0.0,
+                    help="drop traced polylines shorter than N px (default 0 = 3x the "
+                         "linework threshold; filters spurs/ticks/mesh-detail/glyphs. "
+                         "Raise on detail-dense sheets, lower to keep short lot lines)")
+    ap.add_argument("--mask-text", action=argparse.BooleanOptionalAction, default=True,
+                    help="erase the PDF text layer's word boxes from the raster before "
+                         "skeletonizing, so labels don't pollute the linework (default on; "
+                         "no-ops on scans / stroked-glyph plats with no text layer)")
     args = ap.parse_args()
 
     try:
@@ -55,6 +135,22 @@ def main():
     g = np.frombuffer(pix.samples, np.uint8).reshape(pix.height, pix.width)
     H, W = g.shape
     _, bw = cv2.threshold(g, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+
+    # Erase the text layer's word boxes so published labels don't pollute the
+    # linework skeleton (the big noise source on text-dense vector plats). Exact
+    # boxes from the PDF, so no fragile text/line heuristic; no-ops when the page
+    # has no text layer (scans, stroked-glyph plats). Small gaps where a label sat
+    # on a line are harmless to tracing (the chain just splits and re-traces).
+    nmask = 0
+    if args.mask_text:
+        ox, oy = page.rect.x0, page.rect.y0
+        pad = 2
+        for wx0, wy0, wx1, wy1, *_ in page.get_text("words"):
+            X0, Y0 = max(0, int((wx0 - ox) * sc) - pad), max(0, int((wy0 - oy) * sc) - pad)
+            X1, Y1 = min(W, int((wx1 - ox) * sc) + pad), min(H, int((wy1 - oy) * sc) + pad)
+            if X1 > X0 and Y1 > Y0:
+                bw[Y0:Y1, X0:X1] = 0
+                nmask += 1
 
     # long connected components = linework; short ones = stroked glyphs (dropped).
     n, lab, stats, _ = cv2.connectedComponentsWithStats(bw, 8)
@@ -78,19 +174,33 @@ def main():
     x1, y1 = min(W, px + pw + m), min(H, py + ph + m)
 
     skel = skeletonize(geom[y0:y1, x0:x1] > 0).astype(np.uint8) * 255
-    segs = cv2.HoughLinesP(skel, 1, np.pi / 360, threshold=22, minLineLength=14, maxLineGap=6)
-    segs = [] if segs is None else segs[:, 0, :]
 
     def tf(xpx, ypx):
         xpt, ypt = (xpx + x0) / sc, (ypx + y0) / sc
         return [round(xpt * pt2m, 4), round((h_pt - ypt) * pt2m, 4)]  # metres, north-up
 
-    lines = []
-    for sx0, sy0, sx1, sy1 in segs:
-        a, b = tf(sx0, sy0), tf(sx1, sy1)
-        lines.append([a[0], a[1], b[0], b[1], args.layer])
+    lines, polylines, npoly = [], [], 0
+    if args.vectorize == "trace":
+        polys = trace_polylines(skel, args.simplify_eps, args.min_len or line_px * 3)
+        npoly = len(polys)
+        for poly in polys:
+            world = [tf(x, y) for x, y in poly]
+            polylines.append([[p[0], p[1]] for p in world] + [args.layer])
+            for i in range(len(world) - 1):
+                a, b = world[i], world[i + 1]
+                if a != b:
+                    lines.append([a[0], a[1], b[0], b[1], args.layer])
+    else:
+        segs = cv2.HoughLinesP(skel, 1, np.pi / 360, threshold=22, minLineLength=14, maxLineGap=6)
+        segs = [] if segs is None else segs[:, 0, :]
+        for sx0, sy0, sx1, sy1 in segs:
+            a, b = tf(sx0, sy0), tf(sx1, sy1)
+            lines.append([a[0], a[1], b[0], b[1], args.layer])
 
-    json.dump({"lines": lines, "arcs": [], "circles": [], "texts": []}, open(args.out, "w"))
+    out = {"lines": lines, "arcs": [], "circles": [], "texts": []}
+    if polylines:  # ordered chains: clean input for arc-fitting (fit_arcs.py)
+        out["polylines"] = polylines
+    json.dump(out, open(args.out, "w"))
 
     if lines:
         xs = [c for L in lines for c in (L[0], L[2])]
@@ -98,7 +208,9 @@ def main():
         ext = f"{max(xs) - min(xs):.1f} x {max(ys) - min(ys):.1f} m"
     else:
         ext = "empty"
-    print(f"{len(lines)} segments -> {args.out}  (extent {ext})")
+    how = f"{npoly} ordered polylines" if args.vectorize == "trace" else "hough fragments"
+    masked = f", masked {nmask} text boxes" if nmask else ""
+    print(f"{len(lines)} segments ({how}{masked}) -> {args.out}  (extent {ext})")
     print("NOTE: geometry only (no arcs/labels). Run fit_arcs.py for arcs; see STATUS.md.")
 
 

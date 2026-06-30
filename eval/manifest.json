@@ -62,6 +62,39 @@
       "results": "results/corpus_sources.md (clean-render upper bound)"
     },
     {
+      "id": "adams_prc24_12",
+      "title": "Adams County CO subdivision plat PRC2024-00012 (vector PDF; dense course sheet, p42)",
+      "axes": { "mode": "finished-plat", "era": "modern", "input_form": "vector" },
+      "source": { "name": "Adams County CO recorder", "license": "public record (image NOT republished here; public-record != public-domain everywhere)", "redistribute": false,
+                  "url": "https://adamscountyco.gov/wp-content/uploads/2025/08/PRC2024-00012-submittal3.pdf",
+                  "image_policy": "URL-only - re-fetch and render locally; only the numeric key (facts) is committed" },
+      "ground_truth": [ { "type": "published_values", "golden": "goldens/adams_prc24_12.key_p42.json", "note": "vector text layer = surveyor's exact published bearings/distances; harvested by vector_golden.py (page 42)" } ],
+      "reads": null,
+      "results": "results/RESULTS.md (vector-golden recall curve)"
+    },
+    {
+      "id": "adams_prc2025",
+      "title": "Adams County CO minor subdivision plat PRC2025-00014 (vector PDF; small sheet, p1)",
+      "axes": { "mode": "finished-plat", "era": "modern", "input_form": "vector" },
+      "source": { "name": "Adams County CO recorder", "license": "public record (image NOT republished here; public-record != public-domain everywhere)", "redistribute": false,
+                  "url": "https://adamscountyco.gov/wp-content/uploads/2026/03/PRC2025-00014-submittal3.pdf",
+                  "image_policy": "URL-only - re-fetch and render locally; only the numeric key (facts) is committed" },
+      "ground_truth": [ { "type": "published_values", "golden": "goldens/adams_prc2025.key_p1.json", "note": "vector text layer; harvested by vector_golden.py (page 1)" } ],
+      "reads": null,
+      "results": "results/RESULTS.md (vector-golden recall curve)"
+    },
+    {
+      "id": "adams_wolfcreek",
+      "title": "Adams County CO 'Wolf Creek Run West Filing 2B' final plat PLT2024-00007 (vector PDF; tiny sheet, p19)",
+      "axes": { "mode": "finished-plat", "era": "modern", "input_form": "vector" },
+      "source": { "name": "Adams County CO recorder", "license": "public record (image NOT republished here; public-record != public-domain everywhere)", "redistribute": false,
+                  "url": "https://adamscountyco.gov/wp-content/uploads/2025/08/PLT2024-00007-submittal1.pdf",
+                  "image_policy": "URL-only - re-fetch and render locally; only the numeric key (facts) is committed" },
+      "ground_truth": [ { "type": "published_values", "golden": "goldens/adams_wolfcreek.key_p19.json", "note": "vector text layer; harvested by vector_golden.py (page 19)" } ],
+      "reads": null,
+      "results": "results/RESULTS.md (vector-golden recall curve)"
+    },
+    {
       "id": "ltsa_sample_1",
       "title": "ParcelMap BC survey-plan dataset sample (reference target only)",
       "axes": { "mode": "finished-plat", "era": "modern", "input_form": "vector" },

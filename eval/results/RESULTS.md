@@ -116,6 +116,98 @@ Fixture: `reads/blm_ms52a.reads.json`.
 
 ---
 
+## Vector-golden recall curve — 4 county plats, local 7B VLM (R-VEC)
+`vector_golden.py` harvests an exact golden straight from a vector plat's text
+layer (no OCR, no scope guessing); the reader stays blind on the rendered raster.
+All four sheets read at the validated quality setting (`--tile 1100` full-res
+tiles, `--max-side 1536`, 7B Qwen2.5-VL on an 8 GB RTX 4060), scored vs the
+published-values golden:
+
+| sheet | density | bearing recall | distance recall |
+|-------|---------|----------------|-----------------|
+| county_test (Boise) | dense (48 brg) | 36/48 (75%) | 51/71 (72%) |
+| adams_prc24_12 | dense (27 brg) | 23/27 (85%) | 61/89 (69%) |
+| adams_prc2025 | small (15 brg) | 15/15 (100%) | 12/23 (52%) |
+| adams_wolfcreek | tiny (4 brg) | 4/4 (100%) | 9/9 (100%) |
+
+Two findings: (1) **bearings read robustly** on a clean vector render — 75–85% on
+dense sheets, 100% on simple ones; the `--tile 1100` lever holds across all four
+(it ~doubled county_test bearings 40%→75% vs the 2200px→1536 baseline). (2)
+**distances also read well (52–100%), and the reader was being under-credited by a
+golden bug.** Wolf Creek's text layer is a structured `Segment#/Course/Length/
+North/East` listing, not inline labels; `vector_golden.py` was (a) *rejecting* the
+real `Length:` values as label-prefixed and (b) *fragmenting* comma coordinates
+(`North: 702,613.8799`) into fake small distances — so the golden held coordinate
+debris instead of legs. Fixed (comma-aware decimals that fail the range gate;
+coordinate-label exclusion that still keeps `Length:`): Wolf Creek distance recall
+jumped 6/18 → **9/9**, with no change to the inline-format sheets. Lesson: when a
+recall number looks bad, audit the golden before blaming the reader. The remaining
+genuine gap is `adams_prc2025` (52%) — small sheet, a few tiny values the 7B misses.
+
+Goldens: `goldens/{county_test.key_p0,adams_prc24_12.key_p42,adams_prc2025.key_p1,adams_wolfcreek.key_p19}.json`.
+Source images URL-only (Adams County = public record, not public domain) —
+re-fetch + render locally via the manifest URLs; only the numeric keys are committed.
+
+---
+
+## Local model size — 7B vs 32B (R-MODEL)
+Same blind instrument, same tiles (`--tile 1100`, `--max-side 1536`), two local
+models: **Qwen2.5-VL-7B Q4_K_M on an 8 GB RTX 4060** vs **Qwen2.5-VL-32B Q4_K_M on
+a 32 GB M1 Max** (llama.cpp Metal). The 32B does not fit the 4060's 8 GB at all —
+the Mac's unified memory is what makes the comparison possible.
+
+| sheet | metric | 7B (4060) | 32B (M1 Max) |
+|-------|--------|-----------|--------------|
+| county_test | bearings | 36/48 (75%) | 42/48 (88%) |
+| county_test | distances | 51/71 (72%) | 61/71 (86%) |
+| adams_prc24_12 | bearings | 23/27 (85%) | 24/27 (89%) |
+| adams_prc24_12 | distances | 61/89 (69%) | 73/89 (82%) |
+
+The 32B lifts recall on both sheets, **most on distances (+10, +12 pts)** — the axis
+the 7B was weakest on — and on bearings where the 7B had headroom (county +13 pts;
+adams was already at 85%). Cost: **~27 s/tile vs ~2–4 s** (~7× slower; ~20 min vs
+~3 min per sheet). Operative takeaway: 7B for fast corpus sweeps, 32B for a
+high-accuracy pass on a sheet that matters. (Reads are the blind instrument's, not
+committed per-sheet here; regenerate via the manifest + the local server of choice.)
+
+---
+
+## Resolution sweep — 7B vs 32B (R-RES)
+Overnight matrix: both local models read the SAME tiles of all 4 vector-golden
+sheets at a max-side ladder (1100→512 px), scored vs the published goldens. 7B
+Q4_K_M on the 8 GB RTX 4060; 32B Q4_K_M on the 32 GB M1 Max (llama.cpp Metal).
+Recall below is POOLED across the 4 sheets (94 bearings, 192 distances total).
+
+| max-side | 7B bearings | 32B bearings | 7B distances | 32B distances |
+|----------|-------------|--------------|--------------|---------------|
+| 1100 | 78/94 (83%) | 85/94 (90%) | 133/192 (69%) | 160/192 (83%) |
+| 1024 | 79/94 (84%) | 84/94 (89%) | 133/192 (69%) | 156/192 (81%) |
+|  896 | 78/94 (83%) | 88/94 (94%) | 144/192 (75%) | 157/192 (82%) |
+|  768 | 77/94 (82%) | 87/94 (93%) | 134/192 (70%) | 160/192 (83%) |
+|  640 | 77/94 (82%) | 84/94 (89%) | 133/192 (69%) | 160/192 (83%) |
+|  512 | 70/94 (74%) | 84/94 (89%) | 119/192 (62%) | 157/192 (82%) |
+
+Findings:
+1. **The 32B leads at every resolution, on both axes** — biggest on distances
+   (~+13–20 pts), the 7B's weak axis. Its full-res edge (R-MODEL) is not a
+   resolution artifact; it holds all the way down the ladder.
+2. **The 32B is resolution-robust to 512 px** — pooled recall barely moves from
+   1100→512 (bearings 90%→89%, distances 83%→82%). The 7B has a cliff at 512
+   (bearings 83%→74%, distances 69%→62%): same "small-glyph cliff" the synthetic
+   sweep showed, but the bigger model rides through it.
+3. **Neither model gains from >~896 px.** Both are flat from 768–1100 (the 7B's
+   distance recall actually peaks at 896). 1100 px buys nothing over ~768–896 and
+   costs the most time → ~768–896 px is the efficient operating point.
+4. **Cost** (whole 24-read matrix): 7B **37 min** total; 32B **302 min** (~8×).
+   The 32B scales with resolution (1100: 4244 s/row → 512: 1831 s/row), so
+   dropping 1100→768 trims ~40% off the 32B with no recall loss.
+
+Operative guidance: 32B at max-side ~768 for the best accuracy/throughput; 7B at
+≥640 for fast corpus sweeps (avoid 512 on the 7B). Reads archived under
+`~/overnight-{vlm,7b}/results/reads/` (regenerable; not committed).
+
+---
+
 ## Net
 Three independent real-scan points revise the synthetic "cliff at 7–8 px" to:
 **reading degrades gracefully with resolution; the cliff appears only under
