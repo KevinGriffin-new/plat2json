@@ -116,8 +116,11 @@ def main():
                     help="llama-server base url (default %(default)s)")
     ap.add_argument("--model", default="qwen2.5-vl",
                     help="model name (arbitrary for llama.cpp)")
-    ap.add_argument("--max-side", type=int, default=1280,
-                    help="downscale each tile's long side to N px (VRAM/quality knob)")
+    ap.add_argument("--max-side", type=int, default=896,
+                    help="downscale each tile's long side to N px (VRAM/quality/speed knob). "
+                         "Default 896 = the efficient operating point from the R-RES sweep: "
+                         "recall is flat 768-1100 for both 7B and 32B (7B distance recall "
+                         "actually peaks at 896), so >896 just costs time; <640 cliffs the 7B")
     ap.add_argument("--workers", type=int, default=4,
                     help="concurrent tiles (match server n_parallel slots)")
     ap.add_argument("--temp", type=float, default=0.0)
