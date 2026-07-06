@@ -46,6 +46,66 @@ def dms(s):
     return ang  # raw azimuth or degrees-only
 
 
+def dms_cands(s):
+    """Candidate azimuths for a *read* bearing, tolerant of a dropped quadrant
+    letter. VLM reads frequently lose the trailing E/W (e.g. 'S 26°40'58"' with
+    no 'E'); single-value dms() then falls through to the raw-azimuth branch and
+    returns 26.7 instead of the quadrant azimuth 153.3, so a correct read never
+    matches its quadrant golden. Here, when exactly one of {N/S, E/W} is present,
+    we emit BOTH azimuths consistent with the known half and let the recall
+    matcher accept either. Full quadrant -> 1 value (identical to dms); no
+    quadrant at all -> the raw azimuth (unchanged). Only ever widens matching
+    when a quadrant letter is genuinely absent, so a fully-specified read cannot
+    be credited to the wrong quadrant."""
+    s = str(s)
+    if "°" not in s:
+        return []
+    g = re.findall(r"\d+", s)
+    if not g:
+        return []
+    ang = int(g[0]) + (int(g[1]) / 60 if len(g) > 1 else 0) + \
+        (int(g[2]) / 3600 if len(g) > 2 else 0)
+    u = s.upper()
+    ns = "N" if u.lstrip(". ").startswith("N") else ("S" if u.lstrip(". ").startswith("S") else None)
+    ew = "E" if "E" in u[1:] else ("W" if "W" in u[1:] else None)
+    qaz = {("N", "E"): ang, ("S", "E"): 180 - ang,
+           ("S", "W"): 180 + ang, ("N", "W"): 360 - ang}
+    if ns and ew:                       # fully specified -> single azimuth
+        return [qaz[(ns, ew)] % 360]
+    if ns or ew:                        # one half known -> two candidates
+        NS = [ns] if ns else ["N", "S"]
+        EW = [ew] if ew else ["E", "W"]
+        return sorted({qaz[(a, b)] % 360 for a in NS for b in EW})
+    return [ang % 360]                  # no quadrant: raw azimuth (unchanged)
+
+
+def greedy_cands(truth, read_cands, tol, mod=True):
+    """Recall matcher for candidate-valued reads. truth = golden azimuths (each a
+    single value, from an authoritative fully-quadranted key); read_cands = list
+    of per-read candidate-azimuth lists (from dms_cands). Mirrors greedy(): for
+    each golden, consume the nearest still-unused read that has any candidate
+    within tol. A read is consumed at most once, so recall <= len(truth)."""
+    pool = [c for c in read_cands if c]
+    used = [False] * len(pool)
+    hit = 0
+    for w in truth:
+        bi, bd = None, tol
+        for i, cands in enumerate(pool):
+            if used[i]:
+                continue
+            for a in cands:
+                d = abs(a - w)
+                if mod:
+                    d = min(d % 180, 180 - d % 180)
+                if d <= bd:
+                    bd, bi = d, i
+                    break
+        if bi is not None:
+            used[bi] = True
+            hit += 1
+    return hit
+
+
 def num(s):
     """Tolerant distance -> float. Handles feet/inch marks, integers, and a
     leading cardinal word ('East 237.16'). Skips illegible ('?') and curve
@@ -85,9 +145,28 @@ def main():
     ap.add_argument("slug"); ap.add_argument("--gt", default=None)
     a = ap.parse_args()
     base = os.path.join(HERE, "_sources", a.slug)
-    plat = json.load(open(os.path.join(base, "_plan_plat2json.json"), encoding="utf-8"))
+    plan_path = os.path.join(base, "_plan_plat2json.json")
+    reads_path = os.path.join(base, "_vlm_reads.json")
+    # Guard inputs: a missing/short prep or geometry step for this slug must
+    # produce an explicit, greppable NA line -- not an uncaught exception that
+    # prints nothing and gets recorded as a bogus NA (or, worse, masks a real 0).
+    missing = [p for p in (plan_path, reads_path) if not os.path.exists(p)]
+    if missing:
+        print(f"[{a.slug}] no prepped source ({', '.join(os.path.basename(m) for m in missing)})")
+        if a.gt:
+            print("  bearing recall: NA (no prepped source)")
+            print("  distance recall: NA (no prepped source)")
+        return
+    try:
+        plat = json.load(open(plan_path, encoding="utf-8"))
+        reads = json.load(open(reads_path, encoding="utf-8"))
+    except (json.JSONDecodeError, ValueError) as e:
+        print(f"[{a.slug}] unreadable prepped source: {e}")
+        if a.gt:
+            print("  bearing recall: NA (bad prepped source)")
+            print("  distance recall: NA (bad prepped source)")
+        return
     lines = plat.get("lines", [])
-    reads = json.load(open(os.path.join(base, "_vlm_reads.json"), encoding="utf-8"))
 
     # gate by 'kind' when present so a bearing's digits aren't read as a distance
     def is_b(x):
@@ -96,6 +175,8 @@ def main():
     def is_d(x):
         return x.get("kind", "") == "distance" or ("kind" not in x and num(x["raw"]) is not None)
     vb = sorted({round(dms(x["raw"]), 5) for x in reads if is_b(x) and dms(x["raw"]) is not None})
+    # quadrant-tolerant candidate azimuths per read bearing (for recall vs key)
+    vb_cands = [dms_cands(x["raw"]) for x in reads if is_b(x) and dms(x["raw"]) is not None]
     vd = sorted({round(num(x["raw"]), 3) for x in reads if is_d(x) and num(x["raw"]) is not None})
     frag = [x["raw"] for x in reads
             if (is_b(x) and dms(x["raw"]) is None) or (is_d(x) and num(x["raw"]) is None)]
@@ -125,7 +206,14 @@ def main():
         gtd = sorted({round(float(d), 3) for d in
                       (key.get("distances_m") or key.get("gt_legs_m") or [])})
         if gtb:
-            print(f"  bearing recall: {greedy(gtb, vb, 0.05, mod=True)}/{len(gtb)}")
+            # golden bearings are authoritative & fully quadranted -> match each
+            # against quadrant-tolerant read candidates (recovers reads whose
+            # trailing E/W the VLM dropped). strict= the old single-value recall,
+            # printed alongside so the delta is auditable.
+            rec_strict = greedy(gtb, vb, 0.05, mod=True)
+            rec = greedy_cands(gtb, vb_cands, 0.05, mod=True)
+            print(f"  bearing recall: {rec}/{len(gtb)}"
+                  + (f"  (strict {rec_strict}/{len(gtb)})" if rec != rec_strict else ""))
         if gtd:
             print(f"  distance recall: {greedy(gtd, vd, 0.2)}/{len(gtd)}")
 

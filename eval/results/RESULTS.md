@@ -208,6 +208,48 @@ Operative guidance: 32B at max-side ~768 for the best accuracy/throughput; 7B at
 
 ---
 
+## NCDOT corpus — 100 real road-plat sheets, 7B blind read (R-NCDOT)
+The largest ground-truthed sweep: 100 NCDOT construction plats harvested and
+blind-read by the 7B (`--tile 1100`), each scored vs its vector-text golden
+(`goldens/ncdot_*.key_p*.json`, facts-only numeric keys; source PDFs URL-only).
+Reads and per-sheet numbers regenerate via the queue jobs (`queue/jobs/070,090`).
+
+**Pooled recall (all 100 sheets):**
+
+| axis | recall | notes |
+|------|--------|-------|
+| bearings | **3162/3905 = 0.810** | quadrant-tolerant scorer; strict 0.763 |
+| distances | **8143/11439 = 0.712** | |
+
+Per-sheet (macro) bearing recall: mean 0.87, **median 0.95**; distances mean
+0.77, median 0.79. Runtime scales with sheet size (Pearson r = 0.87 vs golden
+item count), mean 259 s, median 206 s, max 1082 s.
+
+**A scorer bug was found and fixed here — not a reader defect.** The original
+`score_run.py` `dms()` returned a raw azimuth when a read bearing had lost its
+trailing quadrant letter (`S 26°40'58"` with no `E`), so correct reads never
+matched their quadrant golden — brunswick_br0139 scored 0/22 and caswell_br_0070
+1/26 despite reading every bearing. A quadrant-tolerant recall path (emit both
+candidate azimuths only when a quadrant letter is genuinely absent) lifts pooled
+bearing recall **0.763 → 0.810 (+4.7 pts)**, recovers 45 sheets and regresses
+none, and reproduces the old strict number exactly on the 97 sheets that had a
+quadrant. (Three sheets that read `NA` were an upstream prep-crash masked by the
+job's stdout grep, not missing goldens — now guarded to print an explicit NA.)
+Lesson (again): audit the scorer before blaming the reader.
+
+**Four genuine reader failures survive the fix** (bearing recall < 0.2) — the
+dense, slow sheets, correctly *not* rescued by the quadrant patch:
+
+| slug | bearings | distances | seconds |
+|------|----------|-----------|---------|
+| yadkin_u_5809 | 3/118 | 10/217 | 792 |
+| forsyth_u_5536 | 10/138 | 24/409 | 1082 |
+| cleveland_r_2707 | 9/64 | 107/314 | 917 |
+| randolph_u_5813 | 12/75 | 172/459 | 1028 |
+
+These share a signature (very high item counts, longest runtimes, monument-IDs
+mis-read as distances, page-selection risk) and are the scoped next reader work.
+
 ## Net
 Three independent real-scan points revise the synthetic "cliff at 7–8 px" to:
 **reading degrades gracefully with resolution; the cliff appears only under

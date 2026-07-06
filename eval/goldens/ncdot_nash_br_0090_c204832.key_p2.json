@@ -1,0 +1,26 @@
+{
+ "bearings_dms": [
+  "N38\u00b059'15.1\"E",
+  "N38\u00b056'44.6\"E",
+  "N38\u00b054'14.1\"E"
+ ],
+ "distances_m": [
+  1.0,
+  7.3,
+  14.59,
+  42.0,
+  56.16,
+  97.0,
+  165.7,
+  166.08,
+  172.39,
+  192.12,
+  206.76,
+  299.56,
+  994.0,
+  10000.0
+ ],
+ "unit": "ft",
+ "page": 2,
+ "note": "page-2 vector text-layer key, slug=ncdot_nash_br_0090_c204832; distances are as-printed in ft (key name is the scorer's)"
+}
