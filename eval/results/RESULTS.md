@@ -225,6 +225,17 @@ Per-sheet (macro) bearing recall: mean 0.87, **median 0.95**; distances mean
 0.77, median 0.79. Runtime scales with sheet size (Pearson r = 0.87 vs golden
 item count), mean 259 s, median 206 s, max 1082 s.
 
+**Unit of replication — which number to cite.** The pooled 0.810 and the
+per-sheet median 0.95 differ because *the item is not the unit of replication —
+the sheet is.* A single bad sheet fails as one systematic cause replicated
+across all its items (brunswick's "0/22" was one dropped-quadrant bug counted 22
+times, not 22 independent misses), so item-pooling lets a handful of collapsed
+sheets drag the whole corpus down and understates typical performance. **Report
+the macro (per-sheet) figure as the headline** — median 0.95, mean 0.87 — and
+use the pooled micro-recall only as a throughput/volume statistic, never as a
+significance or precision claim. Item-level counts treat ~3,900 correlated
+bearings as independent trials; they are not.
+
 **A scorer bug was found and fixed here — not a reader defect.** The original
 `score_run.py` `dms()` returned a raw azimuth when a read bearing had lost its
 trailing quadrant letter (`S 26°40'58"` with no `E`), so correct reads never
