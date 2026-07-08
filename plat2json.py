@@ -11,7 +11,11 @@ STATUS: experimental. Output is a rough geometry skeleton, NOT survey-grade:
   * geometry comes out as many short Hough segments (fragment-soup, ~100+
     segments for ~10 real edges) — needs skeleton path-tracing to clean up;
   * arcs are NOT fitted here (see fit_arcs.py / arc_refine.py);
-  * labels (bearings, curve r=/a=) are NOT read (unsolved OCR — see STATUS.md).
+  * labels (bearings, distances, curve r=/a=) are NOT read HERE — label reading
+    is solved separately by the VLM reader (per-sheet median bearing recall 0.95
+    on the 100-sheet NCDOT corpus — see eval/results/RESULTS.md); the open work
+    is label→segment association, i.e. joining that reader's values to this
+    script's geometry.
 
 Pipeline: render -> binarize (Otsu) -> keep long connected components as
 linework (drop the page border) -> largest = the parcel -> skeletonize ->

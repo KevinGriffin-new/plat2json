@@ -1,5 +1,16 @@
 # Plan-label OCR — pipeline status (EPP12345 sample)
 
+> **SUPERSEDED (2026-07): the "unsolved OCR" conclusion below is stale.**
+> Label reading — including rotated DMS bearings — is solved by the local VLM
+> reader: per-sheet **median bearing recall 0.95** (mean 0.87) on the 100-sheet
+> NCDOT corpus, quadrant-tolerant scoring; see
+> [`eval/results/RESULTS.md`](eval/results/RESULTS.md) (cite the macro,
+> per-sheet figures). Four dense sheets remain as scoped reader work.
+> This file stays as the record of the classical-OCR iterations 1–14 and why
+> they failed. The open problem is no longer reading; it is
+> **label→segment association** (joining read values to extracted geometry)
+> and downstream COGO reconstruction with a traverse-closure self-check.
+
 Goal: read the *authoritative* labels (bearings, distances, curve `r=`/`a=`,
 areas, lot/plan IDs) off an LTSA vector plat, so geometry can be **COGO-
 reconstructed from the published numbers** (exact) rather than traced from
