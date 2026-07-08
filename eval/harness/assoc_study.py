@@ -55,9 +55,9 @@ import vlm_read                     # read_tile / extract_array (the fixed instr
 import score_run                    # dms / dms_cands / num (matching rules)
 
 TABLE_TAG_RE = re.compile(r"^\s*[LC]\s?\d+\b")   # line/curve table row tag
+STATION_PREFIX_RE = re.compile(r"\d\+\s?$")      # '10+08.58' station fragment
 ANGLE_TOL_DEG = 20.0     # label dir vs segment dir (mod 180)
 PROJ_LO, PROJ_HI = -0.15, 1.15   # label center projection along the segment
-MAX_LABELS_PER_SEG = 2   # bearing + distance; extras are suspect (table rules)
 
 
 # ---------------------------------------------------------------- golden side
@@ -87,7 +87,8 @@ def _page_labels(page):
                 pre = clean[max(0, m.start() - 8):m.start()]
                 post = clean[m.end():m.end() + 8]
                 if (vg.EQUALS_PREFIX_RE.search(pre) or vg.COORD_PREFIX_RE.search(pre)
-                        or vg.CURVE_WORD_RE.search(pre)):
+                        or vg.CURVE_WORD_RE.search(pre)
+                        or STATION_PREFIX_RE.search(pre)):
                     continue
                 if vg.AREA_SUFFIX_RE.match(post) or vg.INCH_SUFFIX_RE.match(post):
                     continue
@@ -99,30 +100,94 @@ def _page_labels(page):
     return labels
 
 
-def _page_segments(page, min_len):
-    """Line segments from the vector drawings ('l' items + rect edges),
-    deduped. Page points, y-down."""
-    segs, seen = [], set()
+ANG_BIN, RHO_BIN = 0.75, 1.0     # collinearity hash bins (deg, pt)
 
-    def add(p0, p1):
-        x0, y0, x1, y1 = p0[0], p0[1], p1[0], p1[1]
-        if math.hypot(x1 - x0, y1 - y0) < min_len:
-            return
-        key = (round(min((x0, y0), (x1, y1))[0], 1), round(min((x0, y0), (x1, y1))[1], 1),
-               round(max((x0, y0), (x1, y1))[0], 1), round(max((x0, y0), (x1, y1))[1], 1))
-        if key in seen:
-            return
-        seen.add(key)
-        segs.append((x0, y0, x1, y1))
 
+def _page_segments(page, min_len, gap=8.0):
+    """Line segments from the vector drawings, CHAINED. CAD plan sheets emit
+    dashed/patterned linework as tens of thousands of micro-segments (randolph:
+    335k 'l' items, median 0.3 pt) - the property/ROW line a bearing labels does
+    not exist as one vector. Group micro-segments by their infinite line
+    (quantized angle + signed perpendicular offset, union-find over neighbor
+    bins), then merge each group's collinear runs across gaps <= `gap` pt
+    (dash gaps). Emits chains >= min_len. Page points, y-down."""
+    raw = []
     for path in page.get_drawings():
         for item in path["items"]:
             if item[0] == "l":
-                add(item[1], item[2])
+                p0, p1 = item[1], item[2]
+                raw.append((p0.x, p0.y, p1.x, p1.y))
             elif item[0] == "re":
                 r = item[1]
-                add((r.x0, r.y0), (r.x1, r.y0)); add((r.x1, r.y0), (r.x1, r.y1))
-                add((r.x1, r.y1), (r.x0, r.y1)); add((r.x0, r.y1), (r.x0, r.y0))
+                raw += [(r.x0, r.y0, r.x1, r.y0), (r.x1, r.y0, r.x1, r.y1),
+                        (r.x1, r.y1, r.x0, r.y1), (r.x0, r.y1, r.x0, r.y0)]
+    raw = [s for s in raw if math.hypot(s[2] - s[0], s[3] - s[1]) >= 1.0]
+
+    # hash each segment's infinite line: direction normalized to dx>0 half-plane
+    keys, parent = [], list(range(len(raw)))
+
+    def find(i):
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    def union(i, j):
+        ri, rj = find(i), find(j)
+        if ri != rj:
+            parent[rj] = ri
+
+    binmap = {}
+    for i, (x0, y0, x1, y1) in enumerate(raw):
+        dx, dy = x1 - x0, y1 - y0
+        if dx < 0 or (dx == 0 and dy < 0):
+            dx, dy = -dx, -dy
+        th = math.degrees(math.atan2(dy, dx))          # (-90, 90]
+        L = math.hypot(dx, dy)
+        nx, ny = -dy / L, dx / L                       # unit normal
+        rho = x0 * nx + y0 * ny
+        ka, kr = int(round(th / ANG_BIN)), int(round(rho / RHO_BIN))
+        keys.append((ka, kr))
+        for da in (-1, 0, 1):
+            for dr in (-1, 0, 1):
+                k = (ka + da, kr + dr)
+                if k in binmap:
+                    union(i, binmap[k])
+        binmap[keys[-1]] = i
+    groups = {}
+    for i in range(len(raw)):
+        groups.setdefault(find(i), []).append(i)
+
+    segs = []
+    for members in groups.values():
+        # direction from the group's longest member; project all endpoints
+        longest = max(members, key=lambda i: math.hypot(
+            raw[i][2] - raw[i][0], raw[i][3] - raw[i][1]))
+        x0, y0, x1, y1 = raw[longest]
+        dx, dy = x1 - x0, y1 - y0
+        if dx < 0 or (dx == 0 and dy < 0):
+            dx, dy, x0, y0 = -dx, -dy, x1, y1
+        L = math.hypot(dx, dy)
+        ux, uy = dx / L, dy / L
+        ivals = []
+        for i in members:
+            a = (raw[i][0] - x0) * ux + (raw[i][1] - y0) * uy
+            b = (raw[i][2] - x0) * ux + (raw[i][3] - y0) * uy
+            ivals.append((min(a, b), max(a, b)))
+        ivals.sort()
+        lo, hi = ivals[0]
+        runs = []
+        for a, b in ivals[1:]:
+            if a <= hi + gap:
+                hi = max(hi, b)
+            else:
+                runs.append((lo, hi))
+                lo, hi = a, b
+        runs.append((lo, hi))
+        for a, b in runs:
+            if b - a >= min_len:
+                segs.append((x0 + a * ux, y0 + a * uy,
+                             x0 + b * ux, y0 + b * uy))
     return segs
 
 
@@ -156,11 +221,24 @@ def _bind(labels, segs):
         else:
             per_seg.setdefault(best, []).append((best_d, lab))
     for seg_i, cands in per_seg.items():
-        cands.sort(key=lambda c: c[0])
-        for d, lab in cands[:MAX_LABELS_PER_SEG]:
-            bound.append({**lab, "seg": seg_i, "perp_pt": round(d, 2)})
-        for d, lab in cands[MAX_LABELS_PER_SEG:]:
-            unbound.append({**lab, "why": f"overfull_segment_{seg_i}"})
+        x0, y0, x1, y1 = segs[seg_i]
+        span = math.hypot(x1 - x0, y1 - y0)
+        by_kind = {}
+        for d, lab in sorted(cands, key=lambda c: c[0]):
+            by_kind.setdefault(lab["kind"], []).append((d, lab))
+        for kind, ks in by_kind.items():
+            # a short segment attracting a same-kind stack = a table rule or a
+            # notes block, not a course line - drop the lot as suspect
+            if span < 250 and len(ks) >= 3:
+                for d, lab in ks:
+                    unbound.append({**lab, "why": f"suspect_table_{seg_i}"})
+                continue
+            # a long CHAIN legitimately spans several courses -> scale the cap
+            cap = max(2, int(span // 150))
+            for d, lab in ks[:cap]:
+                bound.append({**lab, "seg": seg_i, "perp_pt": round(d, 2)})
+            for d, lab in ks[cap:]:
+                unbound.append({**lab, "why": f"overfull_segment_{seg_i}"})
     return bound, unbound
 
 
@@ -212,7 +290,7 @@ def stage(a, base):
     doc = fitz.open(a.pdf)
     page = doc[a.page]
     labels = _page_labels(page)
-    segs = _page_segments(page, a.min_len)
+    segs = _page_segments(page, a.min_len, a.gap)
     bound, unbound = _bind(labels, segs)
     labeled_ids = sorted({b["seg"] for b in bound})
     unlabeled_ids = [i for i in range(len(segs)) if i not in set(labeled_ids)]
@@ -366,7 +444,9 @@ def main():
     ap.add_argument("--band", type=float, default=5.0,
                     help="crop half-height in glyph heights (default 5)")
     ap.add_argument("--min-len", type=float, default=40.0,
-                    help="ignore vector segments shorter than this (pt)")
+                    help="ignore chained segments shorter than this (pt)")
+    ap.add_argument("--gap", type=float, default=8.0,
+                    help="max collinear gap to chain across (pt, dash gaps)")
     ap.add_argument("--max-segs", type=int, default=0,
                     help="cap labeled segments (pilot smoke runs)")
     ap.add_argument("--unlabeled", type=float, default=1.0,
