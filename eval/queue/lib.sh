@@ -1,6 +1,10 @@
 # shared helpers for the plat work queue (sourced by every job)
 PJ="$HOME/plat2json"; EVAL="$PJ/eval"; PY="$PJ/.venv/bin/python"
 QDIR="$HOME/plat-queue"; RESULTS="$QDIR/results"
+# URL is the llama-server endpoint ensure_server checks. NEVER declare another
+# variable named URL in a job — `declare -A URL=(...)` silently shadows this
+# scalar, "$URL" then expands EMPTY, and ensure_server kills healthy servers
+# forever (wave-8 job 240 lost four runs to exactly that).
 URL="http://127.0.0.1:8080"; PROMPT="$EVAL/read_prompt_local.txt"
 mkdir -p "$RESULTS/reads" "$QDIR/logs"
 

@@ -10,7 +10,7 @@ SUMMARY="$RESULTS/closure_summary.tsv"
 [ -s "$SUMMARY" ] || printf "sheet\tcourses\tclean\trings\tworst_precision\tneeds_human\tseconds\n" > "$SUMMARY"
 PP="$RESULTS/parcel_pdfs"; mkdir -p "$PP"
 
-declare -A URL=(
+declare -A SRC_URL=(
   [county_test]="https://www.boisecounty.us/wp-content/uploads/2025/09/Exh-13-Final-Plat.pdf"
   [adams_prc24_12]="https://adamscountyco.gov/wp-content/uploads/2025/08/PRC2024-00012-submittal3.pdf"
   [adams_prc2025]="https://adamscountyco.gov/wp-content/uploads/2026/03/PRC2025-00014-submittal3.pdf"
@@ -40,7 +40,7 @@ for slug in county_test adams_prc24_12 adams_prc2025 adams_wolfcreek; do
       cp "${LOCAL[$slug]}" "$PP/$slug.pdf"
     else
       qlog "fetch $slug"
-      curl -sL --retry 3 --max-time 300 -o "$PP/$slug.pdf" "${URL[$slug]}" \
+      curl -sL --retry 3 --max-time 300 -o "$PP/$slug.pdf" "${SRC_URL[$slug]}" \
         || { qlog "fetch FAILED $slug"; continue; }
       sleep 2
       head -c 5 "$PP/$slug.pdf" | grep -q "%PDF" \
