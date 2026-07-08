@@ -121,37 +121,79 @@ def fit_scale(per_seg, segs):
     return cands[len(cands) // 2], len(cands)
 
 
-def build_courses(per_seg, segs, theta, scale, b_tol, d_tol):
-    """Pair each segment's bearings/distances by window order into courses;
-    resolve travel direction from the bearing; flag residual outliers."""
+def pair_bd(bd):
+    """Pair a chain's bearings with its distances by WINDOW POSITION (a
+    course's two labels stack at the same spot), not by list index."""
+    bs, ds = list(bd["b"]), list(bd["d"])
+    pairs, used = [], set()
+    for b in bs:
+        best_j, best_gap = None, float("inf")
+        for j, d in enumerate(ds):
+            if j in used:
+                continue
+            gap = abs(b[0] - d[0])
+            if gap < best_gap:
+                best_gap, best_j = gap, j
+        if best_j is not None:
+            used.add(best_j)
+            pairs.append((b, ds[best_j]))
+        else:
+            pairs.append((b, None))
+    pairs.extend((None, d) for j, d in enumerate(ds) if j not in used)
+    return pairs
+
+
+def assign_courses_to_edges(per_chain, edges, scale, halfwin):
+    """Bind each paired course to ONE atomic edge of its parent chain, using
+    the label's window position and — the stronger signal — agreement between
+    the printed distance and the edge's length at the fitted scale (real lots
+    match at ~0.5%; see the prc24_12 diagnostic)."""
+    edges_by_chain = {}
+    for ei, e in enumerate(edges):
+        edges_by_chain.setdefault(e["chain"], []).append(ei)
+    per_edge = {}
+    for chain, bd in per_chain.items():
+        eis = edges_by_chain.get(chain, [])
+        if not eis:
+            continue
+        for b, d in pair_bd(bd):
+            pos = (b or d)[0] + halfwin          # window start -> label center
+            cand = [ei for ei in eis
+                    if edges[ei]["t0"] - halfwin <= pos <= edges[ei]["t1"] + halfwin]
+            if not cand:
+                cand = eis
+            best = None
+            if d is not None and scale:
+                by_len = min(cand, key=lambda ei: abs(
+                    d[2] - scale * (edges[ei]["t1"] - edges[ei]["t0"])))
+                if abs(d[2] - scale * (edges[by_len]["t1"] - edges[by_len]["t0"])) \
+                        <= 0.10 * max(d[2], 1e-9):
+                    best = by_len
+            if best is None:
+                best = min(cand, key=lambda ei: abs(
+                    (edges[ei]["t0"] + edges[ei]["t1"]) / 2 - pos))
+            per_edge.setdefault(best, []).append((b, d))
+    return per_edge
+
+
+def build_courses(per_edge, edges, nodes, theta, scale, b_tol, d_tol):
+    """Edge-bound course dicts: resolve travel direction from the bearing
+    against the EDGE axis; flag residual outliers. `seg` indexes plan lines
+    (= planarized edges), keeping the consumer contract unchanged."""
     courses = []
-    for seg, bd in sorted(per_seg.items()):
-        x0, y0, x1, y1 = segs[seg]
-        L = math.hypot(x1 - x0, y1 - y0)
-        # pair bearings with distances by WINDOW POSITION along the chain (a
-        # course's two labels stack at the same spot), not by list index
-        bs, ds = list(bd["b"]), list(bd["d"])
-        pairs, used = [], set()
-        for b in bs:
-            best_j, best_gap = None, float("inf")
-            for j, d in enumerate(ds):
-                if j in used:
-                    continue
-                gap = abs(b[0] - d[0])
-                if gap < best_gap:
-                    best_gap, best_j = gap, j
-            if best_j is not None:
-                used.add(best_j)
-                pairs.append((b, ds[best_j]))
-            else:
-                pairs.append((b, None))
-        pairs.extend((None, d) for j, d in enumerate(ds) if j not in used)
-        for b, d in pairs:
-            c = {"seg": seg, "px": [round(v, 2) for v in segs[seg]], "flags": []}
+    for ei in sorted(per_edge):
+        e = edges[ei]
+        ax, ay = nodes[e["a"]]
+        bx, by = nodes[e["b"]]
+        L = math.hypot(bx - ax, by - ay)
+        for b, d in per_edge[ei]:
+            c = {"seg": ei,
+                 "px": [round(ax, 2), round(ay, 2), round(bx, 2), round(by, 2)],
+                 "flags": []}
             if b:
                 _, raw, az = b
                 c["bearing"] = raw
-                fwd = math.degrees(math.atan2(x1 - x0, -(y1 - y0))) % 360
+                fwd = math.degrees(math.atan2(bx - ax, -(by - ay))) % 360
                 cands = [(abs(wrap360(az - ((fwd + theta) % 360))), +1),
                          (abs(wrap360(az - ((fwd + 180 + theta) % 360))), -1)]
                 resid, sense = min(cands)
@@ -163,7 +205,7 @@ def build_courses(per_seg, segs, theta, scale, b_tol, d_tol):
                 _, raw, v = d
                 c["distance"] = v
                 c["distance_raw"] = raw
-                if scale and len(bd["d"]) == 1:
+                if scale and L > 0:
                     err = abs(v - scale * L) / max(v, 1e-9)
                     if err > d_tol:
                         c["flags"].append(f"distance_vs_length_{err*100:.1f}pct")
@@ -171,6 +213,143 @@ def build_courses(per_seg, segs, theta, scale, b_tol, d_tol):
                 c["flags"].append("partial_course")
             courses.append(c)
     return courses
+
+
+def planarize(segs, tol=4.0):
+    """Split the chained segments at X-crossings and T-junctions into the
+    atomic edges of a planar arrangement. Lot corners on a plat are mostly
+    T-nodes (one lot's side ends against the interior of a neighbour's merged
+    collinear chain), so whole-chain endpoints never meet and no polygon can
+    be walked — this is the step that makes faces (= lots) exist at all.
+
+    Returns (nodes, edges): nodes = [(x, y)] cluster centers; edges = dicts
+    {a, b (node ids), chain (parent seg index), t0, t1 (pt along the chain)}.
+    """
+    cuts = []
+    geo = []
+    for x0, y0, x1, y1 in segs:
+        L = math.hypot(x1 - x0, y1 - y0)
+        geo.append((x0, y0, x1, y1, L))
+        cuts.append({0.0, L})
+
+    for i in range(len(segs)):
+        xi0, yi0, xi1, yi1, Li = geo[i]
+        rix, riy = xi1 - xi0, yi1 - yi0
+        for j in range(i + 1, len(segs)):
+            xj0, yj0, xj1, yj1, Lj = geo[j]
+            sjx, sjy = xj1 - xj0, yj1 - yj0
+            den = rix * sjy - riy * sjx
+            if abs(den) > 1e-9:
+                # X-crossing (or endpoint touch) via the line-line solve
+                qpx, qpy = xj0 - xi0, yj0 - yi0
+                t = (qpx * sjy - qpy * sjx) / den   # fraction along i
+                u = (qpx * riy - qpy * rix) / den   # fraction along j
+                if (-tol / Li <= t <= 1 + tol / Li
+                        and -tol / Lj <= u <= 1 + tol / Lj):
+                    cuts[i].add(min(max(t * Li, 0.0), Li))
+                    cuts[j].add(min(max(u * Lj, 0.0), Lj))
+                    continue
+            # T-junction with a gap: an endpoint of one chain stopping just
+            # short of the other's interior (dash gaps / stroke width)
+            for (px, py), (ax0, ay0, rx, ry, La, k) in (
+                ((xj0, yj0), (xi0, yi0, rix, riy, Li, i)),
+                ((xj1, yj1), (xi0, yi0, rix, riy, Li, i)),
+                ((xi0, yi0), (xj0, yj0, sjx, sjy, Lj, j)),
+                ((xi1, yi1), (xj0, yj0, sjx, sjy, Lj, j)),
+            ):
+                tt = ((px - ax0) * rx + (py - ay0) * ry) / (La * La)
+                if 0.0 < tt < 1.0:
+                    qx, qy = ax0 + tt * rx, ay0 + tt * ry
+                    if math.hypot(px - qx, py - qy) <= tol:
+                        cuts[k].add(tt * La)
+
+    # cluster all cut points into nodes (grid hash, tol radius)
+    nodes, grid = [], {}
+
+    def node_id(x, y):
+        cx, cy = int(x // tol), int(y // tol)
+        for gx in (cx - 1, cx, cx + 1):
+            for gy in (cy - 1, cy, cy + 1):
+                for ni in grid.get((gx, gy), ()):
+                    nx, ny = nodes[ni]
+                    if math.hypot(x - nx, y - ny) <= tol:
+                        return ni
+        nodes.append((x, y))
+        grid.setdefault((cx, cy), []).append(len(nodes) - 1)
+        return len(nodes) - 1
+
+    edges = []
+    for i, (x0, y0, x1, y1, L) in enumerate(geo):
+        ux, uy = (x1 - x0) / L, (y1 - y0) / L
+        ts = sorted(cuts[i])
+        merged = [ts[0]]
+        for t in ts[1:]:
+            if t - merged[-1] > tol:
+                merged.append(t)
+        for t0, t1 in zip(merged, merged[1:]):
+            a = node_id(x0 + t0 * ux, y0 + t0 * uy)
+            b = node_id(x0 + t1 * ux, y0 + t1 * uy)
+            if a != b:
+                edges.append({"a": a, "b": b, "chain": i,
+                              "t0": t0, "t1": t1})
+    return nodes, edges
+
+
+def extract_faces(nodes, edges):
+    """Faces of the planar graph via the angular (next-clockwise) walk.
+    Returns faces as lists of (edge_idx, forward_bool); the unbounded outer
+    face (largest |area|) and degenerate slivers are dropped."""
+    out = {}
+    for ei, e in enumerate(edges):
+        ax, ay = nodes[e["a"]]
+        bx, by = nodes[e["b"]]
+        ang_ab = math.atan2(by - ay, bx - ax)
+        ang_ba = math.atan2(ay - by, ax - bx)
+        out.setdefault(e["a"], []).append((ang_ab, ei, True))
+        out.setdefault(e["b"], []).append((ang_ba, ei, False))
+    for v in out.values():
+        v.sort()
+
+    def next_he(ei, fwd):
+        e = edges[ei]
+        v = e["b"] if fwd else e["a"]
+        back = (ei, not fwd)
+        ring = out[v]
+        k = next(i for i, (_, e2, f2) in enumerate(ring)
+                 if (e2, f2) == back)
+        _, ne, nf = ring[(k - 1) % len(ring)]   # next clockwise
+        return ne, nf
+
+    faces, seen = [], set()
+    for ei in range(len(edges)):
+        for fwd in (True, False):
+            if (ei, fwd) in seen:
+                continue
+            cyc, cur = [], (ei, fwd)
+            while cur not in seen:
+                seen.add(cur)
+                cyc.append(cur)
+                cur = next_he(*cur)
+            if cur == (ei, fwd) and len(cyc) >= 3:
+                faces.append(cyc)
+
+    def area(cyc):
+        s = 0.0
+        for e2, f2 in cyc:
+            e = edges[e2]
+            (ax, ay) = nodes[e["a"] if f2 else e["b"]]
+            (bx, by) = nodes[e["b"] if f2 else e["a"]]
+            s += ax * by - bx * ay
+        return s / 2.0
+
+    scored = [(area(c), c) for c in faces if abs(area(c)) > 25.0]  # no slivers
+    if not scored:
+        return []
+    # Interior and outer faces get opposite orientation signs under a fixed
+    # traversal rule — and every component's outer face shares the same sign,
+    # so sign-filtering also handles disconnected linework correctly.
+    outer_sign = math.copysign(1.0, max(scored, key=lambda sc: abs(sc[0]))[0])
+    return [c for a, c in scored if math.copysign(1.0, a) != outer_sign]
 
 
 def _circ_median_180(residuals, inlier_tol=1.5):
@@ -187,100 +366,71 @@ def _circ_median_180(residuals, inlier_tol=1.5):
     return wrap180(best + inl[len(inl) // 2]) if inl else best
 
 
-def close_rings(courses, segs, snap=12.0):
-    """Chain full courses end-to-end by endpoint snap; for each closed ring sum
-    the course vectors -> linear misclosure and the surveyor's precision ratio.
+def close_faces(faces, edges, nodes, courses):
+    """Traverse-closure per FACE of the planar arrangement (faces = lots).
 
     CLOSURE IS THE ARBITER: courses flagged only for a bearing/distance
     residual still participate (the global rotation fit that flagged them can
-    itself be wrong on a mixed sheet); a ring that closes vindicates its
+    itself be wrong on a mixed sheet); a face that closes vindicates its
     members, and its residual flags are cleared. Each leg's travel direction
-    is resolved against the ring's OWN walk (per-ring rotation fit), not the
-    global theta."""
-    full = [c for c in courses
-            if "azimuth" in c and "distance" in c
-            and not any(f.startswith("partial") for f in c["flags"])]
-    by_seg = {}
-    for c in full:
-        by_seg.setdefault(c["seg"], []).append(c)
-    # ring walking uses one course per segment; multi-course chains (several
-    # lot edges merged into one collinear chain) can't ring-walk anyway
-    seg_ids = sorted(s for s, cs in by_seg.items() if len(cs) == 1)
-    ends = {}
-    for s in seg_ids:
-        x0, y0, x1, y1 = segs[s]
-        ends[s] = ((x0, y0), (x1, y1))
+    is resolved against the face's OWN walk (per-ring rotation fit), not the
+    global theta. Returns (rings, faces_fully_coursed)."""
+    by_edge = {}
+    for c in courses:
+        if "azimuth" in c and "distance" in c \
+                and not any(f.startswith("partial") for f in c["flags"]):
+            by_edge.setdefault(c["seg"], c)
 
-    def near(p, q):
-        return math.hypot(p[0] - q[0], p[1] - q[1]) <= snap
-
-    def walk_dir(s, fwd):
-        """Segment's travel direction as a page azimuth (y-down, north=up)."""
-        (x0, y0), (x1, y1) = ends[s] if fwd else (ends[s][1], ends[s][0])
+    def walk_dir(ei, fwd):
+        e = edges[ei]
+        (x0, y0) = nodes[e["a"] if fwd else e["b"]]
+        (x1, y1) = nodes[e["b"] if fwd else e["a"]]
         return math.degrees(math.atan2(x1 - x0, -(y1 - y0))) % 360
 
-    rings, used = [], set()
-    for start in seg_ids:
-        if start in used:
-            continue
-        path, node = [(start, True)], ends[start][1]
-        origin = ends[start][0]
-        while True:
-            nxt = None
-            in_path = {s for s, _ in path}
-            for s in seg_ids:
-                if s in used or s in in_path:
-                    continue
-                if near(ends[s][0], node):
-                    nxt, node = (s, True), ends[s][1]
-                elif near(ends[s][1], node):
-                    nxt, node = (s, False), ends[s][0]
-                if nxt:
-                    break
-            if not nxt:
-                break
-            path.append(nxt)
-            if near(node, origin) and len(path) >= 3:
-                # per-ring rotation: how the sheet's bearings sit relative to
-                # THIS ring's geometric walk (robust to a bad global fit)
-                res = [wrap180(by_seg[s][0]["azimuth"] - walk_dir(s, fwd))
-                       for s, fwd in path]
-                theta_ring = _circ_median_180(res)
-                dx = dy = per = 0.0
-                senses = {}
-                for s, fwd in path:
-                    c = by_seg[s][0]
-                    want = (walk_dir(s, fwd) + theta_ring) % 360
-                    az = c["azimuth"]
-                    if abs(wrap360(az - want)) > 90:
-                        az = (az + 180) % 360
-                    senses[s] = 1 if abs(az - c["azimuth"]) < 1e-9 else -1
-                    a = math.radians(az)
-                    dx += c["distance"] * math.sin(a)
-                    dy += c["distance"] * math.cos(a)
-                    per += c["distance"]
-                mis = math.hypot(dx, dy)
-                ring = {
-                    "segs": [s for s, _ in path], "legs": len(path),
-                    "perimeter": round(per, 2),
-                    "misclosure": round(mis, 3),
-                    "theta_ring": round(theta_ring, 4),
-                    "precision": f"1:{int(per / mis)}" if mis > 1e-6 else "exact",
-                }
-                rings.append(ring)
-                used.update(s for s, _ in path)
-                # a PASSING ring vindicates its members: bake the resolved
-                # senses and clear residual flags so consumers draw it as-is
-                ratio = mis / per if per else 1.0
-                if ratio <= 1e-4 or mis <= 0.05:
-                    for s, _ in path:
-                        c = by_seg[s][0]
-                        c["sense"] = senses[s]
-                        c["flags"] = [f for f in c["flags"]
-                                      if not (f.startswith("bearing_residual")
-                                              or f.startswith("distance_vs_length"))]
-                break
-    return rings
+    rings, n_full = [], 0
+    for face in faces:
+        if any(ei not in by_edge for ei, _ in face):
+            continue                     # a leg has no readable course
+        n_full += 1
+        # consumers anchor the ring at its first edge's `a` node and walk
+        # forward — rotate the cycle so leg 0 is traversed forward
+        k = next((i for i, (_, fwd) in enumerate(face) if fwd), 0)
+        face = face[k:] + face[:k]
+        res = [wrap180(by_edge[ei]["azimuth"] - walk_dir(ei, fwd))
+               for ei, fwd in face]
+        theta_ring = _circ_median_180(res)
+        dx = dy = per = 0.0
+        senses = {}
+        for ei, fwd in face:
+            c = by_edge[ei]
+            want = (walk_dir(ei, fwd) + theta_ring) % 360
+            az = c["azimuth"]
+            if abs(wrap360(az - want)) > 90:
+                az = (az + 180) % 360
+            senses[ei] = 1 if abs(az - c["azimuth"]) < 1e-9 else -1
+            a = math.radians(az)
+            dx += c["distance"] * math.sin(a)
+            dy += c["distance"] * math.cos(a)
+            per += c["distance"]
+        mis = math.hypot(dx, dy)
+        rings.append({
+            "segs": [ei for ei, _ in face], "legs": len(face),
+            "perimeter": round(per, 2),
+            "misclosure": round(mis, 3),
+            "theta_ring": round(theta_ring, 4),
+            "precision": f"1:{int(per / mis)}" if mis > 1e-6 else "exact",
+        })
+        # a PASSING face vindicates its members: bake the resolved senses and
+        # clear residual flags so consumers draw it as-is
+        ratio = mis / per if per else 1.0
+        if ratio <= 1e-4 or mis <= 0.05:
+            for ei, _ in face:
+                c = by_edge[ei]
+                c["sense"] = senses[ei]
+                c["flags"] = [f for f in c["flags"]
+                              if not (f.startswith("bearing_residual")
+                                      or f.startswith("distance_vs_length"))]
+    return rings, n_full
 
 
 def main():
@@ -308,9 +458,17 @@ def main():
 
     theta, n_in, n_b = fit_rotation(per_seg, segs)
     scale, n_s = fit_scale(per_seg, segs)
-    courses = build_courses(per_seg, segs, theta, scale,
+
+    # planarize: chains -> atomic edges at X/T junctions; faces = lots
+    nodes, edges = planarize(segs)
+    faces = extract_faces(nodes, edges)
+    halfwin = (a.crop_w / px_per_pt) / 2.0
+    per_edge = assign_courses_to_edges(per_seg, edges, scale, halfwin)
+    courses = build_courses(per_edge, edges, nodes, theta, scale,
                             a.bearing_tol, a.dist_tol)
-    rings = close_rings(courses, segs)
+    rings, faces_full = close_faces(faces, edges, nodes, courses)
+    elines = [[round(v, 2) for v in (*nodes[e["a"]], *nodes[e["b"]])]
+              for e in edges]
 
     flagged = [c for c in courses if c["flags"]]
     clean = [c for c in courses if not c["flags"]]
@@ -330,9 +488,15 @@ def main():
         "scale_samples": n_s,
         "courses": courses,
         "rings": rings,
-        "lines": [list(s) for s in segs],   # back-compat: LS_IMPORTPLAN geometry
+        # lines = the PLANARIZED edges (same ink as the chains, split at X/T
+        # junctions); course.seg and ring.segs index into this list, so every
+        # consumer (LS_IMPORTPLAN, both MCPs) keeps working unchanged
+        "lines": elines,
         "report": {
             "segments": len(segs),
+            "edges": len(edges),
+            "faces": len(faces),
+            "faces_fully_coursed": faces_full,
             "courses": len(courses),
             "courses_clean": len(clean),
             "courses_flagged": len(flagged),
@@ -349,6 +513,8 @@ def main():
     print(f"[{os.path.basename(out)}] theta={theta:.3f}deg "
           f"(inliers {n_in}/{n_b}), scale={scale and round(scale,4)} "
           f"{a.unit}/pt ({n_s} samples)")
+    print(f"  {r['segments']} chains -> {r['edges']} edges, {r['faces']} faces "
+          f"({r['faces_fully_coursed']} fully coursed)")
     print(f"  courses: {r['courses']} ({r['courses_clean']} clean, "
           f"{r['courses_flagged']} flagged); rings closed: {r['rings_closed']}"
           f" ({r['rings_beyond_tolerance']} beyond tolerance)")

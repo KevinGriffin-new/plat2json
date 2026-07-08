@@ -300,9 +300,15 @@ def stage(a, base):
     segs = _page_segments(page, a.min_len, a.gap)
     bound, unbound = _bind(labels, segs)
     labeled_ids = sorted({b["seg"] for b in bound})
-    unlabeled_ids = [i for i in range(len(segs)) if i not in set(labeled_ids)]
-    random.Random(0).shuffle(unlabeled_ids)
-    control_ids = sorted(unlabeled_ids[:round(a.unlabeled * len(labeled_ids))])
+    if a.crop_all:
+        # production mode: crop EVERY chain (a real import has no golden to
+        # say which segments carry labels); bindings still power the metrics
+        labeled_ids = list(range(len(segs)))
+        control_ids = []
+    else:
+        unlabeled_ids = [i for i in range(len(segs)) if i not in set(labeled_ids)]
+        random.Random(0).shuffle(unlabeled_ids)
+        control_ids = sorted(unlabeled_ids[:round(a.unlabeled * len(labeled_ids))])
     if a.max_segs:
         labeled_ids = labeled_ids[:a.max_segs]
         control_ids = control_ids[:a.max_segs]
@@ -460,6 +466,8 @@ def main():
                     help="cap labeled segments (pilot smoke runs)")
     ap.add_argument("--unlabeled", type=float, default=1.0,
                     help="unlabeled control crops as a ratio of labeled segs")
+    ap.add_argument("--crop-all", action="store_true",
+                    help="production mode: crop every chain, no golden leak")
     ap.add_argument("--crop-w", type=int, default=1100)
     ap.add_argument("--crop-overlap", type=int, default=200)
     ap.add_argument("--url", default="http://127.0.0.1:8080")
