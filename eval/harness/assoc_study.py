@@ -55,7 +55,8 @@ import vlm_read                     # read_tile / extract_array (the fixed instr
 import score_run                    # dms / dms_cands / num (matching rules)
 
 TABLE_TAG_RE = re.compile(r"^\s*[LC]\s?\d+\b")   # line/curve table row tag
-STATION_PREFIX_RE = re.compile(r"\d\+\s?$")      # '10+08.58' station fragment
+STATION_PREFIX_RE = re.compile(r"\+\s?$")        # '10+08.58' / '+43.94' station
+OFFSET_SUFFIX_RE = re.compile(r"^\s*['′]?\s*[LR]T\b", re.IGNORECASE)  # 50.00' LT
 ANGLE_TOL_DEG = 20.0     # label dir vs segment dir (mod 180)
 PROJ_LO, PROJ_HI = -0.15, 1.15   # label center projection along the segment
 
@@ -90,7 +91,8 @@ def _page_labels(page):
                         or vg.CURVE_WORD_RE.search(pre)
                         or STATION_PREFIX_RE.search(pre)):
                     continue
-                if vg.AREA_SUFFIX_RE.match(post) or vg.INCH_SUFFIX_RE.match(post):
+                if vg.AREA_SUFFIX_RE.match(post) or vg.INCH_SUFFIX_RE.match(post) \
+                        or OFFSET_SUFFIX_RE.match(post):
                     continue
                 v = float(m.group().replace(",", ""))
                 if vg.DIST_MIN <= v <= vg.DIST_MAX:
