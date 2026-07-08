@@ -128,11 +128,24 @@ def build_courses(per_seg, segs, theta, scale, b_tol, d_tol):
     for seg, bd in sorted(per_seg.items()):
         x0, y0, x1, y1 = segs[seg]
         L = math.hypot(x1 - x0, y1 - y0)
-        pairs = []
+        # pair bearings with distances by WINDOW POSITION along the chain (a
+        # course's two labels stack at the same spot), not by list index
         bs, ds = list(bd["b"]), list(bd["d"])
-        for i in range(max(len(bs), len(ds))):
-            pairs.append((bs[i] if i < len(bs) else None,
-                          ds[i] if i < len(ds) else None))
+        pairs, used = [], set()
+        for b in bs:
+            best_j, best_gap = None, float("inf")
+            for j, d in enumerate(ds):
+                if j in used:
+                    continue
+                gap = abs(b[0] - d[0])
+                if gap < best_gap:
+                    best_gap, best_j = gap, j
+            if best_j is not None:
+                used.add(best_j)
+                pairs.append((b, ds[best_j]))
+            else:
+                pairs.append((b, None))
+        pairs.extend((None, d) for j, d in enumerate(ds) if j not in used)
         for b, d in pairs:
             c = {"seg": seg, "px": [round(v, 2) for v in segs[seg]], "flags": []}
             if b:
@@ -160,16 +173,39 @@ def build_courses(per_seg, segs, theta, scale, b_tol, d_tol):
     return courses
 
 
-def close_rings(courses, segs, snap=3.0):
+def _circ_median_180(residuals, inlier_tol=1.5):
+    """RANSAC-lite circular median mod 180 (same trick as fit_rotation)."""
+    if not residuals:
+        return 0.0
+    best, best_n = residuals[0], -1
+    for cand in residuals:
+        n = sum(1 for r in residuals if abs(wrap180(r - cand)) <= inlier_tol)
+        if n > best_n:
+            best_n, best = n, cand
+    inl = sorted(wrap180(r - best) for r in residuals
+                 if abs(wrap180(r - best)) <= inlier_tol)
+    return wrap180(best + inl[len(inl) // 2]) if inl else best
+
+
+def close_rings(courses, segs, snap=12.0):
     """Chain full courses end-to-end by endpoint snap; for each closed ring sum
-    the course vectors -> linear misclosure and the surveyor's precision ratio."""
+    the course vectors -> linear misclosure and the surveyor's precision ratio.
+
+    CLOSURE IS THE ARBITER: courses flagged only for a bearing/distance
+    residual still participate (the global rotation fit that flagged them can
+    itself be wrong on a mixed sheet); a ring that closes vindicates its
+    members, and its residual flags are cleared. Each leg's travel direction
+    is resolved against the ring's OWN walk (per-ring rotation fit), not the
+    global theta."""
     full = [c for c in courses
             if "azimuth" in c and "distance" in c
             and not any(f.startswith("partial") for f in c["flags"])]
     by_seg = {}
     for c in full:
         by_seg.setdefault(c["seg"], []).append(c)
-    seg_ids = sorted(by_seg)          # closure only over fully-coursed segments
+    # ring walking uses one course per segment; multi-course chains (several
+    # lot edges merged into one collinear chain) can't ring-walk anyway
+    seg_ids = sorted(s for s, cs in by_seg.items() if len(cs) == 1)
     ends = {}
     for s in seg_ids:
         x0, y0, x1, y1 = segs[s]
@@ -178,44 +214,71 @@ def close_rings(courses, segs, snap=3.0):
     def near(p, q):
         return math.hypot(p[0] - q[0], p[1] - q[1]) <= snap
 
+    def walk_dir(s, fwd):
+        """Segment's travel direction as a page azimuth (y-down, north=up)."""
+        (x0, y0), (x1, y1) = ends[s] if fwd else (ends[s][1], ends[s][0])
+        return math.degrees(math.atan2(x1 - x0, -(y1 - y0))) % 360
+
     rings, used = [], set()
     for start in seg_ids:
         if start in used:
             continue
-        path, node = [start], ends[start][1]
+        path, node = [(start, True)], ends[start][1]
         origin = ends[start][0]
         while True:
             nxt = None
+            in_path = {s for s, _ in path}
             for s in seg_ids:
-                if s in used or s in path:
+                if s in used or s in in_path:
                     continue
                 if near(ends[s][0], node):
-                    nxt, node = s, ends[s][1]
+                    nxt, node = (s, True), ends[s][1]
                 elif near(ends[s][1], node):
-                    nxt, node = s, ends[s][0]
+                    nxt, node = (s, False), ends[s][0]
                 if nxt:
                     break
             if not nxt:
                 break
             path.append(nxt)
             if near(node, origin) and len(path) >= 3:
-                # sum course vectors around the ring
+                # per-ring rotation: how the sheet's bearings sit relative to
+                # THIS ring's geometric walk (robust to a bad global fit)
+                res = [wrap180(by_seg[s][0]["azimuth"] - walk_dir(s, fwd))
+                       for s, fwd in path]
+                theta_ring = _circ_median_180(res)
                 dx = dy = per = 0.0
-                for s in path:
+                senses = {}
+                for s, fwd in path:
                     c = by_seg[s][0]
-                    az = math.radians(c["azimuth"] if c["sense"] > 0
-                                      else (c["azimuth"] + 180) % 360)
-                    dx += c["distance"] * math.sin(az)
-                    dy += c["distance"] * math.cos(az)
+                    want = (walk_dir(s, fwd) + theta_ring) % 360
+                    az = c["azimuth"]
+                    if abs(wrap360(az - want)) > 90:
+                        az = (az + 180) % 360
+                    senses[s] = 1 if abs(az - c["azimuth"]) < 1e-9 else -1
+                    a = math.radians(az)
+                    dx += c["distance"] * math.sin(a)
+                    dy += c["distance"] * math.cos(a)
                     per += c["distance"]
                 mis = math.hypot(dx, dy)
-                rings.append({
-                    "segs": path[:], "legs": len(path),
+                ring = {
+                    "segs": [s for s, _ in path], "legs": len(path),
                     "perimeter": round(per, 2),
                     "misclosure": round(mis, 3),
+                    "theta_ring": round(theta_ring, 4),
                     "precision": f"1:{int(per / mis)}" if mis > 1e-6 else "exact",
-                })
-                used.update(path)
+                }
+                rings.append(ring)
+                used.update(s for s, _ in path)
+                # a PASSING ring vindicates its members: bake the resolved
+                # senses and clear residual flags so consumers draw it as-is
+                ratio = mis / per if per else 1.0
+                if ratio <= 1e-4 or mis <= 0.05:
+                    for s, _ in path:
+                        c = by_seg[s][0]
+                        c["sense"] = senses[s]
+                        c["flags"] = [f for f in c["flags"]
+                                      if not (f.startswith("bearing_residual")
+                                              or f.startswith("distance_vs_length"))]
                 break
     return rings
 
