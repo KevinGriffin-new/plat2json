@@ -144,35 +144,75 @@ def pair_bd(bd):
 
 
 def assign_courses_to_edges(per_chain, edges, scale, halfwin):
-    """Bind each paired course to ONE atomic edge of its parent chain, using
-    the label's window position and — the stronger signal — agreement between
-    the printed distance and the edge's length at the fitted scale (real lots
-    match at ~0.5%; see the prc24_12 diagnostic)."""
+    """Bind courses to atomic edges by MONOTONE 1:1 alignment per chain.
+
+    Label order along a chain equals edge order, so this is a sequence
+    alignment, not independent nearest-matching — which mattered: subdivision
+    lots repeat identical printed widths (50.00' × N), so independent
+    best-length matching resolved its ties by iteration order and stacked
+    several courses on one edge while its look-alike neighbours starved
+    (38/54 quad faces with zero courses despite full crop coverage).
+
+    Edit-distance DP per chain: each course is either assigned to the next
+    unused edge in order (cost = position offset + printed-distance vs
+    scale×edge-length mismatch), or dropped at fixed cost; edges may be
+    skipped freely. At most one course lands on any edge."""
     edges_by_chain = {}
     for ei, e in enumerate(edges):
         edges_by_chain.setdefault(e["chain"], []).append(ei)
     per_edge = {}
+    DROP = 3.0
     for chain, bd in per_chain.items():
-        eis = edges_by_chain.get(chain, [])
+        eis = sorted(edges_by_chain.get(chain, []),
+                     key=lambda ei: edges[ei]["t0"])
         if not eis:
             continue
-        for b, d in pair_bd(bd):
-            pos = (b or d)[0] + halfwin          # window start -> label center
-            cand = [ei for ei in eis
-                    if edges[ei]["t0"] - halfwin <= pos <= edges[ei]["t1"] + halfwin]
-            if not cand:
-                cand = eis
-            best = None
-            if d is not None and scale:
-                by_len = min(cand, key=lambda ei: abs(
-                    d[2] - scale * (edges[ei]["t1"] - edges[ei]["t0"])))
-                if abs(d[2] - scale * (edges[by_len]["t1"] - edges[by_len]["t0"])) \
-                        <= 0.10 * max(d[2], 1e-9):
-                    best = by_len
-            if best is None:
-                best = min(cand, key=lambda ei: abs(
-                    (edges[ei]["t0"] + edges[ei]["t1"]) / 2 - pos))
-            per_edge.setdefault(best, []).append((b, d))
+        pairs = sorted(pair_bd(bd), key=lambda p: (p[0] or p[1])[0])
+        n, m = len(pairs), len(eis)
+        if not n:
+            continue
+
+        def cost(p, ei):
+            b, d = p
+            pos = (b or d)[0] + halfwin      # window start -> label center
+            e = edges[ei]
+            mid = (e["t0"] + e["t1"]) / 2
+            elen = e["t1"] - e["t0"]
+            c = min(abs(pos - mid) / max(halfwin, 1.0), 2.5)
+            if d is not None and scale and elen > 0:
+                rel = abs(d[2] - scale * elen) / max(d[2], 1e-9)
+                c += min(rel * 10.0, 3.0)    # 10% length mismatch = +1.0
+            return c
+
+        INF = float("inf")
+        g = [[INF] * (m + 1) for _ in range(n + 1)]
+        bk = [[None] * (m + 1) for _ in range(n + 1)]
+        for j in range(m + 1):
+            g[0][j] = 0.0
+        for i in range(1, n + 1):
+            for j in range(m + 1):
+                if j > 0 and g[i][j - 1] < g[i][j]:
+                    g[i][j] = g[i][j - 1]
+                    bk[i][j] = "skip"
+                if g[i - 1][j] + DROP < g[i][j]:
+                    g[i][j] = g[i - 1][j] + DROP
+                    bk[i][j] = "drop"
+                if j > 0:
+                    c = g[i - 1][j - 1] + cost(pairs[i - 1], eis[j - 1])
+                    if c < g[i][j]:
+                        g[i][j] = c
+                        bk[i][j] = "take"
+        i, j = n, m
+        while i > 0:
+            move = bk[i][j]
+            if move == "skip":
+                j -= 1
+            elif move == "drop":
+                i -= 1
+            else:
+                per_edge.setdefault(eis[j - 1], []).append(pairs[i - 1])
+                i -= 1
+                j -= 1
     return per_edge
 
 
@@ -456,14 +496,26 @@ def main():
     per_seg = collect_courses(key, reads, a.crop_w / px_per_pt,
                               a.crop_overlap / px_per_pt)
 
-    theta, n_in, n_b = fit_rotation(per_seg, segs)
-    scale, n_s = fit_scale(per_seg, segs)
-
-    # planarize: chains -> atomic edges at X/T junctions; faces = lots
-    nodes, edges = planarize(segs)
+    planar = key.get("planar")
+    if planar:
+        # EDGE-CROP mode: the stage phase already planarized and cropped one
+        # strip per atomic edge, so the crop index IS the edge id — no
+        # assignment step, association is true by construction.
+        nodes = [tuple(p) for p in planar["nodes"]]
+        edges = planar["edges"]
+        geom = [(*nodes[e["a"]], *nodes[e["b"]]) for e in edges]
+        theta, n_in, n_b = fit_rotation(per_seg, geom)
+        scale, n_s = fit_scale(per_seg, geom)
+        per_edge = {ei: pair_bd(bd) for ei, bd in per_seg.items()
+                    if ei < len(edges)}
+    else:
+        theta, n_in, n_b = fit_rotation(per_seg, segs)
+        scale, n_s = fit_scale(per_seg, segs)
+        # planarize here: chains -> atomic edges at X/T junctions
+        nodes, edges = planarize(segs)
+        halfwin = (a.crop_w / px_per_pt) / 2.0
+        per_edge = assign_courses_to_edges(per_seg, edges, scale, halfwin)
     faces = extract_faces(nodes, edges)
-    halfwin = (a.crop_w / px_per_pt) / 2.0
-    per_edge = assign_courses_to_edges(per_seg, edges, scale, halfwin)
     courses = build_courses(per_edge, edges, nodes, theta, scale,
                             a.bearing_tol, a.dist_tol)
     rings, faces_full = close_faces(faces, edges, nodes, courses)

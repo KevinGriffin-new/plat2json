@@ -298,9 +298,31 @@ def stage(a, base):
         page.remove_rotation()
     labels = _page_labels(page)
     segs = _page_segments(page, a.min_len, a.gap)
-    bound, unbound = _bind(labels, segs)
-    labeled_ids = sorted({b["seg"] for b in bound})
-    if a.crop_all:
+    planar = None
+    seg_source = segs
+    if a.crop_edges:
+        # EDGE-CROP production mode: planarize the chains (shared code with
+        # the assembler) and cut one strip per atomic edge. The crop index
+        # becomes the edge id, so association needs no assignment step at
+        # all — per-CHAIN strips proved unusable on uniform lot fabric
+        # (each window shows a whole neighbourhood of look-alike labels).
+        sys.path.insert(0, os.path.normpath(os.path.join(HERE, "..", "..")))
+        import cogo_assemble as CA
+        nodes, pedges = CA.planarize(segs)
+        seg_source = [(nodes[e["a"]][0], nodes[e["a"]][1],
+                       nodes[e["b"]][0], nodes[e["b"]][1]) for e in pedges]
+        planar = {"nodes": [[round(x, 2), round(y, 2)] for x, y in nodes],
+                  "edges": pedges}
+        bound, unbound = _bind(labels, seg_source)
+        labeled_ids = [i for i, s in enumerate(seg_source)
+                       if math.hypot(s[2] - s[0], s[3] - s[1]) >= a.min_edge]
+        control_ids = []
+    else:
+        bound, unbound = _bind(labels, segs)
+        labeled_ids = sorted({b["seg"] for b in bound})
+    if a.crop_edges:
+        pass
+    elif a.crop_all:
         # production mode: crop EVERY chain (a real import has no golden to
         # say which segments carry labels); bindings still power the metrics
         labeled_ids = list(range(len(segs)))
@@ -328,7 +350,7 @@ def stage(a, base):
 
     n_crops = 0
     for i in labeled_ids + control_ids:
-        seg_px = tuple(v * s for v in segs[i])
+        seg_px = tuple(v * s for v in seg_source[i])
         for wi, win in enumerate(_crop_windows(img, seg_px, band_px,
                                                a.crop_w, a.crop_overlap)):
             Image.fromarray(win).save(
@@ -340,6 +362,9 @@ def stage(a, base):
            "segments": [[round(v, 2) for v in sg] for sg in segs],
            "labeled_ids": labeled_ids, "control_ids": control_ids,
            "bindings": bound, "unbound": unbound}
+    if planar:
+        key["planar"] = planar
+        key["crop_mode"] = "edges"
     json.dump(key, open(os.path.join(base, "_assoc_key.json"), "w",
                         encoding="utf-8"), ensure_ascii=False, indent=1)
     # vector lines -> the standard plan json, so score_run's self-check works
@@ -468,6 +493,11 @@ def main():
                     help="unlabeled control crops as a ratio of labeled segs")
     ap.add_argument("--crop-all", action="store_true",
                     help="production mode: crop every chain, no golden leak")
+    ap.add_argument("--crop-edges", action="store_true",
+                    help="production mode: planarize first, crop per atomic "
+                         "edge (crop index = edge id; no assignment step)")
+    ap.add_argument("--min-edge", type=float, default=15.0,
+                    help="skip atomic edges shorter than this (pt)")
     ap.add_argument("--crop-w", type=int, default=1100)
     ap.add_argument("--crop-overlap", type=int, default=200)
     ap.add_argument("--url", default="http://127.0.0.1:8080")
