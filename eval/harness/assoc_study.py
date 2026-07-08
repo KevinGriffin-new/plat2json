@@ -389,6 +389,8 @@ def _match(lab, items):
     else:
         want = float(lab["raw"].replace(",", ""))
         for it in items:
+            if it.get("kind") == "bearing":   # num('N 84°04\'46" W') -> 46.0
+                continue
             v = score_run.num(it["raw"])
             if v is not None and abs(v - want) <= 0.2:
                 return True
