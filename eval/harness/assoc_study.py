@@ -291,6 +291,11 @@ def stage(a, base):
     Image.MAX_IMAGE_PIXELS = None
     doc = fitz.open(a.pdf)
     page = doc[a.page]
+    # /Rotate pages: get_drawings/get_text report UNROTATED coords while
+    # get_pixmap renders rotated -> every crop lands displaced (county_test,
+    # /Rotate 270, put crops on the title block and blank paper). Normalize.
+    if page.rotation:
+        page.remove_rotation()
     labels = _page_labels(page)
     segs = _page_segments(page, a.min_len, a.gap)
     bound, unbound = _bind(labels, segs)
