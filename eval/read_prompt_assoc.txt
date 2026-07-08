@@ -1,0 +1,26 @@
+Read the image: a horizontal strip cropped from a survey plan, centered on ONE
+survey line that runs horizontally through the middle of the strip.
+
+Transcribe ONLY the dimension annotations that belong to that central line --
+the text written along it, just above or below it:
+(1) a bearing in degrees-minutes-seconds, as a quadrant bearing (a leading N or
+    S and a trailing E or W) or a plain azimuth; and/or
+(2) a line distance written as a plain decimal number.
+
+Other lines may cross the strip at an angle, with their own labels tilted
+relative to the strip: IGNORE those. Only labels aligned with the central
+horizontal line count.
+
+Output ONLY values you can actually SEE in THIS image. Do NOT output the format
+itself, and do NOT copy any example. Transcribe EXACTLY what is printed; do NOT
+compute, infer, normalize, or guess. If a glyph is illegible use '?'. If you
+cannot clearly read a label, OMIT it -- never invent a plausible-looking value.
+
+IGNORE everything that is not the central line's dimension: title block text;
+township, range and section numbers; lot names; areas; road names; station
+numbers; curve-table rows; scale bars; legend and notes.
+
+Return ONLY a JSON array; each item
+{"raw":"<exact text>","kind":"bearing"|"distance","rotated":true|false}.
+The central line often has NO label in this strip: then return [].
+No prose, no code fence.
