@@ -16,6 +16,14 @@ declare -A URL=(
   [adams_prc2025]="https://adamscountyco.gov/wp-content/uploads/2026/03/PRC2025-00014-submittal3.pdf"
   [adams_wolfcreek]="https://adamscountyco.gov/wp-content/uploads/2025/08/PLT2024-00007-submittal1.pdf"
 )
+# already-staged copies from earlier waves (county sites are Cloudflare-gated;
+# curl gets a challenge page, so prefer what is on disk)
+declare -A LOCAL=(
+  [county_test]="$EVAL/harness/_sources/county_test/Exh-13-Final-Plat.pdf"
+  [adams_prc24_12]="$EVAL/harness/_sources/corpus_fetch/adams_prc24_12.pdf"
+  [adams_prc2025]="$EVAL/harness/_sources/corpus_fetch/adams_prc2025.pdf"
+  [adams_wolfcreek]="$EVAL/harness/_sources/corpus_fetch/adams_wolfcreek.pdf"
+)
 
 for slug in county_test adams_prc24_12 adams_prc2025 adams_wolfcreek; do
   gt=$(ls "$EVAL"/goldens/"${slug}".key_p*.json 2>/dev/null | head -1)
@@ -23,11 +31,21 @@ for slug in county_test adams_prc24_12 adams_prc2025 adams_wolfcreek; do
   page=$(basename "$gt" | sed 's/.*key_p\([0-9]*\)\.json/\1/')
   vslug="${slug}__assoc"
   [ -e "$RESULTS/reads/${vslug}.plan_assoc.json" ] && { qlog "skip $vslug (done)"; continue; }
+  # a Cloudflare challenge page is not a plat
+  [ -s "$PP/$slug.pdf" ] && ! head -c 5 "$PP/$slug.pdf" | grep -q "%PDF" \
+    && { qlog "stale non-PDF for $slug -- refetch"; rm -f "$PP/$slug.pdf"; }
   if [ ! -s "$PP/$slug.pdf" ]; then
-    qlog "fetch $slug"
-    curl -sL --retry 3 --max-time 300 -o "$PP/$slug.pdf" "${URL[$slug]}" \
-      || { qlog "fetch FAILED $slug"; continue; }
-    sleep 2
+    if [ -s "${LOCAL[$slug]}" ]; then
+      qlog "local copy $slug"
+      cp "${LOCAL[$slug]}" "$PP/$slug.pdf"
+    else
+      qlog "fetch $slug"
+      curl -sL --retry 3 --max-time 300 -o "$PP/$slug.pdf" "${URL[$slug]}" \
+        || { qlog "fetch FAILED $slug"; continue; }
+      sleep 2
+      head -c 5 "$PP/$slug.pdf" | grep -q "%PDF" \
+        || { qlog "fetch got non-PDF for $slug -- skip"; rm -f "$PP/$slug.pdf"; continue; }
+    fi
   fi
   ensure_server || { qlog "server unrecoverable -- abort"; exit 1; }
   qlog "assoc+closure $vslug (page $page)"
