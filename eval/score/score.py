@@ -29,7 +29,8 @@ import sys
 import statistics
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.dirname(HERE))  # parent plan2cad/ for plan_validator
+EVAL_ROOT = os.path.dirname(HERE)  # eval/ — manifest, goldens/, reads/ live here
+sys.path.insert(0, EVAL_ROOT)  # for plan_validator
 import plan_validator as pv  # noqa: E402
 
 
@@ -37,7 +38,7 @@ import plan_validator as pv  # noqa: E402
 # loading
 # --------------------------------------------------------------------------- #
 def _resolve(path):
-    return path if os.path.isabs(path) else os.path.normpath(os.path.join(HERE, path))
+    return path if os.path.isabs(path) else os.path.normpath(os.path.join(EVAL_ROOT, path))
 
 
 def load_json(path):
@@ -268,6 +269,11 @@ def score_area(rings, published_areas, tol_m2):
 def score_plan(plan, tol):
     ex = plan.get("extraction", {})
     gt = plan.get("ground_truth", {})
+    if isinstance(gt, list):  # manifest v2 carries a LIST of ground-truth modes
+        merged = {"type": "+".join(e.get("type", "?") for e in gt)}
+        for e in gt:
+            merged.update({k: v for k, v in e.items() if k != "type"})
+        gt = merged
     res = {"id": plan["id"], "axes": plan.get("axes", {}),
            "gt_type": gt.get("type"), "status": ex.get("status")}
     if ex.get("status") != "available" or not ex.get("output"):

@@ -80,6 +80,29 @@ table, or — strongest for high-entropy values — the survey's own **geometric
 invariants** (a lode claim's sides are perpendicular to its ends; a traverse must
 close). A value forced to satisfy an exact structural constraint verifies itself.
 
+**Subdivision plats are the densest invariant source**: every lot prints its own
+area (redundant with its bearings/distances via area-by-coordinates, and with its
+curve `r=`/`a=` dimensions via the circular-segment term), every interior line is
+printed twice (once per adjacent lot), and lot areas + dedicated road must tile
+the parent parcel. `plan_validator.py` implements these checks (`validate_lot`,
+`validate_lots`) using the same open formulas municipal subdivision review is
+built on; its `--selftest` re-derives the instructor-computed worked examples of
+a public survey-computations lecture (GEOM 2120 L8A) before the math is trusted
+to judge any read. Two subtleties the selftest encodes: closure is *blind* to a
+flipped curve direction (same chord) — only the printed-area check catches it —
+and area computed over a non-closing traverse can coincidentally match (a sheared
+polygon keeps its area), so area passes are only meaningful alongside closure.
+
+**Road-plan curves are self-validating the same way**: a simple curve is fully
+determined by any two of {R, Δ, arc L, chord C, tangent T, M, E}, and plans
+label several (`r=`, `a=`, Δ, curve tables with T/C). `plan_validator.solve_curve`
+fills the full element set from any pair; `check_curve` pair-votes a set of read
+labels and — with 3+ labels — not only detects a misread but *identifies which
+label it is*. Deflection/stationing helpers (`deflection_deg`, `curve_stations`)
+compute stakeout coordinates; the selftest re-derives both worked curve examples
+(deflection table and station coordinates) from the companion lecture (GEOM 2120
+L7, "Horizontal Curves").
+
 ## Redistribution rule (what's committed vs URL-only)
 This repo is MIT/public, so committing = republishing. Copyright protects
 **expression, not facts** (Feist; for boundary surveys, merger doctrine too).

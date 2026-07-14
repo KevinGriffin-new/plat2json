@@ -2,12 +2,13 @@
   "schema_version": 2,
   "_doc": "plat2json/eval corpus. Each plan carries a PUBLIC source URL, a license, a redistribution flag, and a license-free ground-truth mode the scorer can check WITHOUT a CAD license. Source images are NEVER committed (regenerate via harness/acquire.py from the URL); only FACTS (numeric keys, blind-read fixtures, plat2json geometry traces) are committed. See README.md and results/corpus_sources.md.",
   "redistribution_rule": "Code = MIT. Committable for ANY source: numeric goldens, blind-read fixtures, geometry traces (all facts, not expression; Feist + merger doctrine). Gated: the source raster/image — committed only for public-domain (US-federal) sources; otherwise URL-only and the user re-fetches. Not legal advice.",
-  "tolerances": { "dist_m": 0.05, "bearing_arcmin": 5.0, "shape_m": 1.0, "shape_frac": 0.02, "closure_m": 0.05 },
+  "tolerances": { "dist_m": 0.05, "bearing_arcmin": 5.0, "shape_m": 1.0, "shape_frac": 0.02, "closure_m": 0.05, "area_m2": 0.5 },
   "ground_truth_types": [
     "self_check: read labels vs plat2json-recovered geometry (license-free precision signal)",
     "published_values: recovered labels vs the plan's own printed values (e.g. a vector text layer)",
     "field_notes_key: read labels vs the surveyor's separately-recorded courses (OCR/VLM of field notes)",
-    "geometric_invariants: read courses must satisfy the survey's own structural constraints (closure, perpendicularity, equal opposite sides) — a self-validating golden, strongest for high-entropy values"
+    "geometric_invariants: read courses must satisfy the survey's own structural constraints (closure, perpendicularity, equal opposite sides) — a self-validating golden, strongest for high-entropy values",
+    "subdivision_invariants: per-lot closure + printed-area match + shared-boundary duplication + block tiling (lot areas + dedicated road = parent) — a subdivision plat is self-validating (plan_validator.validate_lots); the area term also catches curve misreads (flipped bulge direction, r=/a= errors) that closure is blind to. Interpret area only alongside closure: on a NON-closing traverse the implicitly-closed area can coincidentally match."
   ],
   "plans": [
     {
