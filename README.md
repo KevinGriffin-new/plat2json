@@ -45,13 +45,26 @@ OCR scripts also need `pytesseract` (+ a system Tesseract install) and/or
 ## plan-JSON schema (the interchange contract)
 
     {
-      "lines":   [[x1, y1, x2, y2, "LAYER"], ...],
-      "arcs":    [[cx, cy, radius, start_deg, end_deg, "LAYER"], ...],
-      "circles": [[cx, cy, radius, "LAYER"], ...],
-      "texts":   [[x, y, "string", "STYLE"], ...]
+      "lines":     [[x1, y1, x2, y2, "LAYER"], ...],
+      "arcs":      [[cx, cy, radius, start_deg, end_deg, "LAYER"], ...],
+      "circles":   [[cx, cy, radius, "LAYER"], ...],
+      "texts":     [[x, y, "string", "STYLE"], ...],
+      "polylines": [[[x, y], [x, y, bulge], ..., "LAYER"], ...]
     }
 
 Coordinates are world metres, north-up — matching `LS_IMPORTPLAN`.
+
+`polylines` (optional) are ordered vertex chains; a polyline-aware importer
+turns each into one polyline entity. A vertex may carry a third element, the
+**bulge** of the segment *starting at that vertex*: `bulge = tan(sweep/4)`,
+CCW positive (the AutoCAD LWPolyline convention). Two-element vertices are
+straight segments.
+
+**Duplicate contract:** for sinks without polyline support, chains are also
+restated flattened — straight edges into `lines` and bulged segments into
+`arcs` — using the *same rounded values*, so a polyline-aware importer can
+recognize and skip those duplicates. Importers without polyline support just
+ignore `polylines` and draw `lines`/`arcs` as before.
 
 ## Layout
 

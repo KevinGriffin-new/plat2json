@@ -4,6 +4,13 @@ Chain the line segments into connected polylines (through degree-2 nodes), then
 per chain: algebraic circle-fit. Low residual + sane radius + real angular sweep
 => emit an Arc (center, radius, start/end deg) the way LS_IMPORTPLAN expects;
 otherwise keep the chain as line segments.
+
+Besides the legacy "lines"/"arcs" lists, every chain is also written to
+"polylines" as an ordered vertex chain where an arc becomes two vertices with a
+bulge (= tan(sweep/4), CCW positive, on the segment's FIRST vertex) - the form
+a polyline-aware importer turns into one LWPolyline. The bulge vertices are
+computed from the SAME rounded values as the matching "arcs" entry, so such an
+importer can recognize the legacy entries as duplicates and skip them.
 """
 import argparse, json, math
 import numpy as np
@@ -35,7 +42,7 @@ if plan.get("polylines") and not args.rechain:
     # intact. Re-chaining raw 'lines' through a node graph mis-merges a curve and
     # the straight line it meets at a junction, which fragments arcs (the boundary
     # curves were lost that way); the tracer already split cleanly at junctions.
-    chains = [np.array(pl[:-1], float) for pl in plan["polylines"]]  # drop layer tag
+    chains = [np.array([p[:2] for p in pl[:-1]], float) for pl in plan["polylines"]]  # drop layer tag + any bulge
     print(f"using {len(chains)} ordered polylines from the tracer")
 else:
     segs = [(L[0], L[1], L[2], L[3]) for L in plan["lines"]]
@@ -148,7 +155,7 @@ if args.merge_arcs:
     chains = merge_cocircular(chains)
     print(f"co-circular merge: {before} -> {len(chains)} chains")
 
-lines, arcs = [], []
+lines, arcs, polylines = [], [], []
 nfit = 0
 for P in chains:
     is_arc = False
@@ -162,16 +169,26 @@ for P in chains:
                 s, e = math.degrees(unang[0]), math.degrees(unang[-1])
                 if e < s:  # ensure CCW start->end
                     s, e = e, s
-                arcs.append([round(cx, 4), round(cy, 4), round(r, 4),
-                             round(s, 3), round(e, 3), "PROPERTY_LINE"])
+                cxr, cyr, rr = round(cx, 4), round(cy, 4), round(r, 4)
+                sd, ed = round(s, 3), round(e, 3)
+                arcs.append([cxr, cyr, rr, sd, ed, "PROPERTY_LINE"])
+                # Chain form of the SAME arc, from the same rounded values, so
+                # polyline-aware importers can match + skip the arcs entry.
+                sr, er = math.radians(sd), math.radians(ed)
+                a = [round(cxr + rr * math.cos(sr), 4), round(cyr + rr * math.sin(sr), 4)]
+                b = [round(cxr + rr * math.cos(er), 4), round(cyr + rr * math.sin(er), 4)]
+                bulge = round(math.tan((er - sr) / 4), 6)
+                polylines.append([a + [bulge], b, "PROPERTY_LINE"])
                 is_arc = True
                 nfit += 1
     if not is_arc:
+        polylines.append([[round(x, 4), round(y, 4)] for x, y in P] + ["PROPERTY_LINE"])
         for i in range(len(P) - 1):
             lines.append([round(P[i, 0], 4), round(P[i, 1], 4),
                           round(P[i+1, 0], 4), round(P[i+1, 1], 4), "PROPERTY_LINE"])
 
-json.dump({"lines": lines, "arcs": arcs, "circles": [], "texts": []}, open(OUT, "w"))
+json.dump({"lines": lines, "arcs": arcs, "circles": [], "texts": [],
+           "polylines": polylines}, open(OUT, "w"))
 print(f"chains: {len(chains)}  arcs fitted: {nfit}  lines: {len(lines)}")
 for a in arcs:
     print(f"  arc  center=({a[0]:.1f},{a[1]:.1f})  r={a[2]:.2f}m  {a[3]:.1f}->{a[4]:.1f} deg")
