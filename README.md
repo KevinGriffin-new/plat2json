@@ -6,6 +6,8 @@ draw. One extraction, many sinks (OpenCAD / MicroSurvey / Civil 3D / FreeCAD).
 
 **▶ [Live demo](https://kevingriffin-new.github.io/plat2json/plat-reader-demo.html)** — watch a local vision model trace a plat, read its rotated bearings and distances, and close the traverse.
 
+**▶ [Plat parsing theatre](https://kevingriffin-new.github.io/plat2json/plat-parsing-animation.html)** — interactive Three.js animation of plan ingestion, association, COGO closure, and JSON export. It can record its own 20-second WebM; see [`docs/RECORDING.md`](docs/RECORDING.md).
+
 > **Status: experimental / work-in-progress.** It produces a rough geometry
 > *skeleton*, not survey-grade output. Read [STATUS.md](STATUS.md) before relying
 > on it. Honest summary:
