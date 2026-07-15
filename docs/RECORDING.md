@@ -1,9 +1,11 @@
 # Recording The Plat Parsing Animation
 
-Open `plat-parsing-animation.html` in a current Chromium, Edge, or Firefox
-browser. Select **Record 20 second WebM**, wait for the loop to finish, then
-select **Download recording**. The browser captures the Three.js canvas, so the
-downloaded video exactly matches the interactive animation.
+Open `plat-parsing-animation.html` or `subdivision-parsing-animation.html` in
+a current Chromium, Edge, or Firefox browser. Select its **Record** button,
+wait for the loop to finish, then select **Download recording**. The parcel
+animation records 20 seconds; the slower subdivision animation records 30
+seconds. The browser captures the Three.js canvas, so the downloaded video
+exactly matches the interactive animation.
 
 To produce an MP4 for social or presentation software, convert the downloaded
 WebM locally:

@@ -8,6 +8,8 @@ draw. One extraction, many sinks (OpenCAD / MicroSurvey / Civil 3D / FreeCAD).
 
 **▶ [Plat parsing theatre](https://kevingriffin-new.github.io/plat2json/plat-parsing-animation.html)** — interactive Three.js animation of plan ingestion, association, COGO closure, and JSON export. It can record its own 20-second WebM; see [`docs/RECORDING.md`](docs/RECORDING.md).
 
+**▶ [Subdivision parsing theatre](https://kevingriffin-new.github.io/plat2json/subdivision-parsing-animation.html)** — slower, overhead Three.js walkthrough of a dense subdivision sheet. It pauses at seven search and categorization checks before reporting closure evidence.
+
 > **Status: experimental / work-in-progress.** It produces a rough geometry
 > *skeleton*, not survey-grade output. Read [STATUS.md](STATUS.md) before relying
 > on it. Honest summary:
