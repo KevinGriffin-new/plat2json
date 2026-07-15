@@ -53,6 +53,14 @@ def seg_axis_az(x0, y0, x1, y1):
     return math.degrees(math.atan2(x1 - x0, -(y1 - y0))) % 180
 
 
+def edge_walk_az(edges, nodes, ei, fwd):
+    """Travel azimuth (0-360, page pts y-down) of edge ei walked in fwd sense."""
+    e = edges[ei]
+    x0, y0 = nodes[e["a"] if fwd else e["b"]]
+    x1, y1 = nodes[e["b"] if fwd else e["a"]]
+    return math.degrees(math.atan2(x1 - x0, -(y1 - y0))) % 360
+
+
 def collect_courses(key, reads, crop_w, crop_ov):
     """Per-segment reads -> deduped bearings/distances with window positions."""
     per_seg = {}
@@ -422,12 +430,6 @@ def close_faces(faces, edges, nodes, courses):
                 and not any(f.startswith("partial") for f in c["flags"]):
             by_edge.setdefault(c["seg"], c)
 
-    def walk_dir(ei, fwd):
-        e = edges[ei]
-        (x0, y0) = nodes[e["a"] if fwd else e["b"]]
-        (x1, y1) = nodes[e["b"] if fwd else e["a"]]
-        return math.degrees(math.atan2(x1 - x0, -(y1 - y0))) % 360
-
     rings, n_full = [], 0
     for face in faces:
         if any(ei not in by_edge for ei, _ in face):
@@ -437,14 +439,14 @@ def close_faces(faces, edges, nodes, courses):
         # forward — rotate the cycle so leg 0 is traversed forward
         k = next((i for i, (_, fwd) in enumerate(face) if fwd), 0)
         face = face[k:] + face[:k]
-        res = [wrap180(by_edge[ei]["azimuth"] - walk_dir(ei, fwd))
+        res = [wrap180(by_edge[ei]["azimuth"] - edge_walk_az(edges, nodes, ei, fwd))
                for ei, fwd in face]
         theta_ring = _circ_median_180(res)
         dx = dy = per = 0.0
         senses = {}
         for ei, fwd in face:
             c = by_edge[ei]
-            want = (walk_dir(ei, fwd) + theta_ring) % 360
+            want = (edge_walk_az(edges, nodes, ei, fwd) + theta_ring) % 360
             az = c["azimuth"]
             if abs(wrap360(az - want)) > 90:
                 az = (az + 180) % 360
@@ -488,12 +490,6 @@ def validate_links(links, edges, nodes, courses, theta):
                 and not any(f.startswith("partial") for f in c["flags"]):
             by_edge.setdefault(c["seg"], []).append(c)
 
-    def walk_dir(ei, forward):
-        e = edges[ei]
-        x0, y0 = nodes[e["a"] if forward else e["b"]]
-        x1, y1 = nodes[e["b"] if forward else e["a"]]
-        return math.degrees(math.atan2(x1 - x0, -(y1 - y0))) % 360
-
     reports = []
     for index, link in enumerate(links):
         report = {"id": str(link.get("id", index))} if isinstance(link, dict) \
@@ -531,7 +527,7 @@ def validate_links(links, edges, nodes, courses, theta):
         de = dn = length = 0.0
         for ei, forward, course in selected:
             az = course["azimuth"]
-            expected = (walk_dir(ei, forward) + theta) % 360
+            expected = (edge_walk_az(edges, nodes, ei, forward) + theta) % 360
             if abs(wrap360(az - expected)) > 90:
                 az = (az + 180) % 360
             rad = math.radians(az)
@@ -618,7 +614,7 @@ def main():
     clean = [c for c in courses if not c["flags"]]
     bad_rings = [r for r in rings
                  if r["misclosure"] > 0.02 * math.sqrt(max(r["legs"], 1))
-                  and (r["misclosure"] / max(r["perimeter"], 1e-9)) > 1e-4]
+                 and (r["misclosure"] / max(r["perimeter"], 1e-9)) > 1e-4]
     bad_links = [r for r in link_reports
                  if r["status"] == "evaluated" and r["beyond_tolerance"]]
 
