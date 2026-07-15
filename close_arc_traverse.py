@@ -40,9 +40,12 @@ def close_traverse(courses):
     seg_area = 0.0
     per = 0.0
     for c in courses:
-        if "line" in c:
-            ns, d, m, s, ew, dist = c["line"]
-            az = _az(ns, d, m, s, ew)
+        if "line" in c or "line_az" in c:
+            if "line_az" in c:
+                az, dist = c["line_az"]           # azimuth already resolved
+            else:
+                ns, d, m, s, ew, dist = c["line"]
+                az = _az(ns, d, m, s, ew)
             heading = az
             x += dist * math.sin(math.radians(az))
             y += dist * math.cos(math.radians(az))
