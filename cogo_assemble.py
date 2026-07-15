@@ -24,7 +24,8 @@ via the back-compat "lines" block, by Open CAD Studio's LS_IMPORTPLAN.
 
     python cogo_assemble.py --key <_assoc_key.json> --reads <_assoc_reads.json>
         [--unit ft] [--crop-w 1100] [--crop-overlap 200]
-        [--bearing-tol 0.5] [--dist-tol 0.05] [--out plan.json]
+        [--bearing-tol 0.5] [--dist-tol 0.05] [--links links.json]
+        [--out plan.json]
 
 Stdlib only.
 """
@@ -50,6 +51,14 @@ def wrap360(a):
 def seg_axis_az(x0, y0, x1, y1):
     """Segment axis as a survey azimuth mod 180 (page pts, y-down, north=up)."""
     return math.degrees(math.atan2(x1 - x0, -(y1 - y0))) % 180
+
+
+def edge_walk_az(edges, nodes, ei, fwd):
+    """Travel azimuth (0-360, page pts y-down) of edge ei walked in fwd sense."""
+    e = edges[ei]
+    x0, y0 = nodes[e["a"] if fwd else e["b"]]
+    x1, y1 = nodes[e["b"] if fwd else e["a"]]
+    return math.degrees(math.atan2(x1 - x0, -(y1 - y0))) % 360
 
 
 def collect_courses(key, reads, crop_w, crop_ov):
@@ -421,12 +430,6 @@ def close_faces(faces, edges, nodes, courses):
                 and not any(f.startswith("partial") for f in c["flags"]):
             by_edge.setdefault(c["seg"], c)
 
-    def walk_dir(ei, fwd):
-        e = edges[ei]
-        (x0, y0) = nodes[e["a"] if fwd else e["b"]]
-        (x1, y1) = nodes[e["b"] if fwd else e["a"]]
-        return math.degrees(math.atan2(x1 - x0, -(y1 - y0))) % 360
-
     rings, n_full = [], 0
     for face in faces:
         if any(ei not in by_edge for ei, _ in face):
@@ -436,14 +439,14 @@ def close_faces(faces, edges, nodes, courses):
         # forward — rotate the cycle so leg 0 is traversed forward
         k = next((i for i, (_, fwd) in enumerate(face) if fwd), 0)
         face = face[k:] + face[:k]
-        res = [wrap180(by_edge[ei]["azimuth"] - walk_dir(ei, fwd))
+        res = [wrap180(by_edge[ei]["azimuth"] - edge_walk_az(edges, nodes, ei, fwd))
                for ei, fwd in face]
         theta_ring = _circ_median_180(res)
         dx = dy = per = 0.0
         senses = {}
         for ei, fwd in face:
             c = by_edge[ei]
-            want = (walk_dir(ei, fwd) + theta_ring) % 360
+            want = (edge_walk_az(edges, nodes, ei, fwd) + theta_ring) % 360
             az = c["azimuth"]
             if abs(wrap360(az - want)) > 90:
                 az = (az + 180) % 360
@@ -473,6 +476,84 @@ def close_faces(faces, edges, nodes, courses):
     return rings, n_full
 
 
+def validate_links(links, edges, nodes, courses, theta):
+    """Forward-compute optional paths between independently known controls.
+
+    A link is {id, start_EN, end_EN, segs:[{edge, forward}]}.  The controls
+    must be in the course bearing/distance coordinate system; traced endpoints
+    are not controls and only provide another geometry-fit check.  Links never
+    adjust courses or clear flags: they are evidence about the read.
+    """
+    by_edge = {}
+    for c in courses:
+        if "azimuth" in c and "distance" in c \
+                and not any(f.startswith("partial") for f in c["flags"]):
+            by_edge.setdefault(c["seg"], []).append(c)
+
+    reports = []
+    for index, link in enumerate(links):
+        report = {"id": str(link.get("id", index))} if isinstance(link, dict) \
+            else {"id": str(index)}
+        try:
+            if not isinstance(link, dict):
+                raise ValueError("each link must be an object")
+            start = [float(v) for v in link["start_EN"]]
+            end = [float(v) for v in link["end_EN"]]
+            legs = link["segs"]
+            if len(start) != 2 or len(end) != 2 or not legs:
+                raise ValueError("start_EN, end_EN, and a non-empty segs list are required")
+            if any(not isinstance(leg, dict) or "edge" not in leg
+                   or not isinstance(leg.get("forward"), bool) for leg in legs):
+                raise ValueError("each seg needs an edge and boolean forward")
+        except (KeyError, TypeError, ValueError) as exc:
+            report.update(status="not_evaluable", reason=str(exc))
+            reports.append(report)
+            continue
+
+        selected, invalid = [], []
+        for leg in legs:
+            ei = leg["edge"]
+            if not isinstance(ei, int) or ei < 0 or ei >= len(edges):
+                invalid.append(f"invalid_edge_{ei}")
+            elif len(by_edge.get(ei, [])) != 1:
+                invalid.append(f"edge_{ei}_needs_one_complete_course")
+            else:
+                selected.append((ei, leg["forward"], by_edge[ei][0]))
+        if invalid:
+            report.update(status="not_evaluable", reason="; ".join(invalid))
+            reports.append(report)
+            continue
+
+        de = dn = length = 0.0
+        for ei, forward, course in selected:
+            az = course["azimuth"]
+            expected = (edge_walk_az(edges, nodes, ei, forward) + theta) % 360
+            if abs(wrap360(az - expected)) > 90:
+                az = (az + 180) % 360
+            rad = math.radians(az)
+            de += course["distance"] * math.sin(rad)
+            dn += course["distance"] * math.cos(rad)
+            length += course["distance"]
+        residual_e = start[0] + de - end[0]
+        residual_n = start[1] + dn - end[1]
+        misclosure = math.hypot(residual_e, residual_n)
+        ratio = misclosure / length if length else 1.0
+        report.update({
+            "status": "evaluated",
+            "segs": [ei for ei, _, _ in selected],
+            "legs": len(selected),
+            "length": round(length, 2),
+            "computed_end_EN": [round(start[0] + de, 3), round(start[1] + dn, 3)],
+            "residual_EN": [round(residual_e, 3), round(residual_n, 3)],
+            "misclosure": round(misclosure, 3),
+            "precision": f"1:{int(length / misclosure)}" if misclosure > 1e-6 else "exact",
+            "beyond_tolerance": misclosure > 0.02 * math.sqrt(len(selected))
+            and ratio > 1e-4,
+        })
+        reports.append(report)
+    return reports
+
+
 def main():
     ap = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -485,11 +566,17 @@ def main():
                     help="flag course when |bearing - (axis+theta)| exceeds (deg)")
     ap.add_argument("--dist-tol", type=float, default=0.05,
                     help="flag course when |dist - scale*len|/dist exceeds")
+    ap.add_argument("--links", default=None,
+                    help="optional JSON links between independent known controls")
     ap.add_argument("--out", default=None)
     a = ap.parse_args()
 
     key = json.load(open(a.key, encoding="utf-8"))
     reads = json.load(open(a.reads, encoding="utf-8"))
+    links_data = json.load(open(a.links, encoding="utf-8")) if a.links else []
+    links = links_data.get("links", []) if isinstance(links_data, dict) else links_data
+    if not isinstance(links, list):
+        raise ValueError("--links must contain a list or an object with a links list")
     segs = [tuple(s) for s in key["segments"]]
     px_per_pt = key.get("dpi", 400) / 72.0
     # crop coords are px at dpi; window step must land in pt like the segments
@@ -519,6 +606,7 @@ def main():
     courses = build_courses(per_edge, edges, nodes, theta, scale,
                             a.bearing_tol, a.dist_tol)
     rings, faces_full = close_faces(faces, edges, nodes, courses)
+    link_reports = validate_links(links, edges, nodes, courses, theta)
     elines = [[round(v, 2) for v in (*nodes[e["a"]], *nodes[e["b"]])]
               for e in edges]
 
@@ -527,6 +615,8 @@ def main():
     bad_rings = [r for r in rings
                  if r["misclosure"] > 0.02 * math.sqrt(max(r["legs"], 1))
                  and (r["misclosure"] / max(r["perimeter"], 1e-9)) > 1e-4]
+    bad_links = [r for r in link_reports
+                 if r["status"] == "evaluated" and r["beyond_tolerance"]]
 
     plan = {
         "schema": "plan2/assoc-v1",
@@ -540,6 +630,7 @@ def main():
         "scale_samples": n_s,
         "courses": courses,
         "rings": rings,
+        "links": link_reports,
         # lines = the PLANARIZED edges (same ink as the chains, split at X/T
         # junctions); course.seg and ring.segs index into this list, so every
         # consumer (LS_IMPORTPLAN, both MCPs) keeps working unchanged
@@ -554,7 +645,11 @@ def main():
             "courses_flagged": len(flagged),
             "rings_closed": len(rings),
             "rings_beyond_tolerance": len(bad_rings),
-            "needs_human": bool(bad_rings) or (n_b > 0 and n_in / n_b < 0.7),
+            "links_evaluated": sum(r["status"] == "evaluated" for r in link_reports),
+            "links_not_evaluable": sum(r["status"] == "not_evaluable" for r in link_reports),
+            "links_beyond_tolerance": len(bad_links),
+            "needs_human": bool(bad_rings or bad_links)
+            or (n_b > 0 and n_in / n_b < 0.7),
         },
     }
     out = a.out or a.reads.replace("_assoc_reads", "_plan_assoc")\
@@ -573,6 +668,12 @@ def main():
     for ring in rings:
         print(f"    ring {ring['legs']} legs, perimeter {ring['perimeter']} "
               f"{a.unit}, misclosure {ring['misclosure']} -> {ring['precision']}")
+    for link in link_reports:
+        if link["status"] == "evaluated":
+            print(f"    link {link['id']} {link['legs']} legs, length {link['length']} "
+                  f"{a.unit}, misclosure {link['misclosure']} -> {link['precision']}")
+        else:
+            print(f"    link {link['id']}: not evaluable ({link['reason']})")
     print(f"  needs_human: {r['needs_human']}")
 
 

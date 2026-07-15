@@ -6,6 +6,10 @@ draw. One extraction, many sinks (OpenCAD / MicroSurvey / Civil 3D / FreeCAD).
 
 **▶ [Live demo](https://kevingriffin-new.github.io/plat2json/plat-reader-demo.html)** — watch a local vision model trace a plat, read its rotated bearings and distances, and close the traverse.
 
+**▶ [Plat parsing theatre](https://kevingriffin-new.github.io/plat2json/plat-parsing-animation.html)** — interactive Three.js animation of plan ingestion, association, COGO closure, and JSON export. It can record its own 20-second WebM; see [`docs/RECORDING.md`](docs/RECORDING.md).
+
+**▶ [Subdivision parsing theatre](https://kevingriffin-new.github.io/plat2json/subdivision-parsing-animation.html)** — slower, overhead Three.js walkthrough of a dense subdivision sheet. It pauses at seven search and categorization checks before reporting closure evidence.
+
 > **Status: experimental / work-in-progress.** It produces a rough geometry
 > *skeleton*, not survey-grade output. Read [STATUS.md](STATUS.md) before relying
 > on it. Honest summary:
@@ -41,6 +45,8 @@ OCR scripts also need `pytesseract` (+ a system Tesseract install) and/or
     python plat2json.py INPUT.pdf OUTPUT.json [--dpi 300] [--plot-scale 250]
     python fit_arcs.py        # geometry plan-JSON -> arcs   (edit IN/OUT at top)
     python arc_refine.py      # snap arcs to a published curve table
+    python cogo_assemble.py --key sheet_assoc_key.json --reads sheet_assoc_reads.json \
+        --links controls.json --out sheet_plan.json
 
 ## plan-JSON schema (the interchange contract)
 
@@ -82,6 +88,30 @@ ignore `polylines` and draw `lines`/`arcs` as before.
 Highest-leverage fix: replace the Hough vectorization with **skeleton
 path-tracing** (ordered per-curve polylines) so geometry is clean and arc-fitting
 becomes reliable — then tackle label OCR. Details in STATUS.md.
+
+### Optional link-traverse verification
+
+`cogo_assemble.py --links controls.json` forward-computes specified course
+paths between independently known control coordinates. It reports endpoint
+residuals, linear misclosure, and relative precision in the output's `links`
+block. It is diagnostic only: it never Bowditch-adjusts detected courses or
+clears their flags.
+
+```json
+{
+ "links": [{
+  "id": "west-boundary",
+  "start_EN": [500000.0, 5450000.0],
+  "end_EN": [500120.0, 5450060.0],
+  "segs": [{"edge": 12, "forward": true}, {"edge": 13, "forward": false}]
+ }]
+}
+```
+
+Every named edge must have exactly one complete straight bearing/distance
+course. Coordinates must be independent control in the same bearing basis and
+units as the courses; geometry-derived endpoints do not make a valid link
+check. Curve-only legs are intentionally reported as `not_evaluable`.
 
 ## License
 
