@@ -57,7 +57,7 @@ def page_gray(pdf, page, dpi):
     return np.frombuffer(pix.samples, np.uint8).reshape(pix.height, pix.width)
 
 
-def ink_masks(gray, dpi, roi=None):
+def ink_masks(gray, dpi, roi=None, text_filter=True):
     """(ink, linework): ink = every dark pixel on the FULL page (the chamfer /
     registration target — never ROI-cropped, or the fitter is blinded to ink
     the geometry legitimately covers and squeezes the transform to fit the
@@ -65,7 +65,15 @@ def ink_masks(gray, dpi, roi=None):
     (same size heuristic as plat2json.py, so text and stroked glyphs don't
     count as 'lines we missed'), optionally ROI-cropped — the ROI scopes the
     coverage DENOMINATOR to the drawing area, excluding title block / notes /
-    vicinity-map furniture that no reconstruction should chase."""
+    vicinity-map furniture that no reconstruction should chase.
+
+    text_filter drops TEXT-LIKE survivors of the size filter (a tall bearing
+    string or a stamp passes 'long component' easily): estimate each
+    component's stroke length as area / stroke-width (stroke-width = 2x mean
+    in-ink distance-transform) and drop it when that length exceeds ~2.2x the
+    bbox extent — a line or gentle arc carries about 1-1.5x its extent in
+    stroke, a glyph cluster several times that. Components spanning >8% of
+    the page are exempt (the parcel network is one giant CC and must stay)."""
     import cv2
     _, bw = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
     n, lab, stats, _ = cv2.connectedComponentsWithStats(bw, 8)
@@ -76,6 +84,17 @@ def ink_masks(gray, dpi, roi=None):
         x, y, w, h, area = stats[i]
         if max(w, h) > line_px and area >= 6 and not (w > 0.9*W and h > 0.9*H):
             keep[i] = True
+    if text_filter and keep.any():
+        dtin = cv2.distanceTransform(bw, cv2.DIST_L2, 5)
+        sums = np.bincount(lab.ravel(), weights=dtin.ravel(), minlength=n)
+        big = 0.08 * max(W, H)
+        for i in np.nonzero(keep)[0]:
+            x, y, w, h, area = stats[i]
+            if max(w, h) >= big:
+                continue
+            sw = max(2.0 * sums[i] / area, 1.0)
+            if (area / sw) / max(w, h) > 2.2:
+                keep[i] = False
     linework = keep[lab]
     if roi:
         m = np.zeros_like(linework)
@@ -311,6 +330,8 @@ def main():
     ap.add_argument("--tol-px", type=float, default=3.0, help="on-ink tolerance, pixels")
     ap.add_argument("--no-fit", action="store_true",
                     help="skip refinement; exact pt-space y-down mapping (cogo_assemble plans)")
+    ap.add_argument("--no-text-filter", action="store_true",
+                    help="keep text-like components in the coverage denominator")
     ap.add_argument("--out", default=None, help="overlay PNG path")
     ap.add_argument("--miss", default=None,
                     help="write a miss-map PNG (covered linework teal, missed red, recon "
@@ -323,7 +344,7 @@ def main():
 
     gray = page_gray(a.pdf, a.page, a.dpi)
     roi = tuple(float(v) for v in a.roi.split(",")) if a.roi else None
-    ink, linework = ink_masks(gray, a.dpi, roi)
+    ink, linework = ink_masks(gray, a.dpi, roi, text_filter=not a.no_text_filter)
 
     if a.plan:
         polys = plan_polylines(json.load(open(a.plan)))

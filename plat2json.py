@@ -30,14 +30,96 @@ import json
 import sys
 
 
-def trace_polylines(skel, eps, min_len):
+def merge_collinear(chains, ang_tol_deg=28.0, max_gap=5.0, tail=8):
+    """Good-continuation merge: re-join raw skeleton chains across junctions.
+
+    Every tick mark, crossing, or label touch splits a real drawn line into
+    junction-to-junction fragments; judging min_len against the FRAGMENTS is
+    what silently discarded most of the lot fabric (measured by
+    overlay_check.py: 34.5% -> ~70% linework coverage on 482.pdf when the cut
+    no longer sees fragments). At each junction, pair chain ends that continue
+    each other (endpoints within max_gap px, outward directions within
+    ang_tol of anti-parallel), greedily by best angle; union the pairings into
+    merged point runs. Ticks leave a junction at a steep angle and never pair;
+    glyph debris has no long continuation, so length (applied AFTER merging)
+    stays the discriminator the NOTE below argues for."""
+    import numpy as np
+    ends = []  # (chain_idx, end, point(r,c), outward unit dir)
+    for ci, ch in enumerate(chains):
+        if len(ch) < 2:
+            continue
+        a = np.asarray(ch, dtype=float)
+        for end, (p, q) in enumerate(((a[0], a[min(tail, len(a)-1)]),
+                                      (a[-1], a[max(-1-tail, -len(a))]))):
+            d = p - q
+            n = np.hypot(*d)
+            if n > 0:
+                ends.append((ci, end, p, d / n))
+    # candidate pairs from a coarse grid (junction ends sit within a few px)
+    cell = max(int(max_gap), 1)
+    grid = {}
+    for k, (_, _, p, _) in enumerate(ends):
+        grid.setdefault((int(p[0]) // cell, int(p[1]) // cell), []).append(k)
+    cos_tol = np.cos(np.radians(ang_tol_deg))
+    cands = []
+    for (gr, gc), ks in grid.items():
+        near = [k for dr in (-1, 0, 1) for dc in (-1, 0, 1)
+                for k in grid.get((gr + dr, gc + dc), [])]
+        for k in ks:
+            ci, e, p, d = ends[k]
+            for j in near:
+                if j <= k or ends[j][0] == ci:
+                    continue
+                cj, ej, pj, dj = ends[j]
+                if np.hypot(*(p - pj)) > max_gap:
+                    continue
+                c = float(-(d @ dj))          # continuation: outward dirs anti-parallel
+                if c >= cos_tol:
+                    cands.append((c, k, j))
+    links, taken = {}, set()
+    for _, k, j in sorted(cands, reverse=True):  # best continuation first
+        if k in taken or j in taken:
+            continue
+        taken.update((k, j))
+        a, b = (ends[k][0], ends[k][1]), (ends[j][0], ends[j][1])
+        links[a], links[b] = b, a
+    merged, seen = [], set()
+
+    def run(ci, enter):
+        seq, cur, ent = [], ci, enter
+        while cur not in seen:
+            seen.add(cur)
+            p = list(chains[cur]) if ent == 0 else list(chains[cur])[::-1]
+            seq.extend(p if not seq else p[1:] if seq[-1] == p[0] else p)
+            nxt = links.get((cur, 1 - ent))
+            if not nxt:
+                break
+            cur, ent = nxt
+        return seq
+
+    for ci in range(len(chains)):
+        if ci in seen:
+            continue
+        if (ci, 0) not in links:
+            merged.append(run(ci, 0))
+        elif (ci, 1) not in links:
+            merged.append(run(ci, 1))
+    for ci in range(len(chains)):                # closed cycles of linked chains
+        if ci not in seen:
+            merged.append(run(ci, 0))
+    return merged
+
+
+def trace_polylines(skel, eps, min_len, merge=True):
     """Walk a 1-px skeleton into ordered polylines, replacing Hough's fragment-
     soup (one curve -> many short stray segments) with one ordered polyline per
     edge. Split the skeleton graph at endpoints/junctions (degree != 2), trace
     each degree-2 chain between them, then seed any remaining closed loops (a
-    boundary ring has no endpoints); drop chains shorter than min_len px (spurs,
-    ticks, mesh detail, stroked-glyph debris); Douglas-Peucker each survivor down
-    to its vertices. Returns a list of polylines, each a list of (x, y) px pts."""
+    boundary ring has no endpoints); re-join collinear chains across junctions
+    (merge_collinear) so a real line chopped by ticks/crossings is judged
+    whole; drop merged chains shorter than min_len px (spurs, ticks, mesh
+    detail, stroked-glyph debris); Douglas-Peucker each survivor down to its
+    vertices. Returns a list of polylines, each a list of (x, y) px pts."""
     import numpy as np
     import cv2
     ys, xs = np.where(skel > 0)
@@ -85,6 +167,10 @@ def trace_polylines(skel, eps, min_len):
     # degree-1 pixel) was tried and reverted - busy-sheet noise is a connected
     # MESH of short junction-to-junction segments (hatching, dimension structure,
     # fine detail), not dead-end spurs, so length is the robust discriminator.
+    # merge_collinear keeps that stance: length still decides, but only after
+    # fragments of the same drawn line are re-joined across junctions.
+    if merge:
+        chains = merge_collinear(chains)
     out = []
     for ch in chains:
         a = np.array([[c, r] for r, c in ch], dtype=np.float64)  # (x, y) = (col, row)
@@ -119,6 +205,10 @@ def main():
                     help="erase the PDF text layer's word boxes from the raster before "
                          "skeletonizing, so labels don't pollute the linework (default on; "
                          "no-ops on scans / stroked-glyph plats with no text layer)")
+    ap.add_argument("--merge-collinear", action=argparse.BooleanOptionalAction, default=True,
+                    help="re-join collinear skeleton chains across junctions before the "
+                         "min-len cut, so lines chopped by ticks/crossings are judged "
+                         "whole instead of discarded as fragments (default on)")
     args = ap.parse_args()
 
     try:
@@ -185,7 +275,8 @@ def main():
 
     lines, polylines, npoly = [], [], 0
     if args.vectorize == "trace":
-        polys = trace_polylines(skel, args.simplify_eps, args.min_len or line_px * 3)
+        polys = trace_polylines(skel, args.simplify_eps, args.min_len or line_px * 3,
+                                merge=args.merge_collinear)
         npoly = len(polys)
         for poly in polys:
             world = [tf(x, y) for x, y in poly]

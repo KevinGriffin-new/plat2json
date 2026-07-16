@@ -108,3 +108,37 @@ misclosure, like the FARM-A fixture); confirm against MicroSurvey/Civil 3D.
 ## Environment
 `fitz` (PyMuPDF), `opencv-python` 4.13, `pytesseract` 0.3.13 + Tesseract 5.5.0,
 `easyocr` 1.7.2 + `torch` 2.12 (CPU). Scripts + `_plat_*.png` artifacts here.
+
+## Iteration 15 — overlay harness + collinear chain merging (2026-07-15)
+`overlay_check.py` registers any plan-JSON (or an OCS-plotted vector PDF) back
+onto the source page and scores it: recon->ink chamfer, `recon_on_ink_pct`,
+`linework_covered_pct` (ROI-scoped, text-filtered denominator), `--miss` map +
+per-component attribution. Verified to 0.07 px against the known plot-scale
+transform on 482.pdf sheet 2.
+
+First harness-driven finding: the front-end's dominant loss was NOT
+Otsu/skeleton fragmentation — it was `trace_polylines` min_len (~202 px)
+discarding chains that junctions/ticks chopped short. Fix: `merge_collinear`
+(good-continuation re-join across junctions, then the length cut judges the
+reconstructed line). Scoreboard, 482.pdf sheet 2, ROI 0.10,0.18,0.72,0.88:
+
+| front-end                    | polylines | segments | covered | chamfer  | representation |
+|------------------------------|-----------|----------|---------|----------|----------------|
+| default trace (pre-merge)    | 119       | 412      | 38.4%   | 0.07 px  | centerlines    |
+| blunt `--min-len 30`         | 924       | 2 001    | 74.5%   | 0.05 px  | + glyph debris |
+| **merge-collinear (now default)** | **132** | 1 166   | **67.5%** | 0.07 px | ordered centerlines |
+| vtracer 0.6 binary/polygon   | 11 095    | 147 415  | 93.7%   | 0.70 px  | OUTLINES (double contours, glyphs incl.) |
+
+vtracer note (the banked experiment): shipped vtracer has no centerline mode;
+binary/polygon traces ink OUTLINES — coverage looks superb but every stroke is
+a double contour, useless for association without outline->centerline
+post-processing. A fairer retry would feed it the linework-only mask. The
+coverage metric alone is gameable — always read it next to polyline/segment
+counts.
+
+Next bottleneck (measured, not guessed): FACE CLOSURE. Even at 67.5% coverage,
+planarize+extract_faces forms ~0 faces from the full-page world trace at any
+snap/extend/tol — the skeleton still has gaps where labels sit on lines and
+where the scan drops out. Work item: label-aware gap bridging (mask detected
+text boxes, then close small gaps along collinear continuations) before
+face extraction; then re-run the association study on the merged front-end.
