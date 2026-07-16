@@ -750,6 +750,13 @@ def main():
     ap.add_argument("--rescue-floor", type=float, default=0.4,
                     help="corridor rescue keeps chains down to this fraction "
                          "of min_len (default 0.4)")
+    ap.add_argument("--rescue-erase-corners", action="store_true",
+                    help="erase monument-symbol discs at corridor ring "
+                         "corners (482-style triangle/dot symbols that weld "
+                         "corners into stub-less loops). OFF by default: on "
+                         "plats with small shared corner monuments the discs "
+                         "break CLOSED neighbours and merge faces (measured "
+                         "31->28 lots on the BC Example-plan).")
     ap.add_argument("--dump-chains", default=None,
                     help="write ALL post-repair chains (pre min-len cut, plan "
                          "units, kept/rescued/corridor_frac) to this JSON for "
@@ -841,9 +848,12 @@ def main():
         # the two boundary legs become clean stubs, and repair bridges +
         # face_check corner joins rebuild the vertex. Fabric corners are
         # ~2 m grade, so the disc covers halfwidth + symbol size.
+        # OPT-IN (--rescue-erase-corners): on plats whose corner monuments
+        # are small circles shared with closed neighbours, the discs merge
+        # faces instead of freeing stubs.
         r_er = int(round(cor["halfwidth"] / pt2m * sc)) + 22
         n_er = 0
-        for pl in cor["polylines"]:
+        for pl in cor["polylines"] if args.rescue_erase_corners else []:
             ring = pl[:-1] if pl[0] == pl[-1] else pl
             for i in range(len(ring)):
                 ax, ay = ring[i - 1]

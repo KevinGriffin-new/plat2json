@@ -280,6 +280,32 @@ the axis our internal oracles can't see. Consequences for iteration 19:
   printed-area gates still do the validating — keep the oracle out of the
   validation loop it feeds).
 
+## Iteration 22 — first BC run (Example-plan / EPP46435): 31/36 day one, fingerprint retrieval validated
+The GEOM-2031 Example-plan (36 metric lots, Fort St. John, raster scan,
+placeholder plan number EPP99999) went through the full pipeline:
+* **Fingerprint retrieval worked.** EPP99999 → 0 fabric hits (placeholder
+  confirmed — reported as a finding). Parent text key EPP19291 is real; a
+  BBOX + PARCEL_CLASS='Subdivision' sweep (233 parcels) matched the printed-
+  areas golden 36/36 within 1.5% for **EPP46435** only (next best 20/36) —
+  the anonymized plat's real identity, and a per-lot oracle, from areas alone.
+* **Gates on a raster scan:** 31/36 printed areas matched first pass (0.2–6%
+  deltas — looser than 482's vector-derived scan). fabric_compare: 27
+  consensus lots, RMS 0.68 m, rotation −0.05 deg == the plan's grid bearings
+  (ISA 50, UTM 10) — the physical sanity check again. Identity face→PID
+  adjudicated (BC fabric has no lot numbers; anchor pairing is label-first,
+  unique-VALUE fallback — value-only anchoring cannot separate Wyoming's
+  ~1%-grade area bands, which is why label stays primary).
+* **Ablation finding:** corner-monument erasure (482's +2 lots) REGRESSED
+  this plat 31→28 — its corners are small iron posts shared with closed
+  neighbours; discs merged faces (60→52). Now opt-in
+  (--rescue-erase-corners). One plat-class's cure is another's poison;
+  the corridor loop without erasure is neutral here (open set unchanged).
+* Open set (by PID): 029-457-{653,661,971,637,963} — next: per-ring autopsy
+  (obs #169 recipe: ring-vs-traced gap scan, bitmap check, LOOK).
+Goldens banked: example_plan.printed_areas.json (36 lots, m2, self-checked
+against printed dimensions), example_plan.fabric.utm26910.json (EPP46435
+snapshot + identification provenance).
+
 ## Iteration 21 — corridor-guided capture closes 18/18
 The fabric corridor (fabric_compare --corridor-out, iteration 20) now drives
 three capture mechanisms in plat2json, ALL inert without --rescue-corridor:

@@ -273,7 +273,10 @@ def main():
         # the ratio that lets the most printed areas find a face wins. Greedy
         # 1:1 matching (printed values repeat, e.g. nine 1.5-acre lots).
         parcels = json.load(open(a.printed_sqft))["parcels"]
-        P = [(p["id"], float(p["sqft"])) for p in parcels]
+        # "sqft" is historical: the value is whatever unit the golden banks
+        # (sqft for US plats, m2 for BC metric plats) — the RANSAC ratio fit
+        # is unit-agnostic
+        P = [(p["id"], float(p.get("sqft", p.get("area", 0)))) for p in parcels]
         best = None
         for f in areas:
             for _, p in P:

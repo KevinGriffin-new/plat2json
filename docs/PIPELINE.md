@@ -42,8 +42,13 @@ British Columbia is wired in via ParcelMap BC.
                   python plat2json.py PLAT.pdf plan.json --page N \
                         --rescue-corridor cor.json [--rescue-floor 0.35]
                   Corridor-gated mechanisms (all inert without the flag):
-                  crop extension, sub-min_len chain rescue, corner-monument
-                  disc erasure. Re-run steps 4–5. The corridor GUIDES capture;
+                  crop extension, sub-min_len chain rescue, and — opt-in via
+                  --rescue-erase-corners — corner-monument disc erasure.
+                  Erasure closed 482's triangle+dot corners (+2 lots) but
+                  REGRESSED the BC Example-plan (31→28: small iron-post
+                  circles shared with closed neighbours merge faces) — try it
+                  only when the autopsy shows symbol-welded corners.
+                  Re-run steps 4–5. The corridor GUIDES capture;
                   the printed-area gate (never seen by capture) validates.
 
 7. OVERLAY        load faces.geojson + snap.json + XYZ imagery in QGIS

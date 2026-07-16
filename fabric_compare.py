@@ -201,9 +201,26 @@ def main():
     dup_vals = {pv for pv, c in Counter(p for _, p in P).items() if c > 1}
 
     # ---- RANSAC similarity fit ----
-    anchors = [(poly_centroid(F[fi][0]), G[pid]["centroid"], pid)
-               for fi, (pid, pv, _) in matches.items()
-               if pv not in dup_vals and pid in G]
+    # anchor pairing is label-first, unique-value fallback: where the fabric
+    # carries lot numbers (Wyoming legal descriptions) the printed id keys it
+    # directly; where labels are PIDs (ParcelMap BC) a printed value unique in
+    # the golden that matches exactly one fabric parcel's geometry area within
+    # 1.5% anchors instead. Value-only anchoring is NOT enough for fabrics
+    # whose area grade (~1%) can't separate the lot-size bands — that is why
+    # label equality stays primary.
+    anchors = []
+    for fi, (pid, pv, _) in matches.items():
+        if pv in dup_vals:
+            continue
+        if pid in G:
+            anchors.append((poly_centroid(F[fi][0]), G[pid]["centroid"], pid))
+            continue
+        cand = sorted((abs(g["gis_area"] - pv) / pv, lid)
+                      for lid, g in G.items() if g["gis_area"])
+        if cand and cand[0][0] <= 0.015 and (len(cand) == 1
+                                             or cand[1][0] > 0.02):
+            anchors.append((poly_centroid(F[fi][0]),
+                            G[cand[0][1]]["centroid"], f"{pid}~{cand[0][1]}"))
     print(f"anchor candidates (unique-area lots): {sorted(x[2] for x in anchors)}")
     if len(anchors) < 3:
         sys.exit("need >=3 unique-area anchors")
