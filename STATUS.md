@@ -203,3 +203,33 @@ boundary ring west/north corners at monument symbols (long bridges fired
 only once — corner-adjacent geometry, not collinear; needs corner-aware
 long joins or symbol-aware vertex reconstruction). LOT 8 is the big
 7-acre remainder bounded mostly by the outer ring.
+
+## Iteration 18 — 13/18 parcels + the road ROW closed; open set correctly identified
+Stitching grew into three gated tiers (face_check.py): short stub-stub joins;
+long joins to 5.5 units (SIGN-AGNOSTIC — post-planarize stub directions flip
+in overlap/stagger configs, trust alignment magnitude + collinearity; lateral
+0.7 admits tight bulb-curb arcs); extra-long joins to 15 units for boundary
+inline-label voids, gated by near-perfect collinearity AND a crossing-edge
+test (the graph-level corridor check — an un-gated long join fused two lines
+straddling the road and cut the closed road face in half). Stub-edge welds to
+2.0 units with a directional gate. Iterating stitch+replanarize converges
+after one round (tested to 3).
+
+**Closed and area-validated (<=0.5%): TRACT A, the road ROW (252k sqft), LOTs
+2, 4, 5, 6, 10, 11, 12, 13, 15, 16, 17. Open: LOTs 1, 3, 7, 8, 9.**
+
+Two lessons burned in:
+* The greedy area-match LABELS are arbitrary within an equal-area class
+  (eight 65,340 lots) — probe-point identification against the actual plat
+  showed several "matched LOT n" labels pointing at other same-size lots.
+  face_check now flags these matches; per-class COUNTS are the metric.
+  True identity needs the label reader (lot numbers) — planned.
+* The open lots all ring the outer boundary / lot-8 block. Capture there is
+  GOOD (boundary + lot-9 lines fully traced — verified by polyline-over-ink
+  renders), so the breaks are joinery at corner monuments and long label
+  voids on BIG rings: each of these lots has a much longer ring than the
+  interior lots, accumulating more break-chances. Next session: per-ring
+  autopsy with the graph-zoom + containing-cycle probes (both in scratch
+  tooling now), likely needing corner-aware joins at boundary monuments
+  (the X/triangle symbols eat the vertex and the two boundary legs meet at
+  an angle, so no collinear tier can span them).
