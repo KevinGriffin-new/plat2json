@@ -220,15 +220,41 @@ def main():
         if cand and cand[0][0] <= 0.015 and (len(cand) == 1
                                              or cand[1][0] > 0.02):
             anchors.append((poly_centroid(F[fi][0]),
-                            G[cand[0][1]]["centroid"], f"{pid}~{cand[0][1]}"))
+                            G[cand[0][1]]["centroid"], f"{pid}~{cand[0][1]}",
+                            cand[0][0], cand[0][1]))
+    # under proposal->registration drift several printed values can all
+    # "uniquely" claim the SAME fabric parcel — degenerate anchors make the
+    # RANSAC triples collapse (observed: 6 anchors on one parcel, rot -34deg
+    # nonsense fit). Keep only the closest claim per fabric parcel and
+    # require 3 distinct targets.
+    label_anchors = [an for an in anchors if len(an) == 3]
+    value_anchors = {}
+    for an in (an for an in anchors if len(an) == 5):
+        lid = an[4]
+        if lid not in value_anchors or an[3] < value_anchors[lid][3]:
+            value_anchors[lid] = an
+    anchors = label_anchors + [an[:3] for an in value_anchors.values()]
+    dst_distinct = {tuple(an[1]) for an in anchors}
+    if len(dst_distinct) < 2:
+        print(f"anchors resolve to only {len(dst_distinct)} distinct fabric "
+              f"parcel(s) — area anchoring is not identifiable (drift "
+              f"regime?); aborting fit")
+        sys.exit(3)
+    pair_seeded = len(dst_distinct) < 3
+    if pair_seeded:
+        print(f"only {len(dst_distinct)} distinct anchor targets — falling "
+              f"back to PAIR-seeded RANSAC (2-point similarity is exact; "
+              f"acceptance rests entirely on consensus size)")
     print(f"anchor candidates (unique-area lots): {sorted(x[2] for x in anchors)}")
-    if len(anchors) < 3:
-        sys.exit("need >=3 unique-area anchors")
+    if len(anchors) < (2 if pair_seeded else 3):
+        sys.exit("not enough unique-area anchors")
     fcent = {fi: poly_centroid(p) for fi, (p, _) in enumerate(F)}
     pairs_ok = [(fi, lid) for fi, (p, ar) in enumerate(F) for lid, g in G.items()
                 if abs(ar * r - g["gis_area"]) / g["gis_area"] <= a.pair_tol]
     best_score, best_inl, best_m = (-1, float("inf")), None, False
-    for tri in combinations(anchors, 3):
+    seeds = (list(combinations(anchors, 2)) if pair_seeded
+             else list(combinations(anchors, 3)))
+    for tri in seeds:
         for m in (False, True):
             try:
                 apply_t = umeyama([x[0] for x in tri], [x[1] for x in tri], m)[0]
