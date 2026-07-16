@@ -31,6 +31,93 @@ HERE = __import__("os").path.dirname(__import__("os").path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 
+def stitch_graph(nodes, edges, join_r=1.2, weld_r=0.5):
+    """Close the residual micro-holes at graph level, where degrees are known:
+    (1) STUB-STUB: two degree-1 nodes within join_r whose incident edges
+    continue each other (anti-parallel within ~35 deg) get a connecting edge —
+    the label/dash holes that chain-level repair leaves behind; (2) STUB-EDGE:
+    a remaining degree-1 node within weld_r of a non-incident edge welds to
+    the projection (T-shortfall). Units are plan units (~0.03 units/px at
+    300 dpi / plot-scale 250). Returns (nodes, edges, n_joins, n_welds)."""
+    import numpy as np
+    nodes = [tuple(n) for n in nodes]
+    edges = [dict(e) for e in edges]
+
+    def degree():
+        d = {}
+        for e in edges:
+            d[e["a"]] = d.get(e["a"], 0) + 1
+            d[e["b"]] = d.get(e["b"], 0) + 1
+        return d
+
+    def stub_dir(v):
+        e = next(e for e in edges if v in (e["a"], e["b"]))
+        w = e["b"] if e["a"] == v else e["a"]
+        d = np.asarray(nodes[v], float) - np.asarray(nodes[w], float)
+        n = float(np.hypot(*d))
+        return d / n if n > 0 else None
+
+    deg = degree()
+    stubs = [v for v, d in deg.items() if d == 1]
+    n_joins = 0
+    used = set()
+    cands = []
+    for i, v in enumerate(stubs):
+        dv = stub_dir(v)
+        if dv is None:
+            continue
+        for w in stubs[i+1:]:
+            gap = float(np.hypot(*(np.asarray(nodes[v]) - np.asarray(nodes[w]))))
+            if gap > join_r or gap < 1e-9:
+                continue
+            dw = stub_dir(w)
+            if dw is None or float(-(dv @ dw)) < 0.82:
+                continue
+            cands.append((gap, v, w))
+    for _, v, w in sorted(cands):
+        if v in used or w in used:
+            continue
+        used.update((v, w))
+        edges.append({**edges[0], "a": v, "b": w})
+        n_joins += 1
+
+    def pt_seg(p, a, b):
+        a, b, p = np.asarray(a, float), np.asarray(b, float), np.asarray(p, float)
+        ab = b - a
+        t = max(0.0, min(1.0, float((p - a) @ ab) / max(float(ab @ ab), 1e-12)))
+        q = a + t * ab
+        return float(np.hypot(*(q - p))), t, tuple(q)
+
+    deg = degree()
+    n_welds = 0
+    for v in [v for v, d in deg.items() if d == 1]:
+        p = nodes[v]
+        best = None
+        for ei, e in enumerate(edges):
+            if v in (e["a"], e["b"]):
+                continue
+            dist, t, q = pt_seg(p, nodes[e["a"]], nodes[e["b"]])
+            if best is None or dist < best[0]:
+                best = (dist, ei, t, q)
+        if best and best[0] <= weld_r:
+            dist, ei, t, q = best
+            e = edges[ei]
+            if t < 0.05:
+                w = e["a"]
+            elif t > 0.95:
+                w = e["b"]
+            else:
+                nodes.append(q)
+                w = len(nodes) - 1
+                b_old = e["b"]
+                e["b"] = w
+                edges.append({**e, "a": w, "b": b_old})
+            if w != v:
+                edges.append({**edges[ei], "a": v, "b": w})
+                n_welds += 1
+    return nodes, edges, n_joins, n_welds
+
+
 def main():
     import cogo_assemble as CA
     import raster_lots as RL
@@ -45,6 +132,8 @@ def main():
                          "areas, and derive the lot band automatically")
     ap.add_argument("--area-tol", type=float, default=0.08,
                     help="relative tolerance for a face area to match a printed area")
+    ap.add_argument("--no-stitch", action="store_true",
+                    help="skip graph-level stub stitching (ablation)")
     ap.add_argument("--expect", type=int, default=None,
                     help="exit 2 if lot-band face count is below this")
     a = ap.parse_args()
@@ -66,12 +155,16 @@ def main():
         seen_pairs.add(key)
         uniq.append(e)
     n_dupes, edges = len(edges) - len(uniq), uniq
+    n_joins = n_welds = 0
+    if not a.no_stitch:
+        nodes, edges, n_joins, n_welds = stitch_graph(nodes, edges)
     faces = CA.extract_faces(nodes, edges)
-    areas = sorted((RL.face_area(f, nodes, edges) for f in faces), reverse=True)
+    areas = sorted((float(RL.face_area(f, nodes, edges)) for f in faces), reverse=True)
     areas = [x for x in areas if x >= a.min_area]
 
     print(f"[{a.plan.rsplit(chr(92), 1)[-1].rsplit('/', 1)[-1]}] "
-          f"{len(segs)} segs -> {len(edges)} edges ({n_dupes} dupes dropped) "
+          f"{len(segs)} segs -> {len(edges)} edges ({n_dupes} dupes dropped, "
+          f"{n_joins} stub-joins, {n_welds} welds) "
           f"-> {len(faces)} faces ({len(areas)} >= {a.min_area:g})")
     print("  areas:", [round(x, 1) for x in areas[:30]])
     n_lots = None

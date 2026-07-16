@@ -111,7 +111,7 @@ def merge_collinear(chains, ang_tol_deg=28.0, max_gap=5.0, tail=8):
 
 
 def repair_topology(polys, max_gap=60.0, ang_tol_deg=25.0, tail_len=25.0,
-                    ink=None, long_max=0.0, min_anchor=100.0):
+                    ink=None, long_max=0.0, min_anchor=100.0, absorb=True):
     """Close the breaks that block face formation. Label text printed on a
     line, scan dropouts, and corner monument symbols leave dangling ends —
     planarize+extract_faces formed ~0 lot faces at ANY snap tolerance until
@@ -173,6 +173,8 @@ def repair_topology(polys, max_gap=60.0, ang_tol_deg=25.0, tail_len=25.0,
     for ci, a in enumerate(polys):
         if len(a) < 2 or np.allclose(a[0], a[-1]):
             continue                              # degenerate, or a closed ring
+        if float(np.hypot(*np.diff(a, axis=0).T).sum()) < 6.0:
+            continue                              # sub-6 px specks: pure noise
 
         for end in (0, 1):
             d = end_dir(a, end)
@@ -182,7 +184,11 @@ def repair_topology(polys, max_gap=60.0, ang_tol_deg=25.0, tail_len=25.0,
     plen_of = [float(np.hypot(*np.diff(a, axis=0).T).sum()) if len(a) > 1 else 0.0
                for a in polys]
     cos_tol = np.cos(np.radians(ang_tol_deg))
-    cos_long = np.cos(np.radians(8.0))           # long bridges: strict heading
+    cos_long = np.cos(np.radians(14.0))          # long bridges: strict heading, but
+                                                 # loose enough for a curb ARC gap
+                                                 # (~10 deg drift over a label break
+                                                 # at R~23 units); the ink-free
+                                                 # corridor is the real guard
     links, taken = {}, set()                     # (ci,end) -> ((cj,endj), X|None)
 
     def claim(k, j, X):
@@ -218,6 +224,26 @@ def repair_topology(polys, max_gap=60.0, ang_tol_deg=25.0, tail_len=25.0,
             v = pj - p
             gap = float(np.hypot(*v))
             if gap > hard_max:
+                continue
+            # SHORT chains (< 30 px) may only be ABSORBED, not chain freely:
+            # a real fragment of a twice-broken line sits between two long
+            # pieces and is strictly collinear with them; easement DASHES are
+            # short on BOTH sides (dash-to-dash rejected here, or the dashed
+            # layer completes itself and subdivides every lot face — measured:
+            # a 5000-bridge storm that cost two validated lots), and glyph
+            # debris fails collinearity.
+            if plen_of[ci] < 30.0 or plen_of[cj] < 30.0:
+                if not absorb:
+                    continue
+                if min(plen_of[ci], plen_of[cj]) < 30.0 and \
+                   max(plen_of[ci], plen_of[cj]) < min_anchor:
+                    continue
+                if float(-(d @ dj)) < cos_long:
+                    continue
+                if abs(float(np.cross(d, v))) > 4.0 or abs(float(np.cross(dj, v))) > 4.0:
+                    continue
+                if float(d @ v) > 0:
+                    cands.append((gap, k, j, None))
                 continue
             proj = float(d @ v)
             if proj < 0:
@@ -283,6 +309,46 @@ def repair_topology(polys, max_gap=60.0, ang_tol_deg=25.0, tail_len=25.0,
             claim(k, j, X)
             nB += 1
 
+    # ---- B2: junction reconstruction — several free ends clustered around
+    # an EATEN crossing (a corner/monument dot at an X junction leaves 3-4
+    # line ends around a hole; pairwise corner joins cannot rebuild a 4-way).
+    # Weld every free anchor-length end in the cluster to the common point;
+    # planarize's node clustering then makes it one junction. ----
+    nB2 = 0
+    free = [k for k in range(len(ends))
+            if k not in taken and plen_of[ends[k][0]] >= min_anchor]
+    for k in free:
+        if k in taken:
+            continue
+        grp = [j for j in free if j not in taken
+               and float(np.hypot(*(ends[j][2] - ends[k][2]))) <= 30.0]
+        if len(grp) < 2:
+            continue
+        X = np.mean([ends[j][2] for j in grp], axis=0)
+        # every member's outward ray must POINT AT the weld point (ahead,
+        # within ~35 deg) — otherwise two unrelated stubs that merely pass
+        # near each other get fused into a chord that cuts a real face
+        # (measured: -1 validated lot with unconditional centroid welding)
+        ok = []
+        for j in grp:
+            w = X - ends[j][2]
+            L = float(np.hypot(*w))
+            if L < 3.0 or float(ends[j][3] @ (w / L)) >= 0.82:
+                ok.append(j)
+        if len(ok) < 3:
+            continue          # 2-end joins are phase A/B's business — a pair
+                              # weld here just fuses stubs that happen to pass
+                              # near each other; B2 exists for eaten MULTI-way
+                              # junctions only
+        for j in ok:
+            cj, ej = ends[j][0], ends[j][1]
+            if ej == 0:
+                polys[cj] = np.vstack([X[None, :], polys[cj]])
+            else:
+                polys[cj] = np.vstack([polys[cj], X[None, :]])
+            taken.add(j)
+        nB2 += 1
+
     # ---- C: T-extend remaining free ends onto crossing linework ----
     nC = 0
     dense, owner = [], []
@@ -316,8 +382,8 @@ def repair_topology(polys, max_gap=60.0, ang_tol_deg=25.0, tail_len=25.0,
                         polys[ci] = np.vstack([polys[ci], ext[None, :]])
                     nC += 1
                     break
-    print(f"  [repair] joins: {nA} bridge + {nL} long-bridge + {nB} corner + {nC} T-extend",
-          file=sys.stderr)
+    print(f"  [repair] joins: {nA} bridge + {nL} long-bridge + {nB} corner "
+          f"+ {nB2} junction + {nC} T-extend", file=sys.stderr)
 
     # ---- assemble A/B links into merged polylines ----
     merged, seen = [], set()
@@ -349,7 +415,8 @@ def repair_topology(polys, max_gap=60.0, ang_tol_deg=25.0, tail_len=25.0,
     return merged
 
 
-def trace_polylines(skel, eps, min_len, merge=True, bridge_px=0.0, ink=None):
+def trace_polylines(skel, eps, min_len, merge=True, bridge_px=0.0, ink=None,
+                    absorb=True):
     """Walk a 1-px skeleton into ordered polylines, replacing Hough's fragment-
     soup (one curve -> many short stray segments) with one ordered polyline per
     edge. Split the skeleton graph at endpoints/junctions (degree != 2), trace
@@ -420,15 +487,16 @@ def trace_polylines(skel, eps, min_len, merge=True, bridge_px=0.0, ink=None):
             a = s.reshape(-1, 2).astype(np.float64)
         simp.append(a)
     if bridge_px > 0:
-        # repair breaks AFTER junction merging. Chains down to 30 px join in:
-        # the middle pieces of a twice-broken boundary line are short, and
-        # phase A's collinearity gate protects against debris; corner/T
-        # phases gate on min_anchor internally so ticks can't make corners.
-        cand = [a for a in simp if plen(a) >= 30.0]
-        rest = [a for a in simp if plen(a) < 30.0]
-        simp = repair_topology(cand, max_gap=bridge_px, ink=ink,
+        # repair breaks AFTER junction merging. EVERY chain participates in
+        # phase A — a length cutoff here recreates the unreachable-island bug
+        # one level down (a 15 px fragment between two label breaks gets
+        # excluded, its neighbors' direct bridge is corridor-blocked by the
+        # fragment's own ink, and min_len later deletes it, leaving a hole).
+        # Corner/T/junction phases gate on min_anchor internally so ticks and
+        # debris can't manufacture structure.
+        simp = repair_topology(simp, max_gap=bridge_px, ink=ink,
                                long_max=4.0 * bridge_px,
-                               min_anchor=min_len * 0.5) + rest
+                               min_anchor=min_len * 0.5, absorb=absorb)
     return [[(float(x), float(y)) for x, y in a] for a in simp
             if plen(a) >= min_len]  # spur / tick / mesh-detail / glyph debris
 
@@ -459,6 +527,10 @@ def main():
                     help="re-join collinear skeleton chains across junctions before the "
                          "min-len cut, so lines chopped by ticks/crossings are judged "
                          "whole instead of discarded as fragments (default on)")
+    ap.add_argument("--absorb-fragments", action=argparse.BooleanOptionalAction, default=True,
+                    help="let sub-30 px fragments be absorbed into anchor chains during "
+                         "repair (strict collinearity; fixes island holes between double "
+                         "label breaks). --no-absorb-fragments for ablation.")
     ap.add_argument("--bridge-gaps", type=float, default=0.2,
                     help="bridge collinear dangling ends across label/dropout breaks, "
                          "as a fraction of an inch at the render dpi (default 0.2 = "
@@ -533,7 +605,8 @@ def main():
         polys = trace_polylines(skel, args.simplify_eps, args.min_len or line_px * 3,
                                 merge=args.merge_collinear,
                                 bridge_px=args.bridge_gaps * args.dpi,
-                                ink=geom[y0:y1, x0:x1] > 0)
+                                ink=geom[y0:y1, x0:x1] > 0,
+                                absorb=args.absorb_fragments)
         npoly = len(polys)
         for poly in polys:
             world = [tf(x, y) for x, y in poly]
