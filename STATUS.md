@@ -142,3 +142,34 @@ snap/extend/tol — the skeleton still has gaps where labels sit on lines and
 where the scan drops out. Work item: label-aware gap bridging (mask detected
 text boxes, then close small gaps along collinear continuations) before
 face extraction; then re-run the association study on the merged front-end.
+
+## Iteration 16 — topology repair: first automated lot faces from the raster trace
+`repair_topology` (plat2json.py, runs after merge_collinear, `--bridge-gaps`):
+three join types measured off overlay_check's dangling-ends map — A) collinear
+BRIDGE across label/dropout breaks, B) CORNER join through the direction-line
+intersection (the shared vertex sits inside a dropped monument symbol),
+C) T-EXTEND a free end onto crossing linework (with overshoot so planarize
+splits). Dangling ends 162 -> 99; keep max_gap under the narrowest road width
+(~180 px at 300 dpi) or radial lot lines bridge across the right-of-way.
+
+Face probe corrections that cost a day of false "0 faces" (now baked into
+face_check.py — use IT, not ad-hoc planarize calls):
+  * do NOT extend segment endpoints (shatters chain fabric: 662 stubs);
+  * do NOT snap_endpoints on polyline-derived plans (halves the edge count);
+  * area cutoffs must come from the plan's scale — at the default plot-scale
+    250 a 65,340 sqft lot is ~264 units^2, and a hardcoded ">=500" hid every
+    real lot while the rings were closed all along.
+
+Ladder (face_check.py --tol 0.25, lot band 100-600 units^2, ~19 lots printed):
+  merge only               1 lot face
+  + repair  60 px          4
+  + repair 150 px          6   (+ a 565 = two lots sharing an unclosed divider)
+
+Next blockers, in order of expected yield: (1) the OUTER BOUNDARY ring — label
+runs + monument-symbol corners > 150 px still break west/north/east edges, so
+every perimeter lot leaks into the outer face; fix is erasing text-like ink
+before skeletonizing (reuse overlay_check's stroke-length/extent classifier on
+the binary) rather than ever-larger bridges; (2) duplicate overlapping edges
+from repair-merged chains (46 node-pairs) — dedupe in planarize consumption;
+(3) auto-pick the lot band from the printed lot areas once the label reader
+is wired in.
