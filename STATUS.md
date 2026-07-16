@@ -251,6 +251,35 @@ filter (a train parallel to a traced line within ~70 px at >50% of its length
 is an easement; verified visually: all 48 easement trains dropped, no false
 keeps).
 
+## Iteration 20 — county parcel fabric comparator: identity adjudicated, open set confirmed
+Geolocated the plat from its banked text keys in ONE query (Wyoming statewide
+parcels FeatureServer, `legal LIKE '%AREA THIRTY 3 EST%'` -> all 18 parcels,
+Sweetwater Co.). New `fabric_compare.py` + oracle snapshot
+`eval/goldens/area482.fabric.utm26912.json`: faces via face_check's exact
+graph path, printed-area scale fit, then a RANSAC-consensus similarity fit
+onto the fabric (naive anchoring on unique-printed-area matches FAILS at
+RMS 76 m — near-equal-value mislabels poison it; triple-sampled RANSAC scored
+over all area-compatible pairs lands **RMS 0.25 m over 16 lots**; recovered
+rotation 1.24 deg == UTM grid convergence, a free physical sanity check).
+
+The fabric is a coarse AREA oracle (assessor geometry re-shoelaces to
+0.1–1% of printed; its `landgrosss` equals the printed areas 18/18 exactly —
+plat-derived, so a transcription check only) but AUTHORITATIVE on POSITION,
+the axis our internal oracles can't see. Consequences for iteration 19:
+* **Identity solved without the label reader** (for fabric-covered plats):
+  position corrected 7/16 area-class labels — the "LOT 1 matched" face is
+  actually LOT 15, confirming iteration 19's mislabel suspicion. Fabric
+  position is the interim identity authority; the label reader remains the
+  path for plats with no fabric (new/BLM/GLO).
+* **Open set independently confirmed:** the two fabric lots with no face are
+  exactly LOTs 1 and 3 — the joinery diagnosis stands, from an evidence
+  channel outside the plan.
+* **New tool for the 1/3 frontage work:** inverse-transform the fabric's
+  LOT 1/3 polygons into plan units as search corridors for the dead
+  100-200 px frontage chains (fabric may GUIDE capture; closure +
+  printed-area gates still do the validating — keep the oracle out of the
+  validation loop it feeds).
+
 LOTs 1/3 forensics (the remaining work): their shared Yellowstone frontage's
 LOWER half is traced (poly ~12); the UPPER half is solid ink, in the skeleton,
 but its 100-200 px junction-chopped chains die at the min_len cut — at
