@@ -173,3 +173,33 @@ the binary) rather than ever-larger bridges; (2) duplicate overlapping edges
 from repair-merged chains (46 node-pairs) — dedupe in planarize consumption;
 (3) auto-pick the lot band from the printed lot areas once the label reader
 is wired in.
+
+## Iteration 17 — area-validated lot faces: 8/18 parcels match printed areas
+Targets from iter 16, all landed (this + prior commit):
+1. **Corridor-gated long bridges + overlap welds** (repair_topology): beyond
+   the road-width cap, a bridge needs strict collinearity AND an ink-free
+   corridor (inline-label gaps are empty; a false road crossing always has
+   curb ink). New overlap weld joins two traces of the same line that pass
+   each other (ends point apart — planarize's parallel solve can never merge
+   these). Lateral floor raised 4->6 px (DP eps + skeleton jitter + dash
+   offset stack to ~5). Repair now logs its join counts to stderr.
+2. **Duplicate-edge dedupe** in face_check (repair-merged chains overlap;
+   same-node-pair straight edges are identical; dupes distort the face walk).
+3. **Printed-areas oracle**: eval/goldens/area482.printed_areas.json (18
+   parcels, self-checked vs printed acreage x 43560; LOT 5/11 cross-checked
+   vs the COGO golden). face_check --printed-sqft RANSAC-fits the single
+   sqft-per-unit^2 scale and validates faces: fitted 247.63 vs 248.0
+   theoretical for 1"=100 ft traced at assumed 1:250.
+
+**Scoreboard (482.pdf sheet 2, --bridge-gaps 0.5): 8/18 parcels closed AND
+area-validated <= 0.3% (LOTs 1, 2, 4, 7, 9, 10, 12, 17)**; 11 faces total;
+coverage 77.0%; on-ink 95.3% (the 4.7% is repair segments crossing blank
+label gaps — by design). Session arc: 0 -> 4 -> 6 -> 8 validated lots.
+
+Still open: LOTs 3, 5, 6, 8, 11, 13-16, TRACT A. Known blockers: the
+563-unit face = two lots sharing an unclosed divider; cul-de-sac lots (5, 6,
+11, TRACT A) need the curb arcs' junctions with radials to close; the outer
+boundary ring west/north corners at monument symbols (long bridges fired
+only once — corner-adjacent geometry, not collinear; needs corner-aware
+long joins or symbol-aware vertex reconstruction). LOT 8 is the big
+7-acre remainder bounded mostly by the outer ring.

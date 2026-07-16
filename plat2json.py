@@ -110,7 +110,8 @@ def merge_collinear(chains, ang_tol_deg=28.0, max_gap=5.0, tail=8):
     return merged
 
 
-def repair_topology(polys, max_gap=60.0, ang_tol_deg=25.0, tail_len=25.0):
+def repair_topology(polys, max_gap=60.0, ang_tol_deg=25.0, tail_len=25.0,
+                    ink=None, long_max=0.0, min_anchor=100.0):
     """Close the breaks that block face formation. Label text printed on a
     line, scan dropouts, and corner monument symbols leave dangling ends —
     planarize+extract_faces formed ~0 lot faces at ANY snap tolerance until
@@ -129,8 +130,25 @@ def repair_topology(polys, max_gap=60.0, ang_tol_deg=25.0, tail_len=25.0):
 
     max_gap must stay well under the narrowest road width on the sheet, or
     radial lot lines bridge straight across the right-of-way (60 ft =
-    ~180 px at 300 dpi / 1\"=100 ft). Operates on simplified (x, y) vertex
-    arrays; returns the repaired list."""
+    ~180 px at 300 dpi / 1\"=100 ft).
+
+    LONG bridges (`long_max` > max_gap, needs `ink`): a boundary line broken
+    by an INLINE label ("N 00°06'51\"W — 1258.98'" written in a gap of the
+    line itself) can gap several hundred px — beyond any safe blind range.
+    The discriminator is the corridor: an inline-label gap contains NO
+    linework ink (the label glyphs were dropped by the component filter),
+    while a false bridge across a road always crosses curb/centerline ink.
+    So beyond max_gap, a bridge must pass a strict collinearity gate AND an
+    ink-free-corridor test against `ink` (the linework mask in the same
+    pixel space as the polylines).
+
+    `min_anchor`: corner joins (B) and T-extends (C) only fire from chains at
+    least this long — ticks and small arc fragments must not manufacture
+    corners. Collinear bridges (A) accept shorter chains: the middle pieces
+    of a twice-broken boundary line are themselves short, and A's mutual-
+    collinearity gate is what protects it.
+
+    Operates on simplified (x, y) vertex arrays; returns the repaired list."""
     import numpy as np
     polys = [np.asarray(p, dtype=np.float64) for p in polys]
 
@@ -161,7 +179,10 @@ def repair_topology(polys, max_gap=60.0, ang_tol_deg=25.0, tail_len=25.0):
             if d is not None:
                 ends.append((ci, end, a[0] if end == 0 else a[-1], d))
 
+    plen_of = [float(np.hypot(*np.diff(a, axis=0).T).sum()) if len(a) > 1 else 0.0
+               for a in polys]
     cos_tol = np.cos(np.radians(ang_tol_deg))
+    cos_long = np.cos(np.radians(8.0))           # long bridges: strict heading
     links, taken = {}, set()                     # (ci,end) -> ((cj,endj), X|None)
 
     def claim(k, j, X):
@@ -170,7 +191,23 @@ def repair_topology(polys, max_gap=60.0, ang_tol_deg=25.0, tail_len=25.0):
         b = (ends[j][0], ends[j][1])
         links[a], links[b] = (b, X), (a, X)
 
+    def corridor_free(p, q):
+        """No linework ink strictly between p and q (6 px end margins)."""
+        v = q - p
+        L = float(np.hypot(*v))
+        if L <= 12.0:
+            return True
+        u = v / L
+        H, W = ink.shape
+        for t in np.arange(6.0, L - 6.0, 2.0):
+            x, y = p + t * u
+            xi, yi = int(round(x)), int(round(y))
+            if 0 <= yi < H and 0 <= xi < W and ink[max(0, yi-1):yi+2, max(0, xi-1):xi+2].any():
+                return False
+        return True
+
     # ---- A: collinear bridges (shortest first) ----
+    hard_max = max(max_gap, long_max if (long_max and ink is not None) else 0.0)
     cands = []
     for k in range(len(ends)):
         ci, e, p, d = ends[k]
@@ -180,26 +217,56 @@ def repair_topology(polys, max_gap=60.0, ang_tol_deg=25.0, tail_len=25.0):
                 continue
             v = pj - p
             gap = float(np.hypot(*v))
-            if gap < 1e-9 or gap > max_gap:
+            if gap > hard_max:
                 continue
-            if float(-(d @ dj)) < cos_tol or float(d @ v) < 0:
+            proj = float(d @ v)
+            if proj < 0:
+                # OVERLAP WELD: two traces of the same line passing each other
+                # (ends point apart). planarize cannot join collinear overlaps
+                # (the parallel line-line solve is degenerate), so weld here:
+                # anti-parallel, laterally tight, backtrack <= 25 px, joined
+                # through the midpoint so node clustering absorbs the fold.
+                if proj < -25.0 or float(-(d @ dj)) < cos_tol:
+                    continue
+                if abs(float(np.cross(d, v))) > 6.0 or abs(float(np.cross(dj, v))) > 6.0:
+                    continue
+                cands.append((abs(proj), k, j, (p + pj) / 2.0))
                 continue
-            lat = max(4.0, 0.20 * gap)           # tolerance grows with the gap
-            if abs(float(np.cross(d, v))) > lat or abs(float(np.cross(dj, v))) > lat:
-                continue                          # not mutually collinear
-            cands.append((gap, k, j))
-    for _, k, j in sorted(cands):
+            if gap < 1e-9:
+                continue
+            if gap <= max_gap:
+                if float(-(d @ dj)) < cos_tol:
+                    continue
+                # 6 px lateral floor: DP eps + skeleton jitter + dash offset
+                # stack to ~5 px; parallel easement dashes sit far beyond it
+                lat = max(6.0, 0.20 * gap)
+                if abs(float(np.cross(d, v))) > lat or abs(float(np.cross(dj, v))) > lat:
+                    continue                      # not mutually collinear
+            else:                                 # long bridge: strict + empty corridor
+                if float(-(d @ dj)) < cos_long:
+                    continue
+                if abs(float(np.cross(d, v))) > 6.0 or abs(float(np.cross(dj, v))) > 6.0:
+                    continue
+                if not corridor_free(p, pj):
+                    continue
+            cands.append((gap, k, j, None))
+    nA = nL = 0
+    for gap, k, j, X in sorted(cands, key=lambda t: t[0]):
         if k not in taken and j not in taken:
-            claim(k, j, None)
+            claim(k, j, X)
+            if gap > max_gap:
+                nL += 1
+            else:
+                nA += 1
 
     # ---- B: corner joins through the direction-line intersection ----
     cands = []
     for k in range(len(ends)):
-        if k in taken:
+        if k in taken or plen_of[ends[k][0]] < min_anchor:
             continue
         ci, e, p, d = ends[k]
         for j in range(k + 1, len(ends)):
-            if j in taken or ends[j][0] == ci:
+            if j in taken or ends[j][0] == ci or plen_of[ends[j][0]] < min_anchor:
                 continue
             cj, ej, pj, dj = ends[j]
             den = float(np.cross(d, dj))
@@ -210,11 +277,14 @@ def repair_topology(polys, max_gap=60.0, ang_tol_deg=25.0, tail_len=25.0):
             tj = float(np.cross(v, d)) / den     # pj + tj*dj = same point
             if 0.0 <= ti <= max_gap and 0.0 <= tj <= max_gap and ti + tj > 1.0:
                 cands.append((ti + tj, k, j, p + ti * d))
+    nB = 0
     for _, k, j, X in sorted(cands, key=lambda t: t[0]):
         if k not in taken and j not in taken:
             claim(k, j, X)
+            nB += 1
 
     # ---- C: T-extend remaining free ends onto crossing linework ----
+    nC = 0
     dense, owner = [], []
     for ci, a in enumerate(polys):
         for s in range(len(a) - 1):
@@ -231,7 +301,7 @@ def repair_topology(polys, max_gap=60.0, ang_tol_deg=25.0, tail_len=25.0):
         tree = None
     if tree is not None:
         for k, (ci, e, p, d) in enumerate(ends):
-            if k in taken:
+            if k in taken or plen_of[ci] < min_anchor:
                 continue
             for t in np.arange(3.0, max_gap, 2.0):
                 q = p + t * d
@@ -244,7 +314,10 @@ def repair_topology(polys, max_gap=60.0, ang_tol_deg=25.0, tail_len=25.0):
                         polys[ci] = np.vstack([ext[None, :], polys[ci]])
                     else:
                         polys[ci] = np.vstack([polys[ci], ext[None, :]])
+                    nC += 1
                     break
+    print(f"  [repair] joins: {nA} bridge + {nL} long-bridge + {nB} corner + {nC} T-extend",
+          file=sys.stderr)
 
     # ---- assemble A/B links into merged polylines ----
     merged, seen = [], set()
@@ -276,7 +349,7 @@ def repair_topology(polys, max_gap=60.0, ang_tol_deg=25.0, tail_len=25.0):
     return merged
 
 
-def trace_polylines(skel, eps, min_len, merge=True, bridge_px=0.0):
+def trace_polylines(skel, eps, min_len, merge=True, bridge_px=0.0, ink=None):
     """Walk a 1-px skeleton into ordered polylines, replacing Hough's fragment-
     soup (one curve -> many short stray segments) with one ordered polyline per
     edge. Split the skeleton graph at endpoints/junctions (degree != 2), trace
@@ -347,12 +420,15 @@ def trace_polylines(skel, eps, min_len, merge=True, bridge_px=0.0):
             a = s.reshape(-1, 2).astype(np.float64)
         simp.append(a)
     if bridge_px > 0:
-        # repair breaks AFTER junction merging, and only between chains long
-        # enough to be real linework candidates (half the min-len cut), so
-        # glyph debris can't recruit a bridge
-        cand = [a for a in simp if plen(a) >= min_len * 0.5]
-        rest = [a for a in simp if plen(a) < min_len * 0.5]
-        simp = repair_topology(cand, max_gap=bridge_px) + rest
+        # repair breaks AFTER junction merging. Chains down to 30 px join in:
+        # the middle pieces of a twice-broken boundary line are short, and
+        # phase A's collinearity gate protects against debris; corner/T
+        # phases gate on min_anchor internally so ticks can't make corners.
+        cand = [a for a in simp if plen(a) >= 30.0]
+        rest = [a for a in simp if plen(a) < 30.0]
+        simp = repair_topology(cand, max_gap=bridge_px, ink=ink,
+                               long_max=4.0 * bridge_px,
+                               min_anchor=min_len * 0.5) + rest
     return [[(float(x), float(y)) for x, y in a] for a in simp
             if plen(a) >= min_len]  # spur / tick / mesh-detail / glyph debris
 
@@ -456,7 +532,8 @@ def main():
     if args.vectorize == "trace":
         polys = trace_polylines(skel, args.simplify_eps, args.min_len or line_px * 3,
                                 merge=args.merge_collinear,
-                                bridge_px=args.bridge_gaps * args.dpi)
+                                bridge_px=args.bridge_gaps * args.dpi,
+                                ink=geom[y0:y1, x0:x1] > 0)
         npoly = len(polys)
         for poly in polys:
             world = [tf(x, y) for x, y in poly]
