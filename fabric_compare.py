@@ -106,6 +106,17 @@ def main():
     ap.add_argument("--inlier-m", type=float, default=12.0,
                     help="centroid distance (m) for a RANSAC inlier")
     ap.add_argument("--out", default=None, help="write faces GeoJSON here")
+    ap.add_argument("--dump-transform", default=None,
+                    help="write the fitted plan->fabric affine (JSON) here")
+    ap.add_argument("--corridor-out", default=None,
+                    help="write a rescue-corridor JSON (plan units) for "
+                         "plat2json --rescue-corridor")
+    ap.add_argument("--corridor-lots", default=None,
+                    help="comma-separated fabric lot ids (default: the "
+                         "face-less lots)")
+    ap.add_argument("--corridor-halfwidth-m", type=float, default=2.0,
+                    help="corridor half-width in ground metres (default 2.0 "
+                         "~ fabric vertex grade)")
     a = ap.parse_args()
 
     # ---- faces (face_check's exact path) ----
@@ -162,7 +173,7 @@ def main():
     for f in json.load(open(a.fabric))["features"]:
         lid = lot_id(f["attributes"]["legal"])
         ring = f["geometry"]["rings"][0]
-        G[lid] = {"centroid": poly_centroid(ring),
+        G[lid] = {"centroid": poly_centroid(ring), "ring": ring,
                   "sqft_gis": ring_area(ring) * FT2_PER_M2,
                   "printed": f["attributes"].get("landgrosss")}
 
@@ -206,6 +217,14 @@ def main():
     print(f"similarity fit: {len(cons)} consensus lots, scale={scale:.5f} m/unit, "
           f"rot={rot:.2f} deg (expect ~grid convergence), mirrored={best_m}, "
           f"RMS={rms:.2f} m")
+    if a.dump_transform:
+        o, ex, ey = apply_T((0, 0)), apply_T((1, 0)), apply_T((0, 1))
+        json.dump({"plan_to_fabric": [[ex[0] - o[0], ey[0] - o[0], o[0]],
+                                      [ex[1] - o[1], ey[1] - o[1], o[1]]],
+                   "scale_m_per_unit": scale, "rot_deg": rot,
+                   "mirrored": best_m, "rms_m": rms, "n_consensus": len(cons)},
+                  open(a.dump_transform, "w"), indent=1)
+        print(f"wrote transform -> {a.dump_transform}")
 
     # ---- final 1:1 assignment + report ----
     cands = sorted((math.hypot(apply_T(fcent[fi])[0] - g["centroid"][0],
@@ -231,7 +250,30 @@ def main():
         print(f"{fi:>4} {lid:>10} {d:>7.2f} {fa:>9.0f} {g['sqft_gis']:>9.0f} "
               f"{100 * (fa - g['sqft_gis']) / g['sqft_gis']:>+6.2f}% "
               f"{dp:>+6.2f}%  {am}{flag}")
-    print(f"\nfabric lots with NO face: {[l for l in G if l not in ul]}")
+    open_lots = [l for l in G if l not in ul]
+    print(f"\nfabric lots with NO face: {open_lots}")
+
+    if a.corridor_out:
+        # fabric rings -> plan units via the INVERSE fit: a positional prior
+        # telling plat2json where missing boundary ink must run. The corridor
+        # may GUIDE capture; closure + printed-area gates still validate.
+        o, ex, ey = apply_T((0, 0)), apply_T((1, 0)), apply_T((0, 1))
+        ma, mb, mc = ex[0] - o[0], ey[0] - o[0], o[0]
+        md, me, mf = ex[1] - o[1], ey[1] - o[1], o[1]
+        det = ma * me - mb * md
+
+        def inv_T(p):
+            dx, dy = p[0] - mc, p[1] - mf
+            return [(me * dx - mb * dy) / det, (-md * dx + ma * dy) / det]
+
+        lots = ([s.strip() for s in a.corridor_lots.split(",")]
+                if a.corridor_lots else open_lots)
+        cor = {"halfwidth": a.corridor_halfwidth_m / scale,
+               "lots": lots,
+               "polylines": [[inv_T(p) for p in G[l]["ring"]] for l in lots]}
+        json.dump(cor, open(a.corridor_out, "w"), indent=1)
+        print(f"wrote corridor ({', '.join(lots)}, halfwidth "
+              f"{cor['halfwidth']:.3f} u) -> {a.corridor_out}")
 
     if a.out:
         feats = []

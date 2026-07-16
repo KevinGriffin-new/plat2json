@@ -280,7 +280,44 @@ the axis our internal oracles can't see. Consequences for iteration 19:
   printed-area gates still do the validating — keep the oracle out of the
   validation loop it feeds).
 
-LOTs 1/3 forensics (the remaining work): their shared Yellowstone frontage's
+## Iteration 21 — corridor-guided capture closes 18/18
+The fabric corridor (fabric_compare --corridor-out, iteration 20) now drives
+three capture mechanisms in plat2json, ALL inert without --rescue-corridor:
+1. **Corridor crop extension.** The real LOT 1 blocker was never min_len:
+   the largest-CC crop CLIPPED its entire east frontage (solid 265.54' line
+   + corner monument were separate CCs beyond the bbox+4% margin — the
+   traced drive line ended 3 px from the crop edge). Corridor bbox extends
+   the crop; the title block can never be pulled in. This alone closed
+   LOT 1 (17/18).
+2. **Corridor-gated sub-min_len rescue** (--rescue-floor, default 0.4x).
+   Transitional here: the final 18/18 run rescues 0 chains — and one
+   intermediate run showed rescue re-admitting a monument-symbol OUTLINE,
+   which glued LOT 3's corner into a stub-less squiggle blob no stitch tier
+   could use. Lesson: at symbol corners, REMOVAL beats addition.
+3. **Corner-monument disc erasure.** LOT 3's north corner is a triangle+dot
+   monument the boundary lines end AT; its traced outline dead-loops the
+   graph. Discs (corridor halfwidth + 22 px) erased at fabric-ring corner
+   vertices (>20 deg direction change) leave clean stubs that repair
+   bridges + face_check corner joins rebuild. This closed LOT 3.
+
+**Scoreboard: 18/18 parcels closed and printed-area matched.** 17 lots
+within 0.9% (LOT 1 0.0%, LOT 3 0.0%); the LOT-7-position face is the
+outlier at 1.24% and LOT 6 drifted to 0.76% (corner erasure bruises
+adjacent geometry mildly — acceptable, flagged). fabric_compare: 18
+consensus lots, RMS 0.30 m, no face-less fabric lots. Oracle hygiene:
+the corridor GUIDED capture; area validation is against the printed
+golden the capture never saw, so LOT 3 at +0.00% is independent.
+
+Reproduce:
+    python fabric_compare.py PLAN.json eval/goldens/area482.fabric.utm26912.json \
+        eval/goldens/area482.printed_areas.json --corridor-out COR.json \
+        --corridor-lots "LOT 1,LOT 3" --corridor-halfwidth-m 3.0
+    python plat2json.py 482.pdf PLAN18.json --page 1 --bridge-gaps 0.5 \
+        --rescue-corridor COR.json --rescue-floor 0.35
+
+LOTs 1/3 forensics (superseded by iteration 21; kept for the record — note
+the min_len hypothesis was WRONG for LOT 1, it was the crop): their shared
+Yellowstone frontage's
 LOWER half is traced (poly ~12); the UPPER half is solid ink, in the skeleton,
 but its 100-200 px junction-chopped chains die at the min_len cut — at
 --min-len 100 LOT 3 closes (0.7%) but debris re-admission splits the road

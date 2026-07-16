@@ -27,6 +27,7 @@ Usage:
 """
 import argparse
 import json
+import math
 import sys
 
 
@@ -565,8 +566,27 @@ def dash_trains(bw, line_px, polys, min_members=5, gap_px=90.0, lat_px=6.0,
     return out
 
 
+def _corridor_frac(a, mask, step=4.0):
+    """Fraction of points sampled every `step` px along polyline `a` (Nx2,
+    x,y) that land on nonzero mask pixels."""
+    import numpy as np
+    H, W = mask.shape
+    hits = tot = 0
+    for i in range(len(a) - 1):
+        (px, py), (qx, qy) = a[i], a[i + 1]
+        n = max(1, int(math.hypot(qx - px, qy - py) / step))
+        for t in range(n + 1):
+            x, y = px + (qx - px) * t / n, py + (qy - py) * t / n
+            xi, yi = int(round(x)), int(round(y))
+            tot += 1
+            if 0 <= xi < W and 0 <= yi < H and mask[yi, xi]:
+                hits += 1
+    return hits / max(1, tot)
+
+
 def trace_polylines(skel, eps, min_len, merge=True, bridge_px=0.0, ink=None,
-                    absorb=True):
+                    absorb=True, corridor_mask=None, rescue_floor=0.4,
+                    chain_dump=None):
     """Walk a 1-px skeleton into ordered polylines, replacing Hough's fragment-
     soup (one curve -> many short stray segments) with one ordered polyline per
     edge. Split the skeleton graph at endpoints/junctions (degree != 2), trace
@@ -650,10 +670,35 @@ def trace_polylines(skel, eps, min_len, merge=True, bridge_px=0.0, ink=None,
     # NOTE: an "extension rescue" (keep 0.4-1.0x min_len chains that collinearly
     # continue an accepted chain's end) was tried and REVERTED: it re-admitted a
     # chain that cut LOT 8's closed ring (-1 parcel) without closing the lots it
-    # targeted. The min_len cut stays hard; sub-threshold recovery belongs to
-    # dash_trains (whole dashed lines) and graph-level stitching (face_check).
-    return [[(float(x), float(y)) for x, y in a] for a in simp
-            if plen(a) >= min_len]  # spur / tick / mesh-detail / glyph debris
+    # targeted. The min_len cut stays hard for un-located chains; the ONLY
+    # sub-threshold path is the corridor rescue below, gated on an EXTERNAL
+    # positional prior (parcel-fabric corridor via fabric_compare
+    # --corridor-out), so debris outside the corridor can never re-enter.
+    out, n_resc = [], 0
+    for a in simp:
+        L = plen(a)
+        keep, resc, frac = L >= min_len, False, None
+        if corridor_mask is not None and not keep and L >= rescue_floor * min_len:
+            frac = _corridor_frac(a, corridor_mask)
+            resc = frac >= 0.7
+            keep = resc
+            if resc:
+                n_resc += 1
+                print(f"  [rescue] kept {L:.0f}px chain in corridor "
+                      f"({frac:.0%} inside) at ({a[0][0]:.0f},{a[0][1]:.0f})->"
+                      f"({a[-1][0]:.0f},{a[-1][1]:.0f})", file=sys.stderr)
+        if chain_dump is not None:
+            if frac is None and corridor_mask is not None:
+                frac = _corridor_frac(a, corridor_mask)
+            chain_dump.append({"len_px": round(L, 1), "kept": bool(keep),
+                               "rescued": resc, "corridor_frac": frac,
+                               "pts_px": [[float(x), float(y)] for x, y in a]})
+        if keep:
+            out.append([(float(x), float(y)) for x, y in a])
+    if corridor_mask is not None:
+        print(f"  [rescue] {n_resc} sub-min_len chain(s) rescued in corridor",
+              file=sys.stderr)
+    return out  # spur / tick / mesh-detail / glyph debris dropped
 
 
 def main():
@@ -696,6 +741,19 @@ def main():
                          "as a fraction of an inch at the render dpi (default 0.2 = "
                          "60 px at 300 dpi; MUST stay under the narrowest road width "
                          "or radial lot lines bridge across the right-of-way; 0 = off)")
+    ap.add_argument("--rescue-corridor", default=None,
+                    help="corridor JSON from fabric_compare --corridor-out "
+                         "({halfwidth, polylines} in plan units): sub-min_len "
+                         "chains lying inside the corridor are kept. The "
+                         "corridor GUIDES capture; closure/printed-area gates "
+                         "still validate the result.")
+    ap.add_argument("--rescue-floor", type=float, default=0.4,
+                    help="corridor rescue keeps chains down to this fraction "
+                         "of min_len (default 0.4)")
+    ap.add_argument("--dump-chains", default=None,
+                    help="write ALL post-repair chains (pre min-len cut, plan "
+                         "units, kept/rescued/corridor_frac) to this JSON for "
+                         "autopsy")
     args = ap.parse_args()
 
     try:
@@ -754,19 +812,95 @@ def main():
     x0, y0 = max(0, px - m), max(0, py - m)
     x1, y1 = min(W, px + pw + m), min(H, py + ph + m)
 
+    cor = None
+    if args.rescue_corridor:
+        # corridor-driven crop extension: the fabric says the parcels extend
+        # here, so the capture window must too. The largest-CC bbox misses
+        # boundary legs that are their own CCs (label gaps / monument symbols
+        # disconnect them) — on 482.pdf it clipped LOT 1's entire east
+        # frontage (solid 265.54' line + corner monument) at the crop edge.
+        # Corridor-gated, so the title block / legend can never be pulled in.
+        cor = json.load(open(args.rescue_corridor))
+        cxs = [(xu / pt2m) * sc for pl in cor["polylines"] for xu, _ in pl]
+        cys = [(h_pt - yu / pt2m) * sc for pl in cor["polylines"] for _, yu in pl]
+        pad = int(round(cor["halfwidth"] / pt2m * sc)) + 20
+        ex0, ey0 = max(0, int(min(cxs)) - pad), max(0, int(min(cys)) - pad)
+        ex1, ey1 = min(W, int(max(cxs)) + pad), min(H, int(max(cys)) + pad)
+        if ex0 < x0 or ey0 < y0 or ex1 > x1 or ey1 > y1:
+            print(f"  [rescue] crop extended ({x0},{y0},{x1},{y1}) -> "
+                  f"({min(x0, ex0)},{min(y0, ey0)},{max(x1, ex1)},{max(y1, ey1)})"
+                  f" to cover corridor", file=sys.stderr)
+            x0, y0 = min(x0, ex0), min(y0, ey0)
+            x1, y1 = max(x1, ex1), max(y1, ey1)
+
+        # monument-symbol erasure at corridor ring CORNERS: X/triangle/dot
+        # symbols eat the corner vertex, and their outlines trace into
+        # stub-less squiggle blobs that no stitch tier can use (LOT 3's north
+        # corner: boundary lines end AT a triangle+dot symbol whose outline
+        # welds them into a dead loop). Erase a disc at each fabric corner —
+        # the two boundary legs become clean stubs, and repair bridges +
+        # face_check corner joins rebuild the vertex. Fabric corners are
+        # ~2 m grade, so the disc covers halfwidth + symbol size.
+        r_er = int(round(cor["halfwidth"] / pt2m * sc)) + 22
+        n_er = 0
+        for pl in cor["polylines"]:
+            ring = pl[:-1] if pl[0] == pl[-1] else pl
+            for i in range(len(ring)):
+                ax, ay = ring[i - 1]
+                bx, by = ring[i]
+                cx2, cy2 = ring[(i + 1) % len(ring)]
+                n1 = math.hypot(bx - ax, by - ay)
+                n2 = math.hypot(cx2 - bx, cy2 - by)
+                if n1 < 1e-9 or n2 < 1e-9:
+                    continue
+                cosang = ((bx - ax) * (cx2 - bx) + (by - ay) * (cy2 - by)) / (n1 * n2)
+                if cosang > math.cos(math.radians(20)):
+                    continue          # straight-through vertex, no monument
+                fx, fy = (bx / pt2m) * sc, (h_pt - by / pt2m) * sc
+                cv2.circle(geom, (int(round(fx)), int(round(fy))), r_er, 0, -1)
+                n_er += 1
+        if n_er:
+            print(f"  [rescue] erased {n_er} corner-monument disc(s) "
+                  f"(r={r_er}px) on corridor rings", file=sys.stderr)
+
     skel = skeletonize(geom[y0:y1, x0:x1] > 0).astype(np.uint8) * 255
 
     def tf(xpx, ypx):
         xpt, ypt = (xpx + x0) / sc, (ypx + y0) / sc
         return [round(xpt * pt2m, 4), round((h_pt - ypt) * pt2m, 4)]  # metres, north-up
 
+    corridor_mask = None
+    if cor is not None:
+
+        def inv_tf(xu, yu):  # plan units -> skeleton-crop px (tf inverted)
+            return ((xu / pt2m) * sc - x0, (h_pt - yu / pt2m) * sc - y0)
+
+        corridor_mask = np.zeros(skel.shape, np.uint8)
+        th = max(3, int(round(2 * cor["halfwidth"] / pt2m * sc)))
+        for pl in cor["polylines"]:
+            cpts = np.array([inv_tf(x, y) for x, y in pl], np.int32)
+            cv2.polylines(corridor_mask, [cpts], False, 255, th)
+        print(f"  [rescue] corridor: {len(cor['polylines'])} ring(s) "
+              f"({', '.join(cor.get('lots', []))}), band {th}px wide",
+              file=sys.stderr)
+
     lines, polylines, npoly = [], [], 0
+    chain_dump = [] if args.dump_chains else None
     if args.vectorize == "trace":
         polys = trace_polylines(skel, args.simplify_eps, args.min_len or line_px * 3,
                                 merge=args.merge_collinear,
                                 bridge_px=args.bridge_gaps * args.dpi,
                                 ink=geom[y0:y1, x0:x1] > 0,
-                                absorb=args.absorb_fragments)
+                                absorb=args.absorb_fragments,
+                                corridor_mask=corridor_mask,
+                                rescue_floor=args.rescue_floor,
+                                chain_dump=chain_dump)
+        if chain_dump is not None:
+            for c in chain_dump:  # px -> plan units for corridor autopsy
+                c["pts_unit"] = [tf(x, y) for x, y in c.pop("pts_px")]
+            json.dump({"chains": chain_dump}, open(args.dump_chains, "w"))
+            print(f"  [dump] {len(chain_dump)} post-repair chains -> "
+                  f"{args.dump_chains}", file=sys.stderr)
         if args.dash_trains:
             trains = dash_trains(bw[y0:y1, x0:x1], line_px, polys)
             print(f"  [dash] {len(trains)} dashed line(s) reconstructed", file=sys.stderr)
