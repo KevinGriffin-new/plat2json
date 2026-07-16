@@ -607,7 +607,8 @@ def main():
                             a.bearing_tol, a.dist_tol)
     rings, faces_full = close_faces(faces, edges, nodes, courses)
     link_reports = validate_links(links, edges, nodes, courses, theta)
-    elines = [[round(v, 2) for v in (*nodes[e["a"]], *nodes[e["b"]])]
+    elines = [[*(round(v, 2) for v in (*nodes[e["a"]], *nodes[e["b"]])),
+               "PROPERTY_LINE"]
               for e in edges]
 
     flagged = [c for c in courses if c["flags"]]
@@ -632,8 +633,9 @@ def main():
         "rings": rings,
         "links": link_reports,
         # lines = the PLANARIZED edges (same ink as the chains, split at X/T
-        # junctions); course.seg and ring.segs index into this list, so every
-        # consumer (LS_IMPORTPLAN, both MCPs) keeps working unchanged
+        # junctions) as [x1, y1, x2, y2, layer] — the layer string is REQUIRED
+        # by LS_IMPORTPLAN's schema; course.seg and ring.segs index into this
+        # list, so every consumer (LS_IMPORTPLAN, both MCPs) keeps working
         "lines": elines,
         "report": {
             "segments": len(segs),
