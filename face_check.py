@@ -31,7 +31,7 @@ HERE = __import__("os").path.dirname(__import__("os").path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 
-def stitch_graph(nodes, edges, join_r=1.2, weld_r=0.5):
+def stitch_graph(nodes, edges, join_r=1.2, weld_r=2.0):
     """Close the residual micro-holes at graph level, where degrees are known:
     (1) STUB-STUB: two degree-1 nodes within join_r whose incident edges
     continue each other (anti-parallel within ~35 deg) get a connecting edge —
@@ -57,22 +57,71 @@ def stitch_graph(nodes, edges, join_r=1.2, weld_r=0.5):
         n = float(np.hypot(*d))
         return d / n if n > 0 else None
 
+    def crs(a, b):
+        return float(a[0] * b[1] - a[1] * b[0])
+
     deg = degree()
     stubs = [v for v, d in deg.items() if d == 1]
     n_joins = 0
     used = set()
     cands = []
+    def crosses_edge(v, w):
+        """True if segment v-w properly crosses any existing edge — the
+        graph-level corridor test: a genuine label void has nothing in it,
+        while a collinear pair straddling the road must cross the curbs
+        (one un-gated long join did exactly that and cut the closed road
+        face in half)."""
+        p1 = np.asarray(nodes[v], float); p2 = np.asarray(nodes[w], float)
+        def side(a, b, c):
+            return (b[0]-a[0])*(c[1]-a[1]) - (b[1]-a[1])*(c[0]-a[0])
+        for e in edges:
+            if v in (e["a"], e["b"]) or w in (e["a"], e["b"]):
+                continue
+            p3 = np.asarray(nodes[e["a"]], float); p4 = np.asarray(nodes[e["b"]], float)
+            d1, d2 = side(p1, p2, p3), side(p1, p2, p4)
+            d3, d4 = side(p3, p4, p1), side(p3, p4, p2)
+            if ((d1 > 0) != (d2 > 0)) and ((d3 > 0) != (d4 > 0)):
+                return True
+        return False
+    long_r = 5.5    # curb-arc label breaks span ~4-5.5 units; staggered lot
+    # dividers are never collinear across the road, so with the lateral gate
+    # below a long stub-join cannot jump the right-of-way
     for i, v in enumerate(stubs):
         dv = stub_dir(v)
         if dv is None:
             continue
         for w in stubs[i+1:]:
-            gap = float(np.hypot(*(np.asarray(nodes[v]) - np.asarray(nodes[w]))))
-            if gap > join_r or gap < 1e-9:
+            u = np.asarray(nodes[w], float) - np.asarray(nodes[v], float)
+            gap = float(np.hypot(*u))
+            if gap > 15.0 or gap < 1e-9:
                 continue
             dw = stub_dir(w)
-            if dw is None or float(-(dv @ dw)) < 0.82:
+            if dw is None:
                 continue
+            if gap <= join_r:
+                if float(-(dv @ dw)) < 0.82:
+                    continue
+            elif gap <= long_r:
+                # long join, SIGN-AGNOSTIC: post-planarize stub directions
+                # flip unpredictably in overlap/stagger configurations (a
+                # single atomic edge decides them), so trust only alignment
+                # MAGNITUDE + mutual collinearity. Lateral 0.7 admits tight
+                # cul-de-sac curb arcs (R ~ 3 units: sagitta ~0.5 over a
+                # label break) while rejecting distinct parallel lines.
+                uh = u / gap
+                if abs(float(dv @ uh)) < 0.90 or abs(float(dw @ uh)) < 0.90 or \
+                   abs(crs(dv, uh)) * gap > 0.7 or abs(crs(dw, uh)) * gap > 0.7:
+                    continue
+            else:
+                # EXTRA-long join (boundary inline labels span up to ~13
+                # units): near-perfect mutual collinearity AND an empty
+                # corridor (no existing edge crossed by the connector).
+                uh = u / gap
+                if abs(float(dv @ uh)) < 0.985 or abs(float(dw @ uh)) < 0.985 or \
+                   abs(crs(dv, uh)) * gap > 0.35 or abs(crs(dw, uh)) * gap > 0.35:
+                    continue
+                if crosses_edge(v, w):
+                    continue
             cands.append((gap, v, w))
     for _, v, w in sorted(cands):
         if v in used or w in used:
@@ -101,6 +150,15 @@ def stitch_graph(nodes, edges, join_r=1.2, weld_r=0.5):
                 best = (dist, ei, t, q)
         if best and best[0] <= weld_r:
             dist, ei, t, q = best
+            # directional sanity for the longer welds: the target must sit
+            # roughly AHEAD of the stub (a divider stopping short of a curb),
+            # not broadside — broadside long welds fuse parallel neighbors
+            if dist > 0.5:
+                dv = stub_dir(v)
+                u = np.asarray(q, float) - np.asarray(p, float)
+                n = float(np.hypot(*u))
+                if dv is None or n < 1e-9 or abs(float(dv @ (u / n))) < 0.5:
+                    continue
             e = edges[ei]
             if t < 0.05:
                 w = e["a"]
@@ -195,8 +253,13 @@ def main():
         (n_match, _), r, matches = best
         print(f"  scale fit: {r:.2f} sqft/unit^2 -> {n_match}/{len(P)} printed "
               f"areas matched (tol {a.area_tol:.0%})")
+        # several lots often share one printed area (e.g. nine 1.5-acre lots):
+        # the COUNT per area-class is meaningful, the specific lot LABEL is not
+        from collections import Counter
+        dup = {pv for pv, c in Counter(p for _, p in P).items() if c > 1}
         for fa, pid, pv, e_ in sorted(matches, key=lambda m: -m[2]):
-            print(f"    {pid:>8}: printed {pv:>8.0f} sqft ~ face {fa*r:>8.0f}  ({e_:.1%})")
+            tag = "  [area-class label, not identity]" if pv in dup else ""
+            print(f"    {pid:>8}: printed {pv:>8.0f} sqft ~ face {fa*r:>8.0f}  ({e_:.1%}){tag}")
         n_lots = n_match
         if not a.lot_band:
             lo = min(p for _, p in P) / r * (1 - 2 * a.area_tol)
