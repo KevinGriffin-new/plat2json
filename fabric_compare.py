@@ -10,7 +10,8 @@ and independently confirmed the open set {LOT 1, LOT 3}.
 
 Method (all validated on 482.pdf, consensus RMS 0.25 m over 16 lots):
   1. plan-JSON -> planarize/dedupe/stitch/extract_faces (face_check's path).
-  2. RANSAC scale fit of face areas onto printed areas (one sqft/unit^2).
+  2. RANSAC scale fit of face areas onto printed areas (one area-unit/unit^2;
+     units follow the fabric snapshot: sqft for Wyoming, m2 for ParcelMap BC).
   3. Similarity fit plan->fabric. Do NOT anchor naively on unique-printed-
      area matches - near-equal-value mislabels poison the fit (RMS 76 m).
      RANSAC over anchor triples, scored by consensus over ALL
@@ -92,11 +93,37 @@ def lot_id(legal):
     return "LOT " + legal.rsplit("LOT", 1)[-1].strip()
 
 
+def load_fabric(path):
+    """Load either a fabric_fetch normalized snapshot ({units, parcels:[...]})
+    or a legacy esri-JSON Wyoming snapshot ({features:[{attributes,...}]}).
+    Returns (G, units, gis_area_factor) where gis_area_factor converts a
+    shoelace area in projected m^2 into the snapshot's area units."""
+    d = json.load(open(path))
+    G = {}
+    if "parcels" in d:  # normalized (fabric_fetch.py)
+        units = d.get("units", "m2")
+        factor = FT2_PER_M2 if units == "sqft" else 1.0
+        for p in d["parcels"]:
+            G[p["label"]] = {"centroid": poly_centroid(p["ring"]),
+                             "ring": p["ring"],
+                             "gis_area": ring_area(p["ring"]) * factor,
+                             "printed": p.get("area")}
+        return G, units, factor
+    units, factor = "sqft", FT2_PER_M2  # legacy esri snapshot (Wyoming)
+    for f in d["features"]:
+        lid = lot_id(f["attributes"]["legal"])
+        ring = f["geometry"]["rings"][0]
+        G[lid] = {"centroid": poly_centroid(ring), "ring": ring,
+                  "gis_area": ring_area(ring) * factor,
+                  "printed": f["attributes"].get("landgrosss")}
+    return G, units, factor
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("plan", help="plan-JSON from plat2json.py")
     ap.add_argument("fabric", help="esri-JSON parcel snapshot (projected CRS)")
-    ap.add_argument("printed", help="printed-areas golden ({parcels:[{id,sqft}]})")
+    ap.add_argument("printed", help='printed-areas golden ({parcels:[{id,sqft|area}]})')
     ap.add_argument("--tol", type=float, default=0.25)
     ap.add_argument("--min-area", type=float, default=25.0)
     ap.add_argument("--area-tol", type=float, default=0.08,
@@ -144,8 +171,13 @@ def main():
     print(f"faces >={a.min_area:g} u^2: {len(F)} "
           f"({n_joins} stub-joins, {n_welds} welds)")
 
+    # ---- fabric parcels (normalized snapshot or legacy esri) ----
+    G, units, _factor = load_fabric(a.fabric)
+    print(f"fabric: {len(G)} parcels, areas in {units}")
+
     # ---- printed-area scale fit (face_check's RANSAC) ----
-    P = [(p["id"], float(p["sqft"])) for p in json.load(open(a.printed))["parcels"]]
+    P = [(p["id"], float(p.get("sqft", p.get("area", 0))))
+         for p in json.load(open(a.printed))["parcels"]]
     areas = sorted((ar for _, ar in F), reverse=True)
     best = None
     for fa0 in areas:
@@ -165,17 +197,8 @@ def main():
             if best is None or score > best[0]:
                 best = (score, r, matches)
     (_, _), r, matches = best
-    print(f"scale fit: {r:.2f} sqft/unit^2, {len(matches)}/{len(P)} printed matched")
+    print(f"scale fit: {r:.2f} {units}/unit^2, {len(matches)}/{len(P)} printed matched")
     dup_vals = {pv for pv, c in Counter(p for _, p in P).items() if c > 1}
-
-    # ---- fabric parcels ----
-    G = {}
-    for f in json.load(open(a.fabric))["features"]:
-        lid = lot_id(f["attributes"]["legal"])
-        ring = f["geometry"]["rings"][0]
-        G[lid] = {"centroid": poly_centroid(ring), "ring": ring,
-                  "sqft_gis": ring_area(ring) * FT2_PER_M2,
-                  "printed": f["attributes"].get("landgrosss")}
 
     # ---- RANSAC similarity fit ----
     anchors = [(poly_centroid(F[fi][0]), G[pid]["centroid"], pid)
@@ -186,7 +209,7 @@ def main():
         sys.exit("need >=3 unique-area anchors")
     fcent = {fi: poly_centroid(p) for fi, (p, _) in enumerate(F)}
     pairs_ok = [(fi, lid) for fi, (p, ar) in enumerate(F) for lid, g in G.items()
-                if abs(ar * r - g["sqft_gis"]) / g["sqft_gis"] <= a.pair_tol]
+                if abs(ar * r - g["gis_area"]) / g["gis_area"] <= a.pair_tol]
     best_score, best_inl, best_m = (-1, float("inf")), None, False
     for tri in combinations(anchors, 3):
         for m in (False, True):
@@ -247,8 +270,8 @@ def main():
         flag = "" if am == lid else f"  <-- was labeled {am}"
         dp = (100 * (fa - g["printed"]) / g["printed"]
               if g["printed"] else float("nan"))
-        print(f"{fi:>4} {lid:>10} {d:>7.2f} {fa:>9.0f} {g['sqft_gis']:>9.0f} "
-              f"{100 * (fa - g['sqft_gis']) / g['sqft_gis']:>+6.2f}% "
+        print(f"{fi:>4} {lid:>10} {d:>7.2f} {fa:>9.0f} {g['gis_area']:>9.0f} "
+              f"{100 * (fa - g['gis_area']) / g['gis_area']:>+6.2f}% "
               f"{dp:>+6.2f}%  {am}{flag}")
     open_lots = [l for l in G if l not in ul]
     print(f"\nfabric lots with NO face: {open_lots}")
@@ -283,7 +306,7 @@ def main():
             lid, d = assign.get(fi, (None, None))
             feats.append({"type": "Feature",
                           "properties": {"face": fi, "lot": lid,
-                                         "sqft": round(ar * r),
+                                         "area": round(ar * r), "units": units,
                                          "cdist_m": d and round(d, 2)},
                           "geometry": {"type": "Polygon", "coordinates": [ring]}})
         json.dump({"type": "FeatureCollection", "features": feats},
