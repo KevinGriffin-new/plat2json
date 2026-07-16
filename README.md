@@ -76,6 +76,11 @@ ignore `polylines` and draw `lines`/`arcs` as before.
 
 - `plat2json.py` — main CLI: PDF -> geometry plan-JSON
 - `fit_arcs.py`, `arc_refine.py` — arc fitting / curve-table refinement on a plan-JSON
+- `overlay_check.py` — visual + numeric QA: renders a plan-JSON (or an Open CAD
+  Studio plotted vector PDF, `--plot`) back onto the source plat page. Fits the
+  similarity transform itself (any producer coordinate space), writes a
+  red-ink/cyan-recon/black-agreement overlay PNG, and reports recon->ink chamfer,
+  `recon_on_ink_pct`, and `linework_covered_pct` (with `--fail-under` for CI)
 - `experiments/` — WIP label-OCR research stages (Tesseract baseline, cv2
   morphology, EasyOCR/CRAFT, vector + geometry-guided deskew). See STATUS.md.
 - `eval/harness/vlm_read.py` + `serve_vl7.sh` + `LOCAL_VLM_READER.md` — the
