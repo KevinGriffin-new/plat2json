@@ -130,6 +130,47 @@ def stitch_graph(nodes, edges, join_r=1.2, weld_r=2.0):
         edges.append({**edges[0], "a": v, "b": w})
         n_joins += 1
 
+    # ---- corner joins: boundary monuments (X / triangle symbols) eat the
+    # vertex where two legs meet at an ANGLE — no collinear tier can span
+    # that. Two free stubs whose outward rays intersect ahead of both within
+    # ~3.5 units join through the intersection, corridor-checked. ----
+    n_corners = 0
+    deg = degree()
+    stubs2 = [v for v, d in deg.items() if d == 1 and v not in used]
+    ccands = []
+    for i, v in enumerate(stubs2):
+        dv = stub_dir(v)
+        if dv is None:
+            continue
+        for w in stubs2[i+1:]:
+            pv = np.asarray(nodes[v], float); pw = np.asarray(nodes[w], float)
+            if float(np.hypot(*(pw - pv))) > 7.0:
+                continue
+            dw = stub_dir(w)
+            if dw is None:
+                continue
+            den = crs(dv, dw)
+            if abs(den) < 0.30:                  # near-parallel: joins' business
+                continue
+            ti = crs(pw - pv, dw) / den
+            tj = crs(pw - pv, dv) / den
+            if not (0.0 <= ti <= 3.5 and 0.0 <= tj <= 3.5) or ti + tj < 0.3:
+                continue
+            ccands.append((ti + tj, v, w, tuple(pv + ti * dv)))
+    for _, v, w, X in sorted(ccands, key=lambda t: t[0]):
+        if v in used or w in used:
+            continue
+        nodes.append(X)
+        xi = len(nodes) - 1
+        if crosses_edge(v, xi) or crosses_edge(w, xi):
+            nodes.pop()
+            continue
+        used.update((v, w))
+        edges.append({**edges[0], "a": v, "b": xi})
+        edges.append({**edges[0], "a": w, "b": xi})
+        n_corners += 1
+    n_joins += n_corners
+
     def pt_seg(p, a, b):
         a, b, p = np.asarray(a, float), np.asarray(b, float), np.asarray(p, float)
         ab = b - a

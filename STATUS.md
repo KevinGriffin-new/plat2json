@@ -233,3 +233,34 @@ Two lessons burned in:
   tooling now), likely needing corner-aware joins at boundary monuments
   (the X/triangle symbols eat the vertex and the two boundary legs meet at
   an angle, so no collinear tier can span them).
+
+## Iteration 19 — corner joins close LOT 8: 16/18 parcels; the last two forensically mapped
+Graph-level CORNER JOINS in face_check.stitch_graph (two free stubs whose
+outward rays intersect ahead of both within ~3.5 units, corridor-checked)
+rebuilt the boundary-monument corners: **16/18 parcels closed and
+area-validated (<=0.7%), including LOT 8's 7-acre ring at 0.7%.** Open: LOTs
+1 and 3 (physically — the printed "LOT 1 matched" line is a near-equal-value
+mislabel: 65,523 vs 65,340 are cross-compatible at 8% tol; the face map is
+the identity authority).
+
+New capture mechanism: plat2json dash_trains — reconstructs DASHED lines from
+sub-line_px components (elongation >= 1.7; axis test only on strongly
+elongated members — thick dashes have unstable PCA axes; RANSAC-trim against
+parallel-line hopping; uniform-spacing gate vs text) with an easement SHADOW
+filter (a train parallel to a traced line within ~70 px at >50% of its length
+is an easement; verified visually: all 48 easement trains dropped, no false
+keeps).
+
+LOTs 1/3 forensics (the remaining work): their shared Yellowstone frontage's
+LOWER half is traced (poly ~12); the UPPER half is solid ink, in the skeleton,
+but its 100-200 px junction-chopped chains die at the min_len cut — at
+--min-len 100 LOT 3 closes (0.7%) but debris re-admission splits the road
+face and degrades everything (LOT 11 3.0%, LOT 8 1.2%): the global knob is
+the wrong tool. An "extension rescue" of sub-min_len chains collinear off
+accepted ends was tried and REVERTED (-1 parcel: a rescued chain cut LOT 8's
+ring without closing 1/3). Next candidates: understand why repair's phase A
+does not merge those 100-200 px frontage chains (end hooks from label
+touching are suspected — check end_dir quality there), or a dash_trains
+variant seeded from the frontage's 95 px dash components (they pass the CC
+filter, so they are skeleton chains, not dash_train candidates — the two
+mechanisms currently have a coverage seam at [line_px, min_len]).

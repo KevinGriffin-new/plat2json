@@ -415,6 +415,156 @@ def repair_topology(polys, max_gap=60.0, ang_tol_deg=25.0, tail_len=25.0,
     return merged
 
 
+def dash_trains(bw, line_px, polys, min_members=5, gap_px=90.0, lat_px=6.0,
+                shadow_px=70.0):
+    """Reconstruct DASHED lines the component filter necessarily drops.
+
+    The 482 Yellowstone frontage is a uniform ~34 px long-dash line: every
+    dash is under the line_px component threshold, so the entire subdivision
+    boundary along the road never reaches the skeleton (measured: 82% of the
+    region's ink deleted, 2 of 18 parcels unclosable). Size cannot separate
+    boundary dashes (34 px) from easement dashes (17-33) or text glyphs
+    (14-31); shape and context can:
+      * members must be ELONGATED (aspect >= 3) and axis-aligned with the
+        train — text glyphs are blobby with random axes;
+      * a train is >= min_members collinear members with small lateral
+        deviation — spurious chains die immediately;
+      * EASEMENT trains are parallel SHADOWS of a traced parent line at
+        10-20 ft offset: any train with >50% of its length within shadow_px
+        of a parallel traced polyline is dropped. A standalone boundary
+        train has no parent and survives.
+    Returns extra polylines [(x0,y0),(x1,y1)] in the same pixel frame."""
+    import numpy as np
+    import cv2
+    n, lab, stats, cents = cv2.connectedComponentsWithStats(bw, 8)
+    dashes = []
+    for i in range(1, n):
+        x, y, w, h, area = stats[i]
+        md = max(w, h)
+        if not (8 <= md < line_px) or area < 6:
+            continue
+        ys, xs = np.nonzero(lab[y:y+h, x:x+w] == i)
+        pts = np.column_stack([xs + x, ys + y]).astype(float)
+        c = pts - pts.mean(0)
+        cov = (c.T @ c) / max(len(c) - 1, 1)
+        evals, evecs = np.linalg.eigh(cov)
+        # elongation floor is LOW (1.7): a heavy boundary line's dashes are
+        # thick (40x20 px, elong ~2) — same range as some glyphs, so the
+        # glyph rejection burden moves to the TRAIN gates (member-axis
+        # agreement + straightness + uniform spacing below)
+        elong = (evals[1] / max(evals[0], 1e-9)) ** 0.5 if evals[1] > 0 else 0.0
+        if elong < 1.7:
+            continue                              # blobby: glyph, not a dash
+        dashes.append((pts.mean(0), evecs[:, 1] / np.hypot(*evecs[:, 1]), md, elong))
+    if not dashes:
+        return []
+    C = np.array([d[0] for d in dashes])
+    try:
+        from scipy.spatial import cKDTree
+        tree = cKDTree(C)
+    except ImportError:
+        return []
+
+    used = set()
+    trains = []
+    for s in range(len(dashes)):
+        if s in used:
+            continue
+        members = [s]
+        for direction in (+1.0, -1.0):
+            head = dashes[s][1] * direction
+            cur = dashes[s][0]
+            while True:
+                cand = None
+                for j in tree.query_ball_point(cur, gap_px):
+                    if j in used or j in members:
+                        continue
+                    v = C[j] - cur
+                    dist = float(np.hypot(*v))
+                    if dist < 1e-9 or float(v @ head) < 0.7 * dist:
+                        continue                  # not ahead along the train
+                    if abs(float(np.cross(head, v))) > lat_px:
+                        continue                  # off the line
+                    # a thick dash (low elongation) has an unstable PCA axis
+                    # — only trust the axis test on clearly elongated members
+                    if dashes[j][3] >= 3.0 and abs(float(dashes[j][1] @ head)) < 0.90:
+                        continue                  # member axis disagrees
+                    if cand is None or dist < cand[0]:
+                        cand = (dist, j)
+                if cand is None:
+                    break
+                _, j = cand
+                members.append(j)
+                head = (C[j] - cur) / max(float(np.hypot(*(C[j] - cur))), 1e-9)
+                cur = C[j]
+        if len(members) < min_members:
+            continue
+        P = C[members]
+        # RANSAC-trim to the best straight subset: a greedy chain can hop
+        # between two PARALLEL dash lines (boundary + road edge ~60-90 px
+        # apart) mid-run — the true line's inliers survive, the hop doesn't
+        best = None
+        for ai in range(min(len(P), 20)):
+            for bi in range(ai + 1, min(len(P), 20)):
+                dd = P[bi] - P[ai]
+                L = float(np.hypot(*dd))
+                if L < 50.0:
+                    continue
+                dd = dd / L
+                r = np.abs(np.cross(np.tile(dd, (len(P), 1)), P - P[ai]))
+                inl = r <= lat_px
+                if best is None or int(inl.sum()) > best[0]:
+                    best = (int(inl.sum()), dd, ai, inl)
+        if best is None or best[0] < min_members:
+            continue
+        _, d, ai, inl = best
+        P = P[inl]
+        kept_members = [m for m, k in zip(members, inl) if k]
+        t = (P - P.mean(0)) @ d
+        gaps = np.diff(np.sort(t))
+        span = float(t.max() - t.min())
+        if span < 300.0:
+            continue                              # too short to be a drawn line
+        if len(gaps) >= 4 and float(gaps.std() / max(gaps.mean(), 1e-9)) > 0.45:
+            continue                              # irregular spacing: text, not dashes
+        a = P.mean(0) + d * (t.min() - dashes[kept_members[0]][2] / 2)
+        b = P.mean(0) + d * (t.max() + dashes[kept_members[0]][2] / 2)
+        used.update(kept_members)
+        trains.append((a, b, d))
+
+    # shadow filter against traced polylines
+    segs = []
+    for p in polys:
+        arr = np.asarray(p, float)
+        for i in range(len(arr) - 1):
+            segs.append((arr[i], arr[i+1]))
+    out = []
+    n_shadowed = 0
+    for a, b, d in trains:
+        L = float(np.hypot(*(b - a)))
+        samples = [a + (b - a) * t for t in np.linspace(0.05, 0.95, 16)]
+        shadowed = 0
+        for q in samples:
+            for sa, sb in segs:
+                sv = sb - sa
+                sl = float(np.hypot(*sv))
+                if sl < 20.0 or abs(float((sv / sl) @ d)) < 0.966:
+                    continue                      # short or not parallel
+                tt = max(0.0, min(1.0, float((q - sa) @ sv) / (sl * sl)))
+                if float(np.hypot(*(sa + tt * sv - q))) <= shadow_px:
+                    shadowed += 1
+                    break
+        if shadowed / len(samples) > 0.5:
+            n_shadowed += 1
+            print(f"  [dash] shadow-dropped: ({a[0]:.0f},{a[1]:.0f})->({b[0]:.0f},{b[1]:.0f})"
+                  f" len {L:.0f}px", file=sys.stderr)
+            continue                              # easement shadow of a real line
+        print(f"  [dash] kept: ({a[0]:.0f},{a[1]:.0f})->({b[0]:.0f},{b[1]:.0f}) len {L:.0f}px",
+              file=sys.stderr)
+        out.append([(float(a[0]), float(a[1])), (float(b[0]), float(b[1]))])
+    return out
+
+
 def trace_polylines(skel, eps, min_len, merge=True, bridge_px=0.0, ink=None,
                     absorb=True):
     """Walk a 1-px skeleton into ordered polylines, replacing Hough's fragment-
@@ -497,6 +647,11 @@ def trace_polylines(skel, eps, min_len, merge=True, bridge_px=0.0, ink=None,
         simp = repair_topology(simp, max_gap=bridge_px, ink=ink,
                                long_max=4.0 * bridge_px,
                                min_anchor=min_len * 0.5, absorb=absorb)
+    # NOTE: an "extension rescue" (keep 0.4-1.0x min_len chains that collinearly
+    # continue an accepted chain's end) was tried and REVERTED: it re-admitted a
+    # chain that cut LOT 8's closed ring (-1 parcel) without closing the lots it
+    # targeted. The min_len cut stays hard; sub-threshold recovery belongs to
+    # dash_trains (whole dashed lines) and graph-level stitching (face_check).
     return [[(float(x), float(y)) for x, y in a] for a in simp
             if plen(a) >= min_len]  # spur / tick / mesh-detail / glyph debris
 
@@ -527,6 +682,11 @@ def main():
                     help="re-join collinear skeleton chains across junctions before the "
                          "min-len cut, so lines chopped by ticks/crossings are judged "
                          "whole instead of discarded as fragments (default on)")
+    ap.add_argument("--dash-trains", action=argparse.BooleanOptionalAction, default=True,
+                    help="reconstruct DASHED lines (elongated sub-line_px components in "
+                         "straight regular trains) that the component filter drops; "
+                         "parallel shadows of traced lines (easements) are excluded "
+                         "(default on)")
     ap.add_argument("--absorb-fragments", action=argparse.BooleanOptionalAction, default=True,
                     help="let sub-30 px fragments be absorbed into anchor chains during "
                          "repair (strict collinearity; fixes island holes between double "
@@ -607,6 +767,10 @@ def main():
                                 bridge_px=args.bridge_gaps * args.dpi,
                                 ink=geom[y0:y1, x0:x1] > 0,
                                 absorb=args.absorb_fragments)
+        if args.dash_trains:
+            trains = dash_trains(bw[y0:y1, x0:x1], line_px, polys)
+            print(f"  [dash] {len(trains)} dashed line(s) reconstructed", file=sys.stderr)
+            polys = polys + trains
         npoly = len(polys)
         for poly in polys:
             world = [tf(x, y) for x, y in poly]
