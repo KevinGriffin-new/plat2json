@@ -306,6 +306,36 @@ Goldens banked: example_plan.printed_areas.json (36 lots, m2, self-checked
 against printed dimensions), example_plan.fabric.utm26910.json (EPP46435
 snapshot + identification provenance).
 
+## Iteration 27 — EPP27233 end-to-end from a free PLR schedule: pipeline proven on corpus documents, capture gates coverage
+The Schedule-A registered plan from PLR 7914-0109 (EPP27233, 54 fabric
+parcels) went through the full chain — the first extraction case sourced
+entirely from the free corpus.
+* **Effective scale ≠ printed scale.** The sheet says 1:500; the letter-
+  size PLR rescan reduced it ~1.57× (effective ~1:1575). The area-ratio
+  RANSAC absorbed it automatically (fit 2.48 m²/u²) — plot-scale mistakes
+  are self-correcting downstream, but never trust a title-block scale on
+  a republished document.
+* **Golden assembly recipe matured.** Tile-list reads hallucinated series
+  (lots 20-40 all "252.0"); switched to per-face SINGLE-ANSWER crops from
+  the traced faces (association by construction) with everything outside
+  the face polygon MASKED white (29/54 parcels print "252.0" — margin
+  bleed swamped the signal). Residuals: address numbers as lot numbers,
+  lot-number echoed as area (band filter catches), duplicate lot numbers
+  from the neighbouring plan on the same sheet (conflicts recorded).
+  Blind, raw responses banked (eval/goldens/epp27233.vlm_raw.json).
+* **First-pass scoreboard: 17/17 blind-golden areas matched** (worst
+  5.8%); fabric identity 17 consensus lots, **RMS 0.44 m, rot 0.03° ≡
+  grid**, mean pair-IoU 0.85 (extraction signature). Open set 20/54 —
+  capture merges/fragments (79 faces vs 54 parcels) plus the largest-CC
+  crop clipping the west column. Reading quality cannot exceed face
+  quality: the corridor-loop capture round comes before a golden re-read.
+* Banked: epp27233.printed_areas.partial.json (17 lots, cross-validated),
+  epp27233.fabric.utm26910.json. Classifier criterion tightened
+  (numbered lots as parcels; covers/sign-plans excluded).
+Next: corridor loop on the 20 open parcels (crop extension for the west
+column), golden re-read to ~53 lots, then batch the recipe across the
+other Schedule-A reports in the corpus.
+
 ## Iteration 26 — VLM orientation prior automated; first Surrey PLR corpus batch (and a licensing jackpot)
 The manual priors from iteration 25 are now derived from the document
 itself, and the corpus machinery exists end-to-end.

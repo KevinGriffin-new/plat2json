@@ -1,0 +1,76 @@
+{
+ "_status": "PARTIAL BLIND VLM GOLDEN (17 of ~53 lots) - printed areas from PLR_7914-0109-00 p14 (registered plan EPP27233 as Schedule A). First-pass: capture merges/fragments + clipped west column limit coverage; all 17 values cross-validated (face_check 17/17 within 8 pct, fabric position-adjudicated at RMS 0.44 m).",
+ "_provenance": "Per-face single-answer reads, Qwen2.5-VL-7B (workstation-lewis), raw banked in epp27233_vlm_raw.json. Reader never saw the fabric. Effective scale 1:1000 (1:500 sheet rescanned at ~2x reduction).",
+ "plat": "SUBDIVISION PLAN OF LOT 30 SEC 8 TP 2 NWD PLAN BCP51638, plan EPP27233, Surrey BC",
+ "unit": "m2",
+ "parcels": [
+  {
+   "id": "LOT 10",
+   "area": 252.0
+  },
+  {
+   "id": "LOT 14647",
+   "area": 252.0
+  },
+  {
+   "id": "LOT 15",
+   "area": 252.0
+  },
+  {
+   "id": "LOT 17",
+   "area": 252.0
+  },
+  {
+   "id": "LOT 19",
+   "area": 260.5
+  },
+  {
+   "id": "LOT 2",
+   "area": 252.0
+  },
+  {
+   "id": "LOT 20",
+   "area": 252.0
+  },
+  {
+   "id": "LOT 24",
+   "area": 252.0
+  },
+  {
+   "id": "LOT 25",
+   "area": 252.0
+  },
+  {
+   "id": "LOT 26",
+   "area": 390.7
+  },
+  {
+   "id": "LOT 28",
+   "area": 253.8
+  },
+  {
+   "id": "LOT 3",
+   "area": 252.0
+  },
+  {
+   "id": "LOT 36",
+   "area": 250.3
+  },
+  {
+   "id": "LOT 38",
+   "area": 221.2
+  },
+  {
+   "id": "LOT 4",
+   "area": 208.5
+  },
+  {
+   "id": "LOT 43",
+   "area": 252.0
+  },
+  {
+   "id": "LOT 8",
+   "area": 252.0
+  }
+ ]
+}

@@ -28,11 +28,12 @@ BASE = "https://www.surrey.ca/sites/default/files/planning-reports/PLR_{app}.pdf
 UA = {"User-Agent": "Mozilla/5.0 (plat2json research; contact papa.legba404@gmail.com)"}
 VLM = "http://192.168.50.219:8080"
 
-CLASSIFY_Q = """Is this page a SITE PLAN or SUBDIVISION LAYOUT drawing showing
-individual numbered lots drawn as parcels (a lot layout / lotting plan)?
-Pages that are text, tables, location key maps, elevation drawings,
-landscaping plant lists, or engineering profiles do NOT count.
-Reply with ONLY YES or NO."""
+CLASSIFY_Q = """Is this page a SUBDIVISION LOT LAYOUT drawing: multiple
+individual NUMBERED LOTS drawn as adjacent parcels with lot numbers printed
+inside them (a lotting plan / subdivision plan / proposed subdivision)?
+Pages that are text, tables, location key maps on report covers, single-
+building site plans, sign plans, elevation drawings, landscaping plans, or
+engineering profiles do NOT count. Reply with ONLY YES or NO."""
 
 
 def manifest_path(corpus):
