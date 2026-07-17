@@ -306,6 +306,56 @@ Goldens banked: example_plan.printed_areas.json (36 lots, m2, self-checked
 against printed dimensions), example_plan.fabric.utm26910.json (EPP46435
 snapshot + identification provenance).
 
+## Iteration 25 — drift-regime pose adjudication solved by document-class priors; per-lot drift table delivered
+The Surrey pilot's mirror tie is broken and the drift deliverable works
+end-to-end: `fabric_fetch --context-buffer` (new PMBC bbox provider) +
+`fabric_compare --rot-prior --no-mirror` adjudicate the proposal onto
+EPP75792 at rot −0.42 deg unmirrored and emit a position-verified per-lot
+drift table (LOT 11 −0.4%, LOT 1 −5.8%, corner lots −18/−25%, LOT 18/19
++15% — obs #175's relayout signature, now by position, not value-matching).
+* **The decisive negative result first:** exhaustive elimination showed
+  every pure-geometry arbiter saturates under the symmetry group of an
+  orthogonal suburban grid — lot-centroid consensus, reverse coverage,
+  transversal crossings, per-lot ring IoU, block-outline IoU (measured:
+  0.531 true vs 0.492 mirrored). The killer measurement: the POLISHED TRUE
+  pose scores sum-IoU 4.97/8 pairs; a mirrored ~0-deg impostor scores
+  5.82/9. Under relayout drift the truth fits WORSE by construction —
+  the drift regime's disagreement-is-signal operating at pose level.
+  Fit CANNOT choose the pose; document-class priors can: --rot-prior
+  (street-grid alignment; cardinal in Surrey; VLM-readable north arrow /
+  street names elsewhere) and --no-mirror (born-digital PDFs are plan
+  views). Both automatable corpus-wide.
+* **New plumbing, each piece bought by a measured failure:**
+  fabric_fetch --context-buffer fetches every parcel in the drawing's
+  buffered extent flagged context:true (obs #181: fetch the oracle for
+  what the document DRAWS); context extends only the ICP target and road
+  detection — anchors/consensus/coverage/assignment stay subject-only.
+  Separate caps + coarser context sampling (520 shared-cap context parcels
+  starved the subject to ~500 pts); road-locked variant subject-only
+  (context parks/schools exploded the pool to 3243 candidates);
+  correlation-scored seeding — every (mirror, scale, rotation) scored by
+  raster cross-correlation peak, which supplies the translation for free
+  and is immune to the title-block centroid skew and forward-trim scale
+  collapse that starved the true basin; RAW correlation poses join the
+  candidate pool un-refined (in cluttered partial overlap the ICP
+  objective walks correct seeds away; consensus-umeyama polish refines
+  from structural pairings instead); arbitration = SUM of per-pair ring
+  IoU (shape, not position — a 90-deg-rotated elongated lot overlaps its
+  parcel ~0.3 where an aligned-but-drifted one scores ~0.8).
+* **Extraction-regime regressions all pass, slightly improved:** 482
+  shape: 18 pairs, sum-IoU 17.85, RMS 0.28 m, rot 1.23; EPP46435 auto:
+  27 pairs, sum-IoU 26.68, RMS 0.69 m, rot −0.04; 482 label-anchor path
+  byte-identical behavior.
+* **Free drift meter:** mean per-pair ring IoU ≈ 0.99 in the extraction
+  regime vs ≈ 0.72 under relayout drift — distinguishes the regimes
+  automatically and quantifies drift magnitude per plan.
+Caveats: pilot pose residual ~1-4 m centroid distances and scale ~8%
+under the per-lot-area estimate — adequate for per-lot correspondence,
+not for mm-grade claims; drift percentages carry that pose noise.
+Next: VLM orientation prior (north arrow + street names -> --rot-prior/
+--no-mirror inputs) to remove the manual prior; then the Surrey PLR
+corpus sweep.
+
 ## Iteration 24 — shape-based anchoring (boundary ICP): the drift-regime anchor + the anchor-starvation fallback, in one mechanism
 fabric_compare gains `--anchor {auto,shape}`: trimmed similarity ICP between
 edge-sampled face rings (plan units) and fabric parcel rings (metres), no

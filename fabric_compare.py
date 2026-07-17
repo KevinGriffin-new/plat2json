@@ -103,7 +103,8 @@ def sample_ring(ring, step):
     return pts
 
 
-def shape_anchor_fit(face_rings, fabric_rings, s0, trim=0.7, step_m=2.0):
+def shape_anchor_fit(face_rings, fabric_rings, s0, trim=0.7, step_m=2.0,
+                     ctx_rings=None, rot_prior=None, mirrors=(False, True)):
     """SHAPE anchoring: trimmed similarity ICP between edge-sampled point
     clouds — reconstructed face rings (plan units) onto fabric parcel rings
     (projected metres). No area-value correspondence at all, which makes it
@@ -129,6 +130,15 @@ def shape_anchor_fit(face_rings, fabric_rings, s0, trim=0.7, step_m=2.0):
         return A[np.linspace(0, len(A) - 1, n).astype(int)] if len(A) > n else A
 
     src, dst = cap(src, 4000), cap(dst, 6000)
+    if ctx_rings:
+        # context parcels join the registration target under their own cap
+        # and a coarser step, so a big neighbourhood cannot dilute the
+        # subject block out of the cloud (observed: 520 context parcels
+        # under one shared cap starved the subject to ~500 pts and every
+        # variant's ICP degraded)
+        ctx = np.array([p for ring in ctx_rings
+                        for p in sample_ring(ring, 1.5 * step_m)], float)
+        dst = np.concatenate([dst, cap(ctx, 4000)])
     tree = cKDTree(dst)
     dc = dst.mean(0)
 
@@ -173,68 +183,37 @@ def shape_anchor_fit(face_rings, fabric_rings, s0, trim=0.7, step_m=2.0):
         rms = float(np.sqrt((np.sort(d)[:k] ** 2).mean()))
         return rms, th, s, (float(t[0]), float(t[1]))
 
-    # coarse seed: 5-degree sweep x scale sweep on a subsample, trimmed mean
-    # NN distance. The scale sweep matters in the DRIFT regime: the printed-
-    # area scale fit that seeds s0 is itself computed against drifted areas
-    # (Surrey pilot: s0 came out 12% low and the correct pose lost the
-    # coarse sweep before ICP could correct it)
-    sub = cap(src, 300)
-    k = max(3, int(len(sub) * trim))
-    # (a cloud-radius-ratio scale estimate was tried here and REMOVED: under
-    # partial overlap — a site plan drawing a whole neighbourhood vs a fabric
-    # covering one block — radius ratios are meaningless and their seeds
-    # outscore the correct ones. The area-derived s0 is the honest seed;
-    # the sweep brackets its error.)
-    scales = [s0 * m for m in (0.88, 1.0, 1.14)]
-    # seed score is SYMMETRIC: forward trimmed NN (src->dst) alone rewards
-    # scale collapse — a shrunken cloud huddles near dense target areas and
-    # every top seed comes from the smallest bracket (observed: all pilot
-    # seeds at the clamp). The reverse term (dst->src) punishes shrinkage:
-    # uncovered fabric costs distance.
-    dsub = cap(dst, 300)
-    kr = max(3, int(len(dsub) * 0.9))
-    seeds = []
-    for mirror in (False, True):
-        S = sub * [-1.0, 1.0] if mirror else sub
-        sc = S.mean(0)
-        for si in scales:
-            for deg in range(0, 360, 5):
-                th = math.radians(deg)
-                c, sn = math.cos(th), math.sin(th)
-                P = (S - sc) @ np.array([[si * c, si * sn],
-                                         [-si * sn, si * c]]) + dc
-                d, _ = tree.query(P)
-                fwd = float(np.sort(d)[:k].mean())
-                dr, _ = cKDTree(P).query(dsub)
-                rev = float(np.sort(dr)[:kr].mean())
-                seeds.append((fwd + rev, mirror, th, si))
-    seeds.sort()
-    # near-symmetric plats (regular double-row lot grids) give the WRONG
-    # pose a competitive point-RMS: a 176-deg flip of EPP46435 self-aligns
-    # the lot pattern, and a one-lot-spacing TRANSLATION (~17 m) locks a
-    # 17-lot false consensus while the block-end evidence that would refute
-    # it falls inside the ICP trim. Point distance cannot arbitrate either —
-    # the caller must pick by CONSENSUS over area-compatible (face,parcel)
-    # pairs. So: several angularly-separated rotation seeds, and for each,
-    # translation seeds from the cross-correlation PEAKS of the rasterized
-    # clouds (correlation sees the block ends the trim would discard; the
-    # lattice produces multiple peaks and every peak becomes a candidate).
+    # coarse seed: exhaustive (mirror x scale x 5-deg rotation) sweep scored
+    # by RASTER CROSS-CORRELATION. The correlation peak supplies both the
+    # translation and an unbiased score in one shot: counting coincident
+    # occupied cells rewards neither scale collapse (a shrunken cloud
+    # overlaps fewer cells) nor is it fooled by centroid skew (title-block
+    # faces pull the plan centroid off the block, which made every
+    # NN-scored rot-0 seed rank below the impostors on the Surrey pilot —
+    # the true basin was never ICP'd). Scale brackets around the area-fit
+    # s0; a radius-ratio estimate was tried and removed (meaningless under
+    # partial overlap).
     from scipy.signal import correlate
+    scales = [s0 * m for m in (0.88, 1.0, 1.14)]
+    cell = 3.0
+    do = dst.min(0)
+    gd = np.zeros((int((dst[:, 1].max() - do[1]) / cell) + 2,
+                   int((dst[:, 0].max() - do[0]) / cell) + 2))
+    for (x, y) in dst:
+        gd[int((y - do[1]) / cell), int((x - do[0]) / cell)] = 1.0
 
-    def corr_translations(mirror, th, si, cell=3.0, npeaks=2):
+    def corr_seeds(mirror, th, si, npeaks=2):
+        """Top translation peaks + normalized scores for one pose."""
         S = src * [-1.0, 1.0] if mirror else src
         c, sn = math.cos(th), math.sin(th)
         S2 = S @ np.array([[si * c, si * sn], [-si * sn, si * c]])
-        so, do = S2.min(0), dst.min(0)
+        so = S2.min(0)
         gs = np.zeros((int((S2[:, 1].max() - so[1]) / cell) + 2,
                        int((S2[:, 0].max() - so[0]) / cell) + 2))
-        gd = np.zeros((int((dst[:, 1].max() - do[1]) / cell) + 2,
-                       int((dst[:, 0].max() - do[0]) / cell) + 2))
         for (x, y) in S2:
             gs[int((y - so[1]) / cell), int((x - so[0]) / cell)] = 1.0
-        for (x, y) in dst:
-            gd[int((y - do[1]) / cell), int((x - do[0]) / cell)] = 1.0
         C = correlate(gd, gs, mode="full", method="fft")
+        norm = math.sqrt(float(gs.sum()))
         flat = np.argsort(C.ravel())[::-1]
         out, taken = [], []
         for idx in flat:
@@ -244,23 +223,49 @@ def shape_anchor_fit(face_rings, fabric_rings, s0, trim=0.7, step_m=2.0):
             taken.append((iy, ix))
             ty = do[1] + (iy - (gs.shape[0] - 1)) * cell - so[1]
             tx = do[0] + (ix - (gs.shape[1] - 1)) * cell - so[0]
-            out.append((tx, ty))
+            out.append((float(C[iy, ix]) / max(norm, 1e-9), (tx, ty)))
             if len(out) >= npeaks:
                 break
         return out
 
+    if rot_prior is not None:
+        p0, ptol = rot_prior
+        degs = [p0 + d / 2.0 for d in range(int(-2 * ptol), int(2 * ptol) + 1, 5)]
+    else:
+        degs = list(range(0, 360, 5))
+    seeds = []
+    for mirror in mirrors:
+        for si in scales:
+            for deg in degs:
+                th = math.radians(deg)
+                for score, t in corr_seeds(mirror, th, si, npeaks=1):
+                    seeds.append((-score, mirror, th, si, t))
+    seeds.sort(key=lambda s: s[0])
+    sep = math.radians(3 if rot_prior is not None else 20)
     picked = []
-    for score, mirror, th0, si in seeds:
+    for score, mirror, th0, si, t in seeds:
         if len(picked) >= 8:
             break
-        if any(m == mirror and abs((th0 - t + math.pi) % (2 * math.pi)
-                                   - math.pi) < math.radians(20)
-               for _, m, t, _s in picked):
+        if any(m == mirror and abs((th0 - t2 + math.pi) % (2 * math.pi)
+                                   - math.pi) < sep
+               for _, m, t2, _s, _t in picked):
             continue
-        picked.append((score, mirror, th0, si))
+        picked.append((score, mirror, th0, si, t))
     cands, saturated = [], []
-    for _, mirror, th0, si in picked:
-        inits = [None] + corr_translations(mirror, th0, si)
+    for _, mirror, th0, si, t_peak in picked:
+        inits = [t_peak] + [t for _, t in corr_seeds(mirror, th0, si, npeaks=3)[1:]]
+        # the RAW correlation poses are candidates too, un-refined: in
+        # cluttered partial-overlap scenes the ICP objective itself can walk
+        # a correct seed away (its NN correspondences are dominated by
+        # neighbourhood ink), while the caller's consensus-umeyama polish
+        # refines from structural lot pairings instead — give it the chance
+        c0, sn0 = math.cos(th0), math.sin(th0)
+        for (tx0, ty0) in inits:
+            def apply_raw(p, s=si, c=c0, sn=sn0, tx=tx0, ty=ty0, mirror=mirror):
+                x, y = (-p[0] if mirror else p[0]), p[1]
+                return (s * (c * x - sn * y) + tx, s * (sn * x + c * y) + ty)
+            cands.append((apply_raw, si, math.degrees(th0), mirror, 9.9,
+                          len(src)))
         for t0 in inits:
             rms, th, s, (tx, ty) = icp(mirror, th0, t0, si)
             c, sn = math.cos(th), math.sin(th)
@@ -277,6 +282,30 @@ def shape_anchor_fit(face_rings, fabric_rings, s0, trim=0.7, step_m=2.0):
             bucket.append((apply, s, math.degrees(th), mirror, rms, len(src)))
     cands.sort(key=lambda t: t[4])
     return cands or saturated
+
+
+def ring_iou(A, B, cells=64):
+    """Raster IoU of two rings sharing a coordinate frame. Cheap (one small
+    local grid) and shape-aware: a 90-deg-rotated elongated lot over its
+    parcel scores ~0.3 where an aligned-but-drifted one scores ~0.8."""
+    import numpy as np
+    from skimage.draw import polygon as sk_polygon
+    ax = [p[0] for p in A] + [p[0] for p in B]
+    ay = [p[1] for p in A] + [p[1] for p in B]
+    x0, x1, y0, y1 = min(ax), max(ax), min(ay), max(ay)
+    span = max(x1 - x0, y1 - y0, 1e-9)
+    cell = span / cells
+    W = int((x1 - x0) / cell) + 2
+    H = int((y1 - y0) / cell) + 2
+    ga = np.zeros((H, W), bool)
+    gb = np.zeros((H, W), bool)
+    for ring, g in ((A, ga), (B, gb)):
+        rr, cc = sk_polygon([(p[1] - y0) / cell for p in ring],
+                            [(p[0] - x0) / cell for p in ring], g.shape)
+        g[rr, cc] = True
+    inter = float((ga & gb).sum())
+    union = float((ga | gb).sum())
+    return inter / union if union else 0.0
 
 
 def lot_id(legal):
@@ -297,10 +326,14 @@ def load_fabric(path):
         units = d.get("units", "m2")
         factor = FT2_PER_M2 if units == "sqft" else 1.0
         for p in d["parcels"]:
-            G[p["label"]] = {"centroid": poly_centroid(p["ring"]),
-                             "ring": p["ring"],
-                             "gis_area": ring_area(p["ring"]) * factor,
-                             "printed": p.get("area")}
+            lid = p["label"]
+            while lid in G:  # context dupes (e.g. several 'Road' parcels)
+                lid += "+"
+            G[lid] = {"centroid": poly_centroid(p["ring"]),
+                      "ring": p["ring"],
+                      "gis_area": ring_area(p["ring"]) * factor,
+                      "printed": p.get("area"),
+                      "context": bool(p.get("context"))}
         return G, units, factor
     units, factor = "sqft", FT2_PER_M2  # legacy esri snapshot (Wyoming)
     for f in d["features"]:
@@ -308,7 +341,8 @@ def load_fabric(path):
         ring = f["geometry"]["rings"][0]
         G[lid] = {"centroid": poly_centroid(ring), "ring": ring,
                   "gis_area": ring_area(ring) * factor,
-                  "printed": f["attributes"].get("landgrosss")}
+                  "printed": f["attributes"].get("landgrosss"),
+                  "context": False}
     return G, units, factor
 
 
@@ -325,6 +359,25 @@ def main():
                     help="rel. area tol for a (face,parcel) RANSAC pair")
     ap.add_argument("--inlier-m", type=float, default=12.0,
                     help="centroid distance (m) for a RANSAC inlier")
+    ap.add_argument("--rot-prior", default=None, metavar="DEG[,TOL]",
+                    help="restrict the shape-anchor rotation sweep to "
+                         "DEG +- TOL degrees (default TOL 8). Supply when "
+                         "the drawing's orientation is known — jurisdiction "
+                         "street grid, plan north arrow, VLM-read street "
+                         "names. On dense self-similar orthogonal grids the "
+                         "unconstrained sweep is genuinely ambiguous (90-deg "
+                         "rotations, mirrors and lattice shifts of a Surrey "
+                         "block all tie); the prior collapses the symmetry "
+                         "group. Mirror is still tested both ways.")
+    ap.add_argument("--no-mirror", action="store_true",
+                    help="assert the document is not mirrored. Born-digital "
+                         "drawings (municipal PDF site plans) are plan views "
+                         "— mirroring only enters via scanning artifacts. On "
+                         "near-symmetric blocks under relayout drift the "
+                         "mirror twin can FIT BETTER than the truth (the "
+                         "drift regime's disagreement-is-signal, at pose "
+                         "level), so when the document class rules mirroring "
+                         "out, say so.")
     ap.add_argument("--anchor", choices=["auto", "shape"], default="auto",
                     help="'auto' = label/unique-value anchors with SHAPE "
                          "(boundary-ICP) fallback when they starve; 'shape' "
@@ -371,8 +424,16 @@ def main():
           f"({n_joins} stub-joins, {n_welds} welds)")
 
     # ---- fabric parcels (normalized snapshot or legacy esri) ----
+    # Gsub = the SUBJECT plan's parcels: anchoring, consensus, coverage,
+    # assignment, and the open set all run against these. Context parcels
+    # (fabric_fetch --context-buffer) extend only the registration target —
+    # the ICP cloud and road detection — because the drawing draws the
+    # neighbourhood, and without it symmetric plats tie.
     G, units, _factor = load_fabric(a.fabric)
-    print(f"fabric: {len(G)} parcels, areas in {units}")
+    Gsub = {lid: g for lid, g in G.items() if not g.get("context")}
+    n_ctx = len(G) - len(Gsub)
+    print(f"fabric: {len(Gsub)} subject parcels"
+          + (f" + {n_ctx} context" if n_ctx else "") + f", areas in {units}")
 
     # ---- printed-area scale fit (face_check's RANSAC) ----
     P = [(p["id"], float(p.get("sqft", p.get("area", 0))))
@@ -411,11 +472,11 @@ def main():
     for fi, (pid, pv, _) in matches.items():
         if pv in dup_vals:
             continue
-        if pid in G:
-            anchors.append((poly_centroid(F[fi][0]), G[pid]["centroid"], pid))
+        if pid in Gsub:
+            anchors.append((poly_centroid(F[fi][0]), Gsub[pid]["centroid"], pid))
             continue
         cand = sorted((abs(g["gis_area"] - pv) / pv, lid)
-                      for lid, g in G.items() if g["gis_area"])
+                      for lid, g in Gsub.items() if g["gis_area"])
         if cand and cand[0][0] <= 0.015 and (len(cand) == 1
                                              or cand[1][0] > 0.02):
             anchors.append((poly_centroid(F[fi][0]),
@@ -442,8 +503,8 @@ def main():
                   f"(drift regime?); falling back to SHAPE anchoring")
             shape_mode = True
     fcent = {fi: poly_centroid(p) for fi, (p, _) in enumerate(F)}
-    pairs_ok = [(fi, lid) for fi, (p, ar) in enumerate(F) for lid, g in G.items()
-                if abs(ar * r - g["gis_area"]) / g["gis_area"] <= a.pair_tol]
+    pairs_ok = [(fi, lid) for fi, (p, ar) in enumerate(F) for lid, g in Gsub.items()
+                if g["gis_area"] and abs(ar * r - g["gis_area"]) / g["gis_area"] <= a.pair_tol]
     icp_fit = None
 
     def collect_inl(apply_t):
@@ -485,37 +546,57 @@ def main():
         import numpy as np
         from scipy.spatial import cKDTree
         s0 = math.sqrt(r / _factor)
-        fabric_rings = [g["ring"] for g in G.values()]
+        mirrors = (False,) if a.no_mirror else (False, True)
+        rot_prior = None
+        if a.rot_prior:
+            parts = [float(v) for v in a.rot_prior.split(",")]
+            rot_prior = (parts[0], parts[1] if len(parts) > 1 else 8.0)
+        # ICP registration target = SUBJECT rings at full density, plus
+        # CONTEXT rings (fabric_fetch --context-buffer) under their own cap:
+        # the drawing draws the neighbourhood, and the context frontages
+        # give the street frame a counterpart, breaking mirror/lattice ties
+        fabric_rings = [g["ring"] for g in Gsub.values()]
+        ctx_rings = [g["ring"] for g in G.values() if g.get("context")] or None
         variants = [[p for p, _ in F]]
         m_rings = [F[fi][0] for fi in matches]
         if len(m_rings) >= 5:
             variants.append(m_rings)
         cands = []
         for src_rings in variants:
-            cands += shape_anchor_fit(src_rings, fabric_rings, s0)
-        # road-locked variant: a road/common parcel (>=2.5x the median parcel
-        # area) is drift-immune (dedications don't move between proposal and
-        # registration) and asymmetric (bulbs, corners) — ICP of the road
-        # FACE onto the road RING alone has none of the lot-grid's mirror/
-        # lattice ambiguity. Fires only when such a parcel exists.
-        gareas = sorted(g["gis_area"] for g in G.values() if g["gis_area"])
+            cands += shape_anchor_fit(src_rings, fabric_rings, s0,
+                                      ctx_rings=ctx_rings,
+                                      rot_prior=rot_prior, mirrors=mirrors)
+        # road-locked variant: a SUBJECT road/common parcel (>=2.5x the
+        # median subject parcel area) is drift-immune (dedications don't
+        # move between proposal and registration) and asymmetric (bulbs,
+        # corners) — ICP of the road FACE onto the road RING alone has none
+        # of the lot-grid's mirror/lattice ambiguity. Subject-only: a
+        # neighbourhood snapshot contains dozens of large context parcels
+        # (parks, schools, roads) and firing per parcel explodes the
+        # candidate pool (observed: 3243 candidates).
+        gareas = sorted(g["gis_area"] for g in Gsub.values() if g["gis_area"])
         med = gareas[len(gareas) // 2] if gareas else 0
-        for lid, g in G.items():
+        for lid, g in Gsub.items():
             if not med or not g["gis_area"] or g["gis_area"] < 2.5 * med:
                 continue
             rf = [p for p, ar in F
                   if abs(ar * r - g["gis_area"]) / g["gis_area"] <= 0.35]
             if rf:
-                cands += shape_anchor_fit(rf, [g["ring"]], s0)
+                cands += shape_anchor_fit(rf, [g["ring"]], s0,
+                                          rot_prior=rot_prior,
+                                          mirrors=mirrors)
         plan_cloud = [p for ring, _ in F for p in sample_ring(ring, 1.0 / s0)]
-        fab_pts = np.array([p for ring in fabric_rings
-                            for p in sample_ring(ring, 2.0)])
+        # coverage stays SUBJECT-only: context parcels' back edges are not
+        # drawn, so scoring them would punish the true pose
+        fab_pts = np.array([p for g in Gsub.values()
+                            for p in sample_ring(g["ring"], 2.0)])
         kf = max(3, int(len(fab_pts) * 0.9))
 
         def rev_rms(apply_t):
             P = np.array([apply_t(p) for p in plan_cloud])
             d, _ = cKDTree(P).query(fab_pts)
             return float(np.sqrt((np.sort(d)[:kf] ** 2).mean()))
+
 
         # two complementary arbiters, combined lexicographically:
         # 1. re-estimated CONSENSUS count (structural: lot centroids must
@@ -525,7 +606,7 @@ def main():
         #    178-deg impostor by coverage);
         # 2. reverse-RMS as the tie-break and the polish acceptance gate —
         #    consensus alone saturates under loose tolerances.
-        best = None
+        scored = []
         for apply_icp, s_i, rot_i, mir_i, rms_i, n_i in cands:
             rev = rev_rms(apply_icp)
             fit = (apply_icp, s_i, rot_i, mir_i, rms_i)
@@ -545,13 +626,24 @@ def main():
                             rev, inl, cons = rev_1, inl_1, cons_1
                 except ZeroDivisionError:
                     pass
-            score = (len(cons), -rev)
-            if best is None or score > best[0]:
-                best = (score, inl, fit, rev)
-        (ncons, _), inl, fit, rev = best
+            # the deciding score: SUM of per-pair ring IoU over the greedy
+            # consensus. Centroid counts, coverage, and crossing counts all
+            # saturate under the symmetry group of an orthogonal suburban
+            # grid (90-deg rotations, mirrors, lattice shifts each kept 7-8
+            # centroid-consensus lots on the Surrey pilot) — but a rotated
+            # elongated lot only OVERLAPS its parcel ~0.3 IoU where an
+            # aligned-but-drifted one scores ~0.8. Shape, not position,
+            # breaks the tie; the pairs ARE the per-lot correspondence.
+            siou = sum(ring_iou([fit[0](q) for q in F[fi][0]],
+                                G[lid]["ring"])
+                       for fi, lid, _ in cons)
+            scored.append(((siou, -rev), inl, fit, rev, len(cons)))
+        scored.sort(key=lambda t: t[0], reverse=True)
+        (siou, _), inl, fit, rev, ncons = scored[0]
         print(f"shape anchor (boundary ICP): {len(cands)} pose candidate(s) "
               f"from {len(variants)} source cloud(s); best by consensus "
-              f"({ncons}) + coverage ({rev:.2f} m): scale={fit[1]:.5f} m/unit, "
+              f"shape-overlap (sum-IoU {siou:.2f} over {ncons} pairs) + "
+              f"coverage ({rev:.2f} m): scale={fit[1]:.5f} m/unit, "
               f"rot={fit[2]:.2f} deg, mirrored={fit[3]}")
         return inl, fit[3], fit
 
@@ -630,7 +722,7 @@ def main():
     # ---- final 1:1 assignment + report ----
     cands = sorted((math.hypot(apply_T(fcent[fi])[0] - g["centroid"][0],
                                apply_T(fcent[fi])[1] - g["centroid"][1]), fi, lid)
-                   for fi in range(len(F)) for lid, g in G.items())
+                   for fi in range(len(F)) for lid, g in Gsub.items())
     uf, ul, assign = set(), set(), {}
     for d, fi, lid in cands:
         if fi in uf or lid in ul or d > 5 * max(1.0, rms) + 2:
@@ -651,7 +743,7 @@ def main():
         print(f"{fi:>4} {lid:>10} {d:>7.2f} {fa:>9.0f} {g['gis_area']:>9.0f} "
               f"{100 * (fa - g['gis_area']) / g['gis_area']:>+6.2f}% "
               f"{dp:>+6.2f}%  {am}{flag}")
-    open_lots = [l for l in G if l not in ul]
+    open_lots = [l for l in Gsub if l not in ul]
     print(f"\nfabric lots with NO face: {open_lots}")
 
     if a.corridor_out:

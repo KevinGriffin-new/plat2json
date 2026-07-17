@@ -106,6 +106,44 @@ def fetch_parcelmap_bc(key, epsg=26910):
             "parcels": parcels, "interests": interests}
 
 
+def fetch_parcelmap_bc_bbox(bbox, epsg=26910):
+    """All PMBC parcels intersecting bbox=(xmin, ymin, xmax, ymax) in the
+    given projected CRS, regardless of plan number. Used to build CONTEXT
+    around a subject plan: a site drawing usually covers a neighbourhood,
+    and registration against a fabric truncated to the subject plan's own
+    parcels turns solvable poses into symmetric ties (the tie-breaking
+    asymmetries — street frame, neighbour frontages — have no counterpart)."""
+    url = "https://openmaps.gov.bc.ca/geo/pub/ows"
+    x0, y0, x1, y1 = bbox
+    d = _get_json(url, {
+        "service": "WFS", "version": "2.0.0", "request": "GetFeature",
+        "typeNames": "pub:WHSE_CADASTRE.PMBC_PARCEL_FABRIC_POLY_SVW",
+        "outputFormat": "application/json", "srsName": f"EPSG:{epsg}",
+        "CQL_FILTER": f"BBOX(SHAPE, {x0}, {y0}, {x1}, {y1}, 'EPSG:{epsg}')"},
+        timeout=120)
+    parcels, interests = [], []
+    for f in d.get("features", []):
+        p = f["properties"]
+        g = f["geometry"]
+        ring = (g["coordinates"][0] if g["type"] == "Polygon"
+                else g["coordinates"][0][0])
+        rec = {"label": p.get("PID_FORMATTED") or p.get("PARCEL_NAME")
+               or f'PFP{p.get("PARCEL_FABRIC_POLY_ID")}',
+               "area": p.get("FEATURE_AREA_SQM"),
+               "ring": ring, "attrs": p}
+        (interests if p.get("PARCEL_CLASS") == "Interest" else parcels).append(rec)
+    return {"provider": "parcelmap_bc", "units": "m2", "epsg": epsg,
+            "_provenance": f"Fetched {_iso_now()} from BC openmaps WFS "
+                           f"PMBC_PARCEL_FABRIC_POLY_SVW BBOX({x0:.0f},{y0:.0f},"
+                           f"{x1:.0f},{y1:.0f}) srsName=EPSG:{epsg} "
+                           "(Open Government Licence BC).",
+            "parcels": parcels, "interests": interests}
+
+
+BBOX_PROVIDERS = {
+    "parcelmap_bc": fetch_parcelmap_bc_bbox,
+}
+
 PROVIDERS = {
     "wyoming_statewide": fetch_wyoming_statewide,
     "parcelmap_bc": fetch_parcelmap_bc,
