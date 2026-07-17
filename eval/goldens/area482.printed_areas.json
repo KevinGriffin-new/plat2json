@@ -1,0 +1,27 @@
+{
+ "_status": "HUMAN-READ GOLDEN - printed lot areas from 482.pdf sheet 2",
+ "_provenance": "Read from the sheet-2 drawing (250 dpi render) 2026-07-15. Every value self-checks against its printed acreage x 43560 within rounding; LOT 5 (70026) and LOT 11 (72820) additionally match the hand-verified COGO golden area482.lots.golden.json.",
+ "_use": "face_check.py --printed-sqft: RANSAC-fit the sqft-per-plan-unit^2 ratio and validate closed faces against printed areas (same area-oracle idea as run_482 straight_lots, applied to plan topology).",
+ "plat": "Area Thirty3 Estates Subdivision (SW1/4 Sec 33, T20N R105W, Sweetwater County, WY)",
+ "unit": "sqft",
+ "parcels": [
+  {"id": "LOT 1", "sqft": 65523, "acres": 1.504},
+  {"id": "LOT 2", "sqft": 65340, "acres": 1.5},
+  {"id": "LOT 3", "sqft": 69169, "acres": 1.588},
+  {"id": "LOT 4", "sqft": 70727, "acres": 1.624},
+  {"id": "LOT 5", "sqft": 70026, "acres": 1.608},
+  {"id": "LOT 6", "sqft": 69614, "acres": 1.598},
+  {"id": "LOT 7", "sqft": 65340, "acres": 1.5},
+  {"id": "LOT 8", "sqft": 311078, "acres": 7.141},
+  {"id": "LOT 9", "sqft": 65340, "acres": 1.5},
+  {"id": "LOT 10", "sqft": 65340, "acres": 1.5},
+  {"id": "LOT 11", "sqft": 72820, "acres": 1.672},
+  {"id": "LOT 12", "sqft": 68747, "acres": 1.578},
+  {"id": "LOT 13", "sqft": 65340, "acres": 1.5},
+  {"id": "LOT 14", "sqft": 65340, "acres": 1.5},
+  {"id": "LOT 15", "sqft": 65340, "acres": 1.5},
+  {"id": "LOT 16", "sqft": 65340, "acres": 1.5},
+  {"id": "LOT 17", "sqft": 71340, "acres": 1.638},
+  {"id": "TRACT A", "sqft": 110377, "acres": 2.534}
+ ]
+}
