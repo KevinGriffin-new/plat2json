@@ -306,6 +306,42 @@ Goldens banked: example_plan.printed_areas.json (36 lots, m2, self-checked
 against printed dimensions), example_plan.fabric.utm26910.json (EPP46435
 snapshot + identification provenance).
 
+## Iteration 26 — VLM orientation prior automated; first Surrey PLR corpus batch (and a licensing jackpot)
+The manual priors from iteration 25 are now derived from the document
+itself, and the corpus machinery exists end-to-end.
+* **orient_prior.py** (blind Qwen2.5-VL read → rule engine → --rot-prior/
+  --no-mirror): single-answer questions per edge strip ("one street name
+  or NONE" — list-style prompts hallucinated arithmetic series: '71, 69,
+  67 … 53 AVENUE'); label direction from WHICH PASS reads it (unrotated =
+  horizontal, 90-rotated = vertical; the model's own direction attribute
+  normalises rotated text, and vertical labels return null unrotated per
+  obs #175); majority family vote so a residual ghost cannot poison
+  {0,180} vs {90,270}; sense from numbered pairs (Surrey avenues increase
+  north, streets east) + north arrow; conservative confidence downgrades.
+  Pilot validation: rot=0/no-mirror/medium from the real labels, and the
+  derived prior reproduces the manual-prior adjudication exactly.
+* **plr_sweep.py**: the archive is URL-enumerable
+  (surrey.ca/sites/default/files/planning-reports/PLR_79YY-NNNN-00.pdf).
+  First batch: 16 probed → 10 fetched → 9 with a site-plan page (VLM
+  thumbnail classifier) → 4 orientation priors first-pass. Classifier
+  recall good (the pilot's true sheet found); two precision issues
+  logged: report covers classify YES (location sketches — take the LAST
+  non-cover hit; drawing sheets cluster in appendices) and building/sign
+  site plans classify YES (tighten to "numbered lots as parcels").
+* **The jackpot (7914-0109 p14):** some PLRs attach the REGISTERED
+  subdivision plan as Schedule A — a full EPP27233 sheet with the plan
+  number printed, ~53 lots with printed m² areas, complete street labels.
+  Free plan images in the extraction regime: the corpus is DUAL
+  (drift-regime proposals + extraction-regime registered plans), which
+  directly softens the paper's LTSA plan-image licensing limitation
+  (§10). Registered-plan schedules can seed extraction-regime goldens at
+  corpus scale without a research agreement.
+Next: tighten the classifier criterion; small-label recall on dense
+registered sheets (0109 returned inconclusive at strip resolution);
+then per-report golden assembly for the drift stage, starting with the
+Schedule-A registered plans where the printed areas double as goldens
+AND retrieval fingerprints (iteration 22's rung).
+
 ## Iteration 25 — drift-regime pose adjudication solved by document-class priors; per-lot drift table delivered
 The Surrey pilot's mirror tie is broken and the drift deliverable works
 end-to-end: `fabric_fetch --context-buffer` (new PMBC bbox provider) +
