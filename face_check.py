@@ -180,17 +180,36 @@ def stitch_graph(nodes, edges, join_r=1.2, weld_r=2.0):
 
     deg = degree()
     n_welds = 0
+    adjn = {}
+    for e in edges:
+        adjn.setdefault(e["a"], set()).add(e["b"])
+        adjn.setdefault(e["b"], set()).add(e["a"])
     for v in [v for v, d in deg.items() if d == 1]:
         p = nodes[v]
-        best = None
+        cands = []
         for ei, e in enumerate(edges):
             if v in (e["a"], e["b"]):
                 continue
             dist, t, q = pt_seg(p, nodes[e["a"]], nodes[e["b"]])
-            if best is None or dist < best[0]:
-                best = (dist, ei, t, q)
-        if best and best[0] <= weld_r:
-            dist, ei, t, q = best
+            if dist <= weld_r:
+                cands.append((dist, ei, t, q))
+        # nearest-first, but keep trying: the nearest "target" is often the
+        # stub's own chain continuation, whose clamped projection is the
+        # stub's neighbor node — welding there appends a parallel duplicate
+        # edge (a topological no-op) that used to consume the stub's one
+        # repair chance (EPP46435: every LOT 1-4 shared line ends in a
+        # 0.4-unit stub at a monument circle; the real target 1.1 units
+        # away never got tried, merging all four lots into one face)
+        for dist, ei, t, q in sorted(cands):
+            e = edges[ei]
+            if t < 0.05:
+                w = e["a"]
+            elif t > 0.95:
+                w = e["b"]
+            else:
+                w = None  # mid-edge split: never degenerate
+            if w is not None and (w == v or w in adjn.get(v, ())):
+                continue
             # directional sanity for the longer welds: the target must sit
             # roughly AHEAD of the stub (a divider stopping short of a curb),
             # not broadside — broadside long welds fuse parallel neighbors
@@ -200,20 +219,18 @@ def stitch_graph(nodes, edges, join_r=1.2, weld_r=2.0):
                 n = float(np.hypot(*u))
                 if dv is None or n < 1e-9 or abs(float(dv @ (u / n))) < 0.5:
                     continue
-            e = edges[ei]
-            if t < 0.05:
-                w = e["a"]
-            elif t > 0.95:
-                w = e["b"]
-            else:
+            if w is None:
                 nodes.append(q)
                 w = len(nodes) - 1
                 b_old = e["b"]
                 e["b"] = w
                 edges.append({**e, "a": w, "b": b_old})
-            if w != v:
-                edges.append({**edges[ei], "a": v, "b": w})
-                n_welds += 1
+                adjn.setdefault(w, set()).update((e["a"], b_old))
+            edges.append({**edges[ei], "a": v, "b": w})
+            adjn.setdefault(v, set()).add(w)
+            adjn.setdefault(w, set()).add(v)
+            n_welds += 1
+            break
     return nodes, edges, n_joins, n_welds
 
 

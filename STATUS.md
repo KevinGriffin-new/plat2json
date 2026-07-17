@@ -306,6 +306,49 @@ Goldens banked: example_plan.printed_areas.json (36 lots, m2, self-checked
 against printed dimensions), example_plan.fabric.utm26910.json (EPP46435
 snapshot + identification provenance).
 
+## Iteration 23 — BC open-set autopsy: a FOURTH disease (captured but unwelded); degenerate self-weld fixed, 31→32/36
+Per-ring autopsy of the 5 open PIDs (obs #169 recipe) with a twist ending:
+* **Gap scan came back EMPTY.** All five rings fully covered — every sample
+  within 0.8 u of raw traced ink and 1.2 u of post-stitch graph edges. Not
+  "chains died", not "never captured": a fourth disease, **captured but
+  topologically unwelded**. (A first scan variant that filtered graph edges
+  by ENDPOINT distance to the ring-segment axis reported a false 11.6-u gap
+  on LOT 34's frontage and nearly launched a wrong min-len fix — point-sample
+  against whole segments.)
+* **Face-encloses-centroid on the scorer's own graph found the disease in
+  one query:** two merged blobs — LOTs 1+2+3+4 as one 2815 u^2 face
+  (printed sum 2836, −0.7%) and 34+35+a road-band sliver over lots 28–33 as
+  1866 u^2. Rendering the blob polygons filled on the raster showed the leak
+  paths immediately (red loops wrapping the west-corner monument circles).
+* **Root cause (micro-zoom + graph interrogation at one corner):** each
+  shared lot line ends in a ~0.4-u stub at an open-circle monument.
+  stitch_graph's stub-edge weld took only the single NEAREST non-incident
+  edge; pt_seg clamps the projection to the edge endpoint, and for these
+  stubs that endpoint is the stub's own chain neighbour — the weld appended
+  a **parallel duplicate edge** (topological no-op), counted it as success,
+  and the real target (the boundary chain through the circle, 1.1 u away,
+  inside weld_r=2.0) was never tried.
+* **Fix (face_check.py):** weld candidates collected within weld_r and tried
+  nearest-first, skipping degenerate results (clamped endpoint already
+  adjacent to the stub). Gates: **EPP46435 31→32/36** — LOT 2 face 720.7
+  (printed 720.0), LOT 3 face 717.9 (printed 717.4); **482 unchanged 18/18**
+  (scale fit identical). All five former opens now resolve to distinct
+  faces; remaining misses are new, smaller diseases: LOT 4 trimmed by its
+  BCP32493 R/W strip (534.8 vs 562.9), LOT 1 in a reduced 2694 blob, 34/35
+  split irregularly across the fat road band.
+* **Validator fragility found (open):** the improved face set shifted the
+  area-scale fit 1.01→1.02, which shifted the unique-value ANCHOR candidates
+  onto exactly the still-broken lots (LOT 1/6/7); the drift-regime <2-anchor
+  abort then killed the similarity fit (27 consensus → 1, RMS nan — an
+  unguarded var=0 division). fabric_compare needs (a) fallback to the broad
+  area-compatible-pairs RANSAC when unique-value anchoring starves in
+  extraction-validation regime, (b) a nan guard. Until then the corridor
+  loop is blocked on this plat. Lesson: validate every capture change
+  through the WHOLE oracle chain — the gate nearest the change passing
+  while a downstream oracle collapses is a real mode.
+Next: fabric_compare anchor fallback; then LOT 4's interest-strip split,
+LOT 1's remaining blob, and the 34/35 fat-band frontage.
+
 ## Iteration 21 — corridor-guided capture closes 18/18
 The fabric corridor (fabric_compare --corridor-out, iteration 20) now drives
 three capture mechanisms in plat2json, ALL inert without --rescue-corridor:
