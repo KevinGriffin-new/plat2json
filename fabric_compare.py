@@ -71,6 +71,8 @@ def umeyama(src, dst, mirror):
         sxx += ax * bx; sxy += ax * by
         syx += ay * bx; syy += ay * by
         var += ax * ax + ay * ay
+    if var <= 0:  # coincident sources: 1 distinct anchor -> nan fit (observed)
+        raise ZeroDivisionError("degenerate umeyama: zero source variance")
     theta = math.atan2(sxy - syx, sxx + syy)
     s = ((sxx + syy) * math.cos(theta) + (sxy - syx) * math.sin(theta)) / var
     c, sn = math.cos(theta), math.sin(theta)
@@ -84,6 +86,197 @@ def umeyama(src, dst, mirror):
     rms = math.sqrt(sum((apply(a)[0] - b[0]) ** 2 + (apply(a)[1] - b[1]) ** 2
                         for a, b in zip(src, dst)) / n)
     return apply, s, math.degrees(theta), rms
+
+
+def sample_ring(ring, step):
+    """Points every `step` along a closed ring's edges (ring units)."""
+    r = [tuple(p) for p in ring]
+    if r[0] != r[-1]:
+        r.append(r[0])
+    pts = []
+    for (x1, y1), (x2, y2) in zip(r, r[1:]):
+        L = math.hypot(x2 - x1, y2 - y1)
+        n = max(1, int(L / step))
+        for t in range(n):
+            f = t / n
+            pts.append((x1 + f * (x2 - x1), y1 + f * (y2 - y1)))
+    return pts
+
+
+def shape_anchor_fit(face_rings, fabric_rings, s0, trim=0.7, step_m=2.0):
+    """SHAPE anchoring: trimmed similarity ICP between edge-sampled point
+    clouds — reconstructed face rings (plan units) onto fabric parcel rings
+    (projected metres). No area-value correspondence at all, which makes it
+    (a) the correct anchor in the DRIFT regime, where proposal areas differ
+    from registered areas by construction, and (b) the fallback when
+    unique-value anchoring starves in the extraction regime (observed on
+    EPP46435: a capture improvement shifted the match set and the value
+    anchors landed on the still-broken lots).
+
+    Seeded by the printed-area scale fit (s0, m/unit) and a coarse 5-degree
+    rotation sweep with mirror test; scale is refined but clamped to
+    +-15% of s0 so a partial overlap cannot collapse the cloud.
+    Returns (apply, scale_m_per_unit, rot_deg, mirrored, trimmed_rms_m, n)."""
+    import numpy as np
+    from scipy.spatial import cKDTree
+
+    src = np.array([p for ring in face_rings
+                    for p in sample_ring(ring, step_m / s0)], float)
+    dst = np.array([p for ring in fabric_rings
+                    for p in sample_ring(ring, step_m)], float)
+
+    def cap(A, n):
+        return A[np.linspace(0, len(A) - 1, n).astype(int)] if len(A) > n else A
+
+    src, dst = cap(src, 4000), cap(dst, 6000)
+    tree = cKDTree(dst)
+    dc = dst.mean(0)
+
+    def icp(mirror, theta0, t0=None, s_init=None):
+        s_init = s0 if s_init is None else s_init
+        S = src * [-1.0, 1.0] if mirror else src.copy()
+        sc = S.mean(0)
+        th, s = theta0, s_init
+        t = None if t0 is None else np.asarray(t0, float)
+        k = max(3, int(len(S) * trim))
+        for _ in range(60):
+            c, sn = math.cos(th), math.sin(th)
+            R = np.array([[c, -sn], [sn, c]])
+            if t is None:
+                t = dc - s * (R @ sc)
+            P = S @ (s * R).T + t
+            d, j = tree.query(P)
+            keep = np.argsort(d)[:k]
+            A, B = S[keep], dst[j[keep]]
+            ca, cb = A.mean(0), B.mean(0)
+            A0, B0 = A - ca, B - cb
+            Sxx = float(A0[:, 0] @ B0[:, 0]); Sxy = float(A0[:, 0] @ B0[:, 1])
+            Syx = float(A0[:, 1] @ B0[:, 0]); Syy = float(A0[:, 1] @ B0[:, 1])
+            var = float((A0 ** 2).sum())
+            if var <= 0:
+                break
+            th_new = math.atan2(Sxy - Syx, Sxx + Syy)
+            s_new = ((Sxx + Syy) * math.cos(th_new)
+                     + (Sxy - Syx) * math.sin(th_new)) / var
+            s_new = min(max(s_new, 0.85 * s_init), 1.15 * s_init)
+            c, sn = math.cos(th_new), math.sin(th_new)
+            R = np.array([[c, -sn], [sn, c]])
+            t_new = cb - s_new * (R @ ca)
+            moved = abs(s_new - s) * 100 + abs(th_new - th) * 100 + \
+                float(np.hypot(*(t_new - t)))
+            th, s, t = th_new, s_new, t_new
+            if moved < 1e-4:
+                break
+        c, sn = math.cos(th), math.sin(th)
+        P = S @ np.array([[s * c, s * sn], [-s * sn, s * c]]) + t
+        d, _ = tree.query(P)
+        rms = float(np.sqrt((np.sort(d)[:k] ** 2).mean()))
+        return rms, th, s, (float(t[0]), float(t[1]))
+
+    # coarse seed: 5-degree sweep x scale sweep on a subsample, trimmed mean
+    # NN distance. The scale sweep matters in the DRIFT regime: the printed-
+    # area scale fit that seeds s0 is itself computed against drifted areas
+    # (Surrey pilot: s0 came out 12% low and the correct pose lost the
+    # coarse sweep before ICP could correct it)
+    sub = cap(src, 300)
+    k = max(3, int(len(sub) * trim))
+    # (a cloud-radius-ratio scale estimate was tried here and REMOVED: under
+    # partial overlap — a site plan drawing a whole neighbourhood vs a fabric
+    # covering one block — radius ratios are meaningless and their seeds
+    # outscore the correct ones. The area-derived s0 is the honest seed;
+    # the sweep brackets its error.)
+    scales = [s0 * m for m in (0.88, 1.0, 1.14)]
+    # seed score is SYMMETRIC: forward trimmed NN (src->dst) alone rewards
+    # scale collapse — a shrunken cloud huddles near dense target areas and
+    # every top seed comes from the smallest bracket (observed: all pilot
+    # seeds at the clamp). The reverse term (dst->src) punishes shrinkage:
+    # uncovered fabric costs distance.
+    dsub = cap(dst, 300)
+    kr = max(3, int(len(dsub) * 0.9))
+    seeds = []
+    for mirror in (False, True):
+        S = sub * [-1.0, 1.0] if mirror else sub
+        sc = S.mean(0)
+        for si in scales:
+            for deg in range(0, 360, 5):
+                th = math.radians(deg)
+                c, sn = math.cos(th), math.sin(th)
+                P = (S - sc) @ np.array([[si * c, si * sn],
+                                         [-si * sn, si * c]]) + dc
+                d, _ = tree.query(P)
+                fwd = float(np.sort(d)[:k].mean())
+                dr, _ = cKDTree(P).query(dsub)
+                rev = float(np.sort(dr)[:kr].mean())
+                seeds.append((fwd + rev, mirror, th, si))
+    seeds.sort()
+    # near-symmetric plats (regular double-row lot grids) give the WRONG
+    # pose a competitive point-RMS: a 176-deg flip of EPP46435 self-aligns
+    # the lot pattern, and a one-lot-spacing TRANSLATION (~17 m) locks a
+    # 17-lot false consensus while the block-end evidence that would refute
+    # it falls inside the ICP trim. Point distance cannot arbitrate either —
+    # the caller must pick by CONSENSUS over area-compatible (face,parcel)
+    # pairs. So: several angularly-separated rotation seeds, and for each,
+    # translation seeds from the cross-correlation PEAKS of the rasterized
+    # clouds (correlation sees the block ends the trim would discard; the
+    # lattice produces multiple peaks and every peak becomes a candidate).
+    from scipy.signal import correlate
+
+    def corr_translations(mirror, th, si, cell=3.0, npeaks=2):
+        S = src * [-1.0, 1.0] if mirror else src
+        c, sn = math.cos(th), math.sin(th)
+        S2 = S @ np.array([[si * c, si * sn], [-si * sn, si * c]])
+        so, do = S2.min(0), dst.min(0)
+        gs = np.zeros((int((S2[:, 1].max() - so[1]) / cell) + 2,
+                       int((S2[:, 0].max() - so[0]) / cell) + 2))
+        gd = np.zeros((int((dst[:, 1].max() - do[1]) / cell) + 2,
+                       int((dst[:, 0].max() - do[0]) / cell) + 2))
+        for (x, y) in S2:
+            gs[int((y - so[1]) / cell), int((x - so[0]) / cell)] = 1.0
+        for (x, y) in dst:
+            gd[int((y - do[1]) / cell), int((x - do[0]) / cell)] = 1.0
+        C = correlate(gd, gs, mode="full", method="fft")
+        flat = np.argsort(C.ravel())[::-1]
+        out, taken = [], []
+        for idx in flat:
+            iy, ix = divmod(int(idx), C.shape[1])
+            if any(abs(iy - jy) < 3 and abs(ix - jx) < 3 for jy, jx in taken):
+                continue
+            taken.append((iy, ix))
+            ty = do[1] + (iy - (gs.shape[0] - 1)) * cell - so[1]
+            tx = do[0] + (ix - (gs.shape[1] - 1)) * cell - so[0]
+            out.append((tx, ty))
+            if len(out) >= npeaks:
+                break
+        return out
+
+    picked = []
+    for score, mirror, th0, si in seeds:
+        if len(picked) >= 8:
+            break
+        if any(m == mirror and abs((th0 - t + math.pi) % (2 * math.pi)
+                                   - math.pi) < math.radians(20)
+               for _, m, t, _s in picked):
+            continue
+        picked.append((score, mirror, th0, si))
+    cands, saturated = [], []
+    for _, mirror, th0, si in picked:
+        inits = [None] + corr_translations(mirror, th0, si)
+        for t0 in inits:
+            rms, th, s, (tx, ty) = icp(mirror, th0, t0, si)
+            c, sn = math.cos(th), math.sin(th)
+
+            def apply(p, s=s, c=c, sn=sn, tx=tx, ty=ty, mirror=mirror):
+                x, y = (-p[0] if mirror else p[0]), p[1]
+                return (s * (c * x - sn * y) + tx, s * (sn * x + c * y) + ty)
+
+            # a final scale ON the clamp boundary is a collapse artifact
+            # (shrinking the cloud always lowers trimmed NN distance),
+            # not a converged pose — quarantine unless nothing else exists
+            bucket = (saturated if min(abs(s - 0.85 * si), abs(s - 1.15 * si))
+                      / si < 0.01 else cands)
+            bucket.append((apply, s, math.degrees(th), mirror, rms, len(src)))
+    cands.sort(key=lambda t: t[4])
+    return cands or saturated
 
 
 def lot_id(legal):
@@ -132,6 +325,12 @@ def main():
                     help="rel. area tol for a (face,parcel) RANSAC pair")
     ap.add_argument("--inlier-m", type=float, default=12.0,
                     help="centroid distance (m) for a RANSAC inlier")
+    ap.add_argument("--anchor", choices=["auto", "shape"], default="auto",
+                    help="'auto' = label/unique-value anchors with SHAPE "
+                         "(boundary-ICP) fallback when they starve; 'shape' "
+                         "forces boundary ICP (the drift-regime anchor: "
+                         "proposal areas differ from registered by design, "
+                         "so only geometry can anchor)")
     ap.add_argument("--out", default=None, help="write faces GeoJSON here")
     ap.add_argument("--dump-transform", default=None,
                     help="write the fitted plan->fabric affine (JSON) here")
@@ -234,55 +433,191 @@ def main():
         if lid not in value_anchors or an[3] < value_anchors[lid][3]:
             value_anchors[lid] = an
     anchors = label_anchors + [an[:3] for an in value_anchors.values()]
-    dst_distinct = {tuple(an[1]) for an in anchors}
-    if len(dst_distinct) < 2:
-        print(f"anchors resolve to only {len(dst_distinct)} distinct fabric "
-              f"parcel(s) — area anchoring is not identifiable (drift "
-              f"regime?); aborting fit")
-        sys.exit(3)
-    pair_seeded = len(dst_distinct) < 3
-    if pair_seeded:
-        print(f"only {len(dst_distinct)} distinct anchor targets — falling "
-              f"back to PAIR-seeded RANSAC (2-point similarity is exact; "
-              f"acceptance rests entirely on consensus size)")
-    print(f"anchor candidates (unique-area lots): {sorted(x[2] for x in anchors)}")
-    if len(anchors) < (2 if pair_seeded else 3):
-        sys.exit("not enough unique-area anchors")
+    shape_mode = a.anchor == "shape"
+    if not shape_mode:
+        dst_distinct = {tuple(an[1]) for an in anchors}
+        if len(dst_distinct) < 2:
+            print(f"anchors resolve to only {len(dst_distinct)} distinct "
+                  f"fabric parcel(s) — area anchoring is not identifiable "
+                  f"(drift regime?); falling back to SHAPE anchoring")
+            shape_mode = True
     fcent = {fi: poly_centroid(p) for fi, (p, _) in enumerate(F)}
     pairs_ok = [(fi, lid) for fi, (p, ar) in enumerate(F) for lid, g in G.items()
                 if abs(ar * r - g["gis_area"]) / g["gis_area"] <= a.pair_tol]
-    best_score, best_inl, best_m = (-1, float("inf")), None, False
-    seeds = (list(combinations(anchors, 2)) if pair_seeded
-             else list(combinations(anchors, 3)))
-    for tri in seeds:
-        for m in (False, True):
-            try:
-                apply_t = umeyama([x[0] for x in tri], [x[1] for x in tri], m)[0]
-            except ZeroDivisionError:
+    icp_fit = None
+
+    def collect_inl(apply_t):
+        inl = []
+        for fi, lid in pairs_ok:
+            c = apply_t(fcent[fi])
+            d = math.hypot(c[0] - G[lid]["centroid"][0],
+                           c[1] - G[lid]["centroid"][1])
+            if d < a.inlier_m:
+                inl.append((fi, lid, d))
+        return inl
+
+    def greedy_pairs(inl):
+        inl = sorted(inl, key=lambda t: t[2])
+        uf, ul, out = set(), set(), []
+        for fi, lid, d in inl:
+            if fi in uf or lid in ul:
                 continue
-            inl, err = [], 0.0
-            for fi, lid in pairs_ok:
-                c = apply_t(fcent[fi])
-                d = math.hypot(c[0] - G[lid]["centroid"][0],
-                               c[1] - G[lid]["centroid"][1])
-                if d < a.inlier_m:
-                    inl.append((fi, lid, d))
-                    err += d
-            if (len(inl), -err) > best_score:
-                best_score, best_inl, best_m = (len(inl), -err), inl, m
-    best_inl.sort(key=lambda t: t[2])
-    uf, ul, cons = set(), set(), []
-    for fi, lid, d in best_inl:
-        if fi in uf or lid in ul:
-            continue
-        uf.add(fi)
-        ul.add(lid)
-        cons.append((fcent[fi], G[lid]["centroid"]))
-    apply_T, scale, rot, rms = umeyama([c[0] for c in cons],
-                                       [c[1] for c in cons], best_m)
-    print(f"similarity fit: {len(cons)} consensus lots, scale={scale:.5f} m/unit, "
-          f"rot={rot:.2f} deg (expect ~grid convergence), mirrored={best_m}, "
-          f"RMS={rms:.2f} m")
+            uf.add(fi)
+            ul.add(lid)
+            out.append((fi, lid, d))
+        return out
+
+    def run_shape():
+        # two source-cloud variants, candidates pooled: matched faces only
+        # (clean lots, but skews the cloud centroid when un-matched lots
+        # cluster on one side — on EPP46435 the correct pose fell out of the
+        # seed list) and ALL faces (road frame + block outline = the most
+        # drift-stable geometry, but frame/legend junk can drown ICP — on
+        # 482 the all-faces cloud lost the pose the matched cloud finds).
+        # The arbiter across all candidates is the REVERSE trimmed RMS:
+        # distance from every FABRIC sample to the nearest transformed plan
+        # point. The fabric is a subset of what the plan draws (a site plan
+        # covers the neighbourhood; the fabric covers one block), so forward
+        # metrics reward collapse and consensus counts saturate under loose
+        # tolerances — but a correct pose must COVER the fabric. Consensus
+        # is only a polish step afterwards, kept when it does not degrade
+        # the reverse score.
+        import numpy as np
+        from scipy.spatial import cKDTree
+        s0 = math.sqrt(r / _factor)
+        fabric_rings = [g["ring"] for g in G.values()]
+        variants = [[p for p, _ in F]]
+        m_rings = [F[fi][0] for fi in matches]
+        if len(m_rings) >= 5:
+            variants.append(m_rings)
+        cands = []
+        for src_rings in variants:
+            cands += shape_anchor_fit(src_rings, fabric_rings, s0)
+        # road-locked variant: a road/common parcel (>=2.5x the median parcel
+        # area) is drift-immune (dedications don't move between proposal and
+        # registration) and asymmetric (bulbs, corners) — ICP of the road
+        # FACE onto the road RING alone has none of the lot-grid's mirror/
+        # lattice ambiguity. Fires only when such a parcel exists.
+        gareas = sorted(g["gis_area"] for g in G.values() if g["gis_area"])
+        med = gareas[len(gareas) // 2] if gareas else 0
+        for lid, g in G.items():
+            if not med or not g["gis_area"] or g["gis_area"] < 2.5 * med:
+                continue
+            rf = [p for p, ar in F
+                  if abs(ar * r - g["gis_area"]) / g["gis_area"] <= 0.35]
+            if rf:
+                cands += shape_anchor_fit(rf, [g["ring"]], s0)
+        plan_cloud = [p for ring, _ in F for p in sample_ring(ring, 1.0 / s0)]
+        fab_pts = np.array([p for ring in fabric_rings
+                            for p in sample_ring(ring, 2.0)])
+        kf = max(3, int(len(fab_pts) * 0.9))
+
+        def rev_rms(apply_t):
+            P = np.array([apply_t(p) for p in plan_cloud])
+            d, _ = cKDTree(P).query(fab_pts)
+            return float(np.sqrt((np.sort(d)[:kf] ** 2).mean()))
+
+        # two complementary arbiters, combined lexicographically:
+        # 1. re-estimated CONSENSUS count (structural: lot centroids must
+        #    land on area-compatible parcels) — reverse coverage alone is
+        #    blind on cluttered site plans where ink sits near every fabric
+        #    point under almost any pose (Surrey pilot picked a mirrored
+        #    178-deg impostor by coverage);
+        # 2. reverse-RMS as the tie-break and the polish acceptance gate —
+        #    consensus alone saturates under loose tolerances.
+        best = None
+        for apply_icp, s_i, rot_i, mir_i, rms_i, n_i in cands:
+            rev = rev_rms(apply_icp)
+            fit = (apply_icp, s_i, rot_i, mir_i, rms_i)
+            inl = collect_inl(apply_icp)
+            cons = greedy_pairs(inl)
+            if len(cons) >= 4:
+                try:
+                    apply_1, s_1, rot_1, rms_1 = umeyama(
+                        [fcent[fi] for fi, _, _ in cons],
+                        [G[lid]["centroid"] for _, lid, _ in cons], mir_i)
+                    rev_1 = rev_rms(apply_1)
+                    if rev_1 <= rev * 1.15:
+                        inl_1 = collect_inl(apply_1)
+                        cons_1 = greedy_pairs(inl_1)
+                        if len(cons_1) >= len(cons):
+                            fit = (apply_1, s_1, rot_1, mir_i, rms_1)
+                            rev, inl, cons = rev_1, inl_1, cons_1
+                except ZeroDivisionError:
+                    pass
+            score = (len(cons), -rev)
+            if best is None or score > best[0]:
+                best = (score, inl, fit, rev)
+        (ncons, _), inl, fit, rev = best
+        print(f"shape anchor (boundary ICP): {len(cands)} pose candidate(s) "
+              f"from {len(variants)} source cloud(s); best by consensus "
+              f"({ncons}) + coverage ({rev:.2f} m): scale={fit[1]:.5f} m/unit, "
+              f"rot={fit[2]:.2f} deg, mirrored={fit[3]}")
+        return inl, fit[3], fit
+
+    if shape_mode:
+        best_inl, best_m, icp_fit = run_shape()
+    else:
+        pair_seeded = len(dst_distinct) < 3
+        if pair_seeded:
+            print(f"only {len(dst_distinct)} distinct anchor targets — falling "
+                  f"back to PAIR-seeded RANSAC (2-point similarity is exact; "
+                  f"acceptance rests entirely on consensus size)")
+        print(f"anchor candidates (unique-area lots): {sorted(x[2] for x in anchors)}")
+        if len(anchors) < (2 if pair_seeded else 3):
+            sys.exit("not enough unique-area anchors")
+        best_score, best_inl, best_m = (-1, float("inf")), None, False
+        seeds = (list(combinations(anchors, 2)) if pair_seeded
+                 else list(combinations(anchors, 3)))
+        for tri in seeds:
+            for m in (False, True):
+                try:
+                    apply_t = umeyama([x[0] for x in tri], [x[1] for x in tri], m)[0]
+                except ZeroDivisionError:
+                    continue
+                inl, err = [], 0.0
+                for fi, lid in pairs_ok:
+                    c = apply_t(fcent[fi])
+                    d = math.hypot(c[0] - G[lid]["centroid"][0],
+                                   c[1] - G[lid]["centroid"][1])
+                    if d < a.inlier_m:
+                        inl.append((fi, lid, d))
+                        err += d
+                if (len(inl), -err) > best_score:
+                    best_score, best_inl, best_m = (len(inl), -err), inl, m
+    def greedy_cons(inl):
+        inl.sort(key=lambda t: t[2])
+        uf, ul, cons = set(), set(), []
+        for fi, lid, d in inl:
+            if fi in uf or lid in ul:
+                continue
+            uf.add(fi)
+            ul.add(lid)
+            cons.append((fcent[fi], G[lid]["centroid"]))
+        return cons
+
+    cons = greedy_cons(best_inl)
+    if icp_fit is None and len(cons) < 4:
+        # anchors existed but the RANSAC consensus is degenerate — the
+        # observed mode: a capture change shifts the match set and the
+        # unique-value anchors land on broken faces. Geometry still anchors.
+        print(f"anchor RANSAC consensus only {len(cons)} lot(s) — falling "
+              f"back to SHAPE anchoring")
+        best_inl, best_m, icp_fit = run_shape()
+        cons = greedy_cons(best_inl)
+    if icp_fit:
+        # the shape path already picked (and possibly consensus-polished) its
+        # transform under the reverse-coverage check — use it as-is
+        apply_T, scale, rot, rms = icp_fit[0], icp_fit[1], icp_fit[2], icp_fit[4]
+        print(f"similarity fit: {len(cons)} consensus lots (shape-anchored), "
+              f"scale={scale:.5f} m/unit, rot={rot:.2f} deg (expect ~grid "
+              f"convergence), mirrored={best_m}, RMS={rms:.2f} m")
+    else:
+        apply_T, scale, rot, rms = umeyama([c[0] for c in cons],
+                                           [c[1] for c in cons], best_m)
+        print(f"similarity fit: {len(cons)} consensus lots, scale={scale:.5f} m/unit, "
+              f"rot={rot:.2f} deg (expect ~grid convergence), mirrored={best_m}, "
+              f"RMS={rms:.2f} m")
     if a.dump_transform:
         o, ex, ey = apply_T((0, 0)), apply_T((1, 0)), apply_T((0, 1))
         json.dump({"plan_to_fabric": [[ex[0] - o[0], ey[0] - o[0], o[0]],

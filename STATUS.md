@@ -306,6 +306,55 @@ Goldens banked: example_plan.printed_areas.json (36 lots, m2, self-checked
 against printed dimensions), example_plan.fabric.utm26910.json (EPP46435
 snapshot + identification provenance).
 
+## Iteration 24 — shape-based anchoring (boundary ICP): the drift-regime anchor + the anchor-starvation fallback, in one mechanism
+fabric_compare gains `--anchor {auto,shape}`: trimmed similarity ICP between
+edge-sampled face rings (plan units) and fabric parcel rings (metres), no
+area-value correspondence anywhere in the fit. Auto mode falls back to shape
+when value anchoring starves OR when the anchor RANSAC consensus degenerates
+(<4) — closing iteration 23's validator collapse.
+* **Design, each piece bought by a measured failure:** area-fit-seeded scale
+  brackets (x0.88/1.0/1.14); coarse 5-deg rotation sweep with SYMMETRIC
+  scoring (forward trimmed NN alone rewards scale collapse — every pilot
+  seed came from the smallest bracket and rode to the clamp; the reverse
+  term prices uncovered fabric); clamp-saturated candidates quarantined;
+  **phase-correlation translation seeding** per rotation seed (EPP46435's
+  equal-area double-row grid locked a 17-lot false consensus ONE LOT
+  SPACING over (~17 m); correlation of the rasterized clouds sees the
+  block ends the ICP trim discards, and every lattice peak becomes a
+  candidate); arbitration = (re-estimated consensus, then reverse
+  fabric-coverage RMS), consensus-polish accepted only if coverage does
+  not degrade — the two metrics are blind in different regimes (coverage
+  picked a mirrored impostor on the cluttered pilot; consensus alone
+  saturates under loose tolerances). Plus a nan guard in umeyama
+  (degenerate 1-anchor fits now raise instead of emitting RMS=nan).
+* **Extraction-regime validation — both banked fits reproduced exactly
+  from geometry alone:** 482: 18 consensus, RMS 0.30 m, rot 1.23 deg
+  (banked: 18 / 0.30 / 1.24); EPP46435 post-weld-fix (where value
+  anchoring collapsed to 1 consensus): 27 consensus, RMS 0.69 m,
+  rot −0.04 deg, scale 0.99850 (banked: 27 / 0.68 / −0.05 / 0.99828).
+  The corridor loop on EPP46435 is unblocked.
+* **The banked Surrey pilot transform was WRONG** (rot −35.69, scale 3.740,
+  n_consensus=2 — its consensus was its own two seeds, so the gate passed
+  trivially): independent trimmed point-RMS against the fabric = 212 m. The
+  true pose is rot ≈ 0 (Surrey's street grid is cardinal and the drawing is
+  axis-aligned; the tilted north arrow is decorative), scale ≈ 3.29 (per-lot
+  area ratios). Rule now on the record: a fit whose consensus equals its
+  seed count is unvalidated; obs #175's drift areas survive, its positions
+  do not.
+* **Drift-regime honest status:** even hand-built, the true pilot pose
+  scores ncons 8 / coverage 2.27 m — statistically tied with a mirrored
+  ~180-deg impostor (8 / 2.14). Not an algorithm gap but a DATA-SCOPE gap:
+  the drawing covers a neighbourhood; the snapshot covers only the subject
+  plan's 22 parcels, so every tie-breaking asymmetry (internal road — not
+  an enclosed face, it connects to the street grid; adjacent street frame;
+  neighbour frontages) has no counterpart in the target. Next tool:
+  `fabric_fetch --bbox` (snapshot the drawn extent, score coverage on the
+  subject parcels only, corroborate with neighbour frontage edges), with
+  VLM-read street names / north arrow as the text-side orientation prior.
+Per-lot drift correspondence then falls out of the final 1:1 position
+assignment — the remaining new algorithm between here and a Surrey-wide
+planning-report corpus run.
+
 ## Iteration 23 — BC open-set autopsy: a FOURTH disease (captured but unwelded); degenerate self-weld fixed, 31→32/36
 Per-ring autopsy of the 5 open PIDs (obs #169 recipe) with a twist ending:
 * **Gap scan came back EMPTY.** All five rings fully covered — every sample
