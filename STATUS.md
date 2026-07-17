@@ -306,6 +306,35 @@ Goldens banked: example_plan.printed_areas.json (36 lots, m2, self-checked
 against printed dimensions), example_plan.fabric.utm26910.json (EPP46435
 snapshot + identification provenance).
 
+## Iteration 28 — EPP27233 corridor round (19/19, RMS 0.50); corpus staged to 31 reports with fabric-validated plan keys
+* **EPP27233 corridor round:** consensus 17→25 lots, RMS 0.50 m,
+  rot −0.01° ≡ grid, mean pair-IoU 0.93; golden re-read 17→19 lots,
+  **19/19 blind areas matched**. A second corridor round REGRESSED
+  (25→20 — rescue re-admitted debris; iteration 21's lesson holds), so
+  round-1 is the banked capture. The 15 remaining open parcels are the
+  **hatch-filled north row** — shaded parcels shred skeleton tracing; a
+  hatch-detection/erasure mechanism (dense regular parallel strokes) is
+  a new capture-disease entry. (The earlier "clipped west column" theory
+  was a unit-confusion error — the corridor autopsy showed every open
+  parcel inside the traced extent.)
+* **Corpus staged: 46 probed → 31 fetched → 14 with lot-layout pages**
+  (tightened classifier). Retro-validation of old positives: 0105 p14
+  ("rot 0, high confidence" through the whole old orient stage) is a
+  WAREHOUSE site plan; 0103 p18 a sales centre — downstream success does
+  not validate upstream classification; old positives need re-checking
+  whenever a criterion changes.
+* **Plan-number stage (new `plr_sweep plannum`):** registered-plan
+  schedules detected by reading the printed plan number, then
+  fabric-validated immediately: EPP27233 → 54 parcels ✓; BCP33476
+  (7914-0142) → 254 parcels ✓ (large phase plan); EPP36953/EPP36053
+  (two similar reads, 7914-0125) → both 0 hits = one misread to resolve
+  by fingerprint retrieval, not re-reading. Also found: an `EPP______`
+  blank-number survey form (0117 p20) — a PRE-registration plan, a
+  third document class between proposal drawing and registered plan.
+Next: hatch-erasure mechanism; BCP33476 as the next extraction case
+(254 parcels — a scale test); fingerprint-resolve the 0125 plan;
+year-scale probe (7914 full range, then other years).
+
 ## Iteration 27 — EPP27233 end-to-end from a free PLR schedule: pipeline proven on corpus documents, capture gates coverage
 The Schedule-A registered plan from PLR 7914-0109 (EPP27233, 54 fabric
 parcels) went through the full chain — the first extraction case sourced

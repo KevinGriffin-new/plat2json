@@ -154,6 +154,49 @@ def cmd_orient(a):
         save_manifest(a.corpus, m)
 
 
+PLANNUM_Q = """This is part of a plan drawing. If this is a REGISTERED legal
+survey plan, its plan number (like EPP27233, BCP51638, NWP12345, LMP44556)
+is printed near the top or in the title. Reply with ONLY the plan number,
+or NONE if no such number is printed. Do not report plan numbers that
+appear only in reference notes about ADJACENT plans."""
+
+
+def cmd_plannum(a):
+    """Registered-plan detection: a Schedule-A page that prints its own plan
+    number is a REGISTERED plan (free extraction-regime document, and the
+    number is the fabric retrieval key). Proposals print no plan number."""
+    import fitz
+    import re as _re
+    m = load_manifest(a.corpus)
+    for app, rec in m.items():
+        pages = [p for p in rec.get("site_pages", []) if p != 0]
+        if not pages or "plan_numbers" in rec:
+            continue
+        pdf = Path(a.corpus) / f"PLR_{app}.pdf"
+        doc = fitz.open(pdf)
+        nums = {}
+        for pg in pages:
+            page = doc[pg]
+            # plan numbers print top-right; read the top strip at 2x
+            W, H = page.rect.width, page.rect.height
+            clip = fitz.Rect(0, 0, W, 0.25 * H)
+            zoom = 1400 / max(clip.width, clip.height)
+            png = page.get_pixmap(matrix=fitz.Matrix(zoom, zoom),
+                                  clip=clip).tobytes("png")
+            try:
+                ans = vlm_ask(png, PLANNUM_Q)
+            except Exception as e:
+                ans = f"ERR {e}"
+            mt = _re.search(r"\b(EPP|EPS|BCP|BCS|NWP|LMP|LMS|VIP|KAP)\s?"
+                            r"(\d{3,6})\b", ans.upper())
+            if mt:
+                nums[str(pg)] = mt.group(1) + mt.group(2)
+            print(f"  {app} p{pg}: {ans[:30]!r}"
+                  + (f" -> {nums.get(str(pg))}" if str(pg) in nums else ""))
+        rec["plan_numbers"] = nums
+        save_manifest(a.corpus, m)
+
+
 def cmd_report(a):
     m = load_manifest(a.corpus)
     total = len(m)
@@ -188,6 +231,8 @@ def main():
     p.set_defaults(fn=cmd_classify)
     p = sub.add_parser("orient", help="derive pose priors (orient_prior.py)")
     p.set_defaults(fn=cmd_orient)
+    p = sub.add_parser("plannum", help="detect registered-plan pages + plan numbers")
+    p.set_defaults(fn=cmd_plannum)
     p = sub.add_parser("report", help="attrition summary")
     p.set_defaults(fn=cmd_report)
     a = ap.parse_args()
