@@ -10,6 +10,8 @@ draw. One extraction, many sinks (OpenCAD / MicroSurvey / Civil 3D / FreeCAD).
 
 **▶ [Subdivision parsing theatre](https://kevingriffin-new.github.io/plat2json/subdivision-parsing-animation.html)** — slower, overhead Three.js walkthrough of a dense subdivision sheet. It pauses at seven search and categorization checks before reporting closure evidence.
 
+**▶ [Area Thirty3 parsing study](https://kevingriffin-new.github.io/plat2json/area-thirty3-parsing-animation.html)** — source-backed walkthrough based on the Area Thirty3 Estates final plat: roadway detection, curve-table association, curved frontage, and the closure/area gate.
+
 > **Status: experimental / work-in-progress.** It produces a rough geometry
 > *skeleton*, not survey-grade output. Read [STATUS.md](STATUS.md) before relying
 > on it. Honest summary:
