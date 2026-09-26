@@ -1,0 +1,421 @@
+{
+ "7914-0100-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0100-00.pdf",
+  "bytes": 1155462,
+  "n_pages": 8,
+  "site_pages": [
+   0
+  ]
+ },
+ "7914-0101-00": {
+  "status": "http-404",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0101-00.pdf"
+ },
+ "7914-0102-00": {
+  "status": "http-404",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0102-00.pdf"
+ },
+ "7914-0103-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0103-00.pdf",
+  "bytes": 7991072,
+  "n_pages": 22,
+  "site_pages": []
+ },
+ "7914-0104-00": {
+  "status": "http-404",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0104-00.pdf"
+ },
+ "7914-0105-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0105-00.pdf",
+  "bytes": 1693488,
+  "n_pages": 19,
+  "site_pages": []
+ },
+ "7914-0106-00": {
+  "status": "http-404",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0106-00.pdf"
+ },
+ "7914-0107-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0107-00.pdf",
+  "bytes": 2589873,
+  "n_pages": 23,
+  "site_pages": [
+   0,
+   12,
+   13,
+   20
+  ],
+  "plan_numbers": {},
+  "orient": {
+   "rot_prior": 0,
+   "rot_tol": 8.0,
+   "no_mirror": true,
+   "confidence": "medium"
+  }
+ },
+ "7914-0108-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0108-00.pdf",
+  "bytes": 2520213,
+  "n_pages": 13,
+  "site_pages": []
+ },
+ "7914-0109-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0109-00.pdf",
+  "bytes": 1101379,
+  "n_pages": 15,
+  "site_pages": [
+   0,
+   14
+  ],
+  "plan_numbers": {
+   "14": "EPP27233"
+  },
+  "orient": {
+   "rot_prior": null,
+   "rot_tol": null,
+   "no_mirror": true,
+   "confidence": "none"
+  }
+ },
+ "7914-0110-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0110-00.pdf",
+  "bytes": 5560824,
+  "n_pages": 26,
+  "site_pages": [
+   16
+  ],
+  "plan_numbers": {},
+  "orient": {
+   "rot_prior": null,
+   "rot_tol": null,
+   "no_mirror": true,
+   "confidence": "none"
+  }
+ },
+ "7914-0111-00": {
+  "status": "http-404",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0111-00.pdf"
+ },
+ "7914-0112-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0112-00.pdf",
+  "bytes": 2603913,
+  "n_pages": 20,
+  "site_pages": []
+ },
+ "7914-0113-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0113-00.pdf",
+  "bytes": 2389680,
+  "n_pages": 16,
+  "site_pages": []
+ },
+ "7914-0114-00": {
+  "status": "http-404",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0114-00.pdf"
+ },
+ "7914-0115-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0115-00.pdf",
+  "bytes": 1257478,
+  "n_pages": 10,
+  "site_pages": [
+   0
+  ]
+ },
+ "7914-0116-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0116-00.pdf",
+  "bytes": 1882163,
+  "site_pages": [],
+  "n_pages": 12
+ },
+ "7914-0117-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0117-00.pdf",
+  "bytes": 2651583,
+  "site_pages": [
+   0,
+   8,
+   11,
+   20
+  ],
+  "n_pages": 21,
+  "plan_numbers": {},
+  "orient": {
+   "rot_prior": null,
+   "rot_tol": null,
+   "no_mirror": true,
+   "confidence": "none"
+  }
+ },
+ "7914-0118-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0118-00.pdf",
+  "bytes": 9267956,
+  "site_pages": [
+   18,
+   19,
+   20,
+   21,
+   36,
+   37,
+   51
+  ],
+  "n_pages": 59,
+  "plan_numbers": {},
+  "orient": {
+   "rot_prior": null,
+   "rot_tol": null,
+   "no_mirror": true,
+   "confidence": "none"
+  }
+ },
+ "7914-0119-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0119-00.pdf",
+  "bytes": 6852035,
+  "site_pages": [
+   32,
+   34
+  ],
+  "n_pages": 39,
+  "plan_numbers": {},
+  "orient": {
+   "rot_prior": 90,
+   "rot_tol": 8.0,
+   "no_mirror": true,
+   "confidence": "low"
+  }
+ },
+ "7914-0120-00": {
+  "status": "http-404",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0120-00.pdf"
+ },
+ "7914-0121-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0121-00.pdf",
+  "bytes": 5471482,
+  "site_pages": [
+   0,
+   50,
+   51
+  ],
+  "n_pages": 53,
+  "plan_numbers": {},
+  "orient": {
+   "rot_prior": 0,
+   "rot_tol": 8.0,
+   "no_mirror": true,
+   "confidence": "high"
+  }
+ },
+ "7914-0122-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0122-00.pdf",
+  "bytes": 1927891,
+  "site_pages": [],
+  "n_pages": 17
+ },
+ "7914-0123-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0123-00.pdf",
+  "bytes": 1566493,
+  "site_pages": [],
+  "n_pages": 15
+ },
+ "7914-0124-00": {
+  "status": "http-404",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0124-00.pdf"
+ },
+ "7914-0125-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0125-00.pdf",
+  "bytes": 2791998,
+  "site_pages": [
+   0,
+   12,
+   15,
+   16,
+   27,
+   34,
+   35
+  ],
+  "n_pages": 36,
+  "plan_numbers": {
+   "16": "EPP36953",
+   "27": "EPP36053"
+  },
+  "orient": {
+   "rot_prior": null,
+   "rot_tol": null,
+   "no_mirror": true,
+   "confidence": "none"
+  }
+ },
+ "7914-0126-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0126-00.pdf",
+  "bytes": 1177655,
+  "site_pages": [
+   0
+  ],
+  "n_pages": 18
+ },
+ "7914-0127-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0127-00.pdf",
+  "bytes": 1736639,
+  "site_pages": [],
+  "n_pages": 13
+ },
+ "7914-0128-00": {
+  "status": "http-404",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0128-00.pdf"
+ },
+ "7914-0129-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0129-00.pdf",
+  "bytes": 2168538,
+  "site_pages": [],
+  "n_pages": 17
+ },
+ "7914-0130-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0130-00.pdf",
+  "bytes": 2751039,
+  "site_pages": [],
+  "n_pages": 21
+ },
+ "7914-0131-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0131-00.pdf",
+  "bytes": 1951191,
+  "site_pages": [],
+  "n_pages": 15
+ },
+ "7914-0132-00": {
+  "status": "http-404",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0132-00.pdf"
+ },
+ "7914-0133-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0133-00.pdf",
+  "bytes": 1589507,
+  "site_pages": [],
+  "n_pages": 14
+ },
+ "7914-0134-00": {
+  "status": "http-404",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0134-00.pdf"
+ },
+ "7914-0135-00": {
+  "status": "http-404",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0135-00.pdf"
+ },
+ "7914-0136-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0136-00.pdf",
+  "bytes": 8032536,
+  "site_pages": [],
+  "n_pages": 45
+ },
+ "7914-0137-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0137-00.pdf",
+  "bytes": 1586666,
+  "site_pages": [
+   0,
+   11
+  ],
+  "n_pages": 24,
+  "plan_numbers": {},
+  "orient": {
+   "rot_prior": 90,
+   "rot_tol": 8.0,
+   "no_mirror": true,
+   "confidence": "medium"
+  }
+ },
+ "7914-0138-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0138-00.pdf",
+  "bytes": 3243358,
+  "site_pages": [
+   0,
+   11,
+   14,
+   15,
+   23,
+   24
+  ],
+  "n_pages": 37,
+  "plan_numbers": {},
+  "orient": {
+   "rot_prior": 90,
+   "rot_tol": 8.0,
+   "no_mirror": true,
+   "confidence": "high"
+  }
+ },
+ "7914-0139-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0139-00.pdf",
+  "bytes": 1981658,
+  "site_pages": [],
+  "n_pages": 14
+ },
+ "7914-0140-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0140-00.pdf",
+  "bytes": 1227512,
+  "site_pages": [],
+  "n_pages": 12
+ },
+ "7914-0141-00": {
+  "status": "http-404",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0141-00.pdf"
+ },
+ "7914-0142-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0142-00.pdf",
+  "bytes": 2697681,
+  "site_pages": [
+   0,
+   10,
+   15
+  ],
+  "n_pages": 16,
+  "plan_numbers": {
+   "15": "BCP33476"
+  },
+  "orient": {
+   "rot_prior": 0,
+   "rot_tol": 8.0,
+   "no_mirror": true,
+   "confidence": "low"
+  }
+ },
+ "7914-0143-00": {
+  "status": "fetched",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0143-00.pdf",
+  "bytes": 2843723,
+  "site_pages": [],
+  "n_pages": 12
+ },
+ "7914-0144-00": {
+  "status": "http-404",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0144-00.pdf"
+ },
+ "7914-0145-00": {
+  "status": "http-404",
+  "url": "https://www.surrey.ca/sites/default/files/planning-reports/PLR_7914-0145-00.pdf"
+ }
+}

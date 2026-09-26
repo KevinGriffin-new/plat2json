@@ -1,0 +1,2825 @@
+{
+ "provider": "parcelmap_bc",
+ "units": "m2",
+ "epsg": 26910,
+ "_provenance": "Fetched 2026-07-17 from BC openmaps WFS PMBC_PARCEL_FABRIC_POLY_SVW PLAN_NUMBER='EPP27233' srsName=EPSG:26910 (Open Government Licence BC). LTSA-maintained fabric; FEATURE_AREA_SQM is computed from fabric geometry, NOT the plan's printed area. No lot-number attribute: labels are PIDs; Interest-class parcels (easements/SRWs) listed separately.",
+ "parcels": [
+  {
+   "label": "029-172-306",
+   "area": 222.7921,
+   "ring": [
+    [
+     510210.12865424,
+     5439762.39057849
+    ],
+    [
+     510238.31713299,
+     5439762.74962955
+    ],
+    [
+     510238.30396229,
+     5439770.64690273
+    ],
+    [
+     510210.11567607,
+     5439770.28774314
+    ],
+    [
+     510210.12865424,
+     5439762.39057849
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 760252,
+    "PARCEL_NAME": "029172306",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172306",
+    "PID_FORMATTED": "029-172-306",
+    "PID_NUMBER": 29172306,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2013-09-30Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 222.7921,
+    "FEATURE_LENGTH_M": 72.2506,
+    "OBJECTID": 249469714,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-047",
+   "area": 252.0186,
+   "ring": [
+    [
+     510196.27003976,
+     5439861.85864129
+    ],
+    [
+     510196.22344257,
+     5439889.84915245
+    ],
+    [
+     510187.22722401,
+     5439889.71625254
+    ],
+    [
+     510187.27362479,
+     5439861.72574991
+    ],
+    [
+     510196.27003976,
+     5439861.85864129
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 824196,
+    "PARCEL_NAME": "029172047",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172047",
+    "PID_FORMATTED": "029-172-047",
+    "PID_NUMBER": 29172047,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2013-09-30Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 252.0186,
+    "FEATURE_LENGTH_M": 73.9623,
+    "OBJECTID": 249506528,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-411",
+   "area": 252.0103,
+   "ring": [
+    [
+     510147.79459903,
+     5439737.19407445
+    ],
+    [
+     510147.84043098,
+     5439709.20394496
+    ],
+    [
+     510156.83665529,
+     5439709.31861848
+    ],
+    [
+     510156.79072669,
+     5439737.30875226
+    ],
+    [
+     510147.79459903,
+     5439737.19407445
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 923002,
+    "PARCEL_NAME": "029172411",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172411",
+    "PID_FORMATTED": "029-172-411",
+    "PID_NUMBER": 29172411,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2015-04-27Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 252.0103,
+    "FEATURE_LENGTH_M": 73.9607,
+    "OBJECTID": 249564944,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-063",
+   "area": 252.0196,
+   "ring": [
+    [
+     510208.11866928,
+     5439890.0249267
+    ],
+    [
+     510208.16485909,
+     5439862.03433252
+    ],
+    [
+     510217.16128266,
+     5439862.16742138
+    ],
+    [
+     510217.11489643,
+     5439890.15802409
+    ],
+    [
+     510208.11866928,
+     5439890.0249267
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 922736,
+    "PARCEL_NAME": "029172063",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172063",
+    "PID_FORMATTED": "029-172-063",
+    "PID_NUMBER": 29172063,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-03-10Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 252.0196,
+    "FEATURE_LENGTH_M": 73.9625,
+    "OBJECTID": 249564811,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-365",
+   "area": 289.517,
+   "ring": [
+    [
+     510213.21349238,
+     5439710.03715363
+    ],
+    [
+     510220.71054999,
+     5439710.13279998
+    ],
+    [
+     510220.66443967,
+     5439738.12284252
+    ],
+    [
+     510210.16874515,
+     5439737.98916969
+    ],
+    [
+     510210.2098877,
+     5439712.99784386
+    ],
+    [
+     510213.21349238,
+     5439710.03715363
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 954944,
+    "PARCEL_NAME": "029172365",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172365",
+    "PID_FORMATTED": "029-172-365",
+    "PID_NUMBER": 29172365,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2013-09-30Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 289.517,
+    "FEATURE_LENGTH_M": 75.1836,
+    "OBJECTID": 249583423,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-276",
+   "area": 253.813,
+   "ring": [
+    [
+     510210.07111773,
+     5439797.27816461
+    ],
+    [
+     510210.08610637,
+     5439788.28141944
+    ],
+    [
+     510237.27488244,
+     5439788.62780254
+    ],
+    [
+     510238.27440308,
+     5439788.64067907
+    ],
+    [
+     510238.25951732,
+     5439797.63742003
+    ],
+    [
+     510210.07111773,
+     5439797.27816461
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1021838,
+    "PARCEL_NAME": "029172276",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172276",
+    "PID_FORMATTED": "029-172-276",
+    "PID_NUMBER": 29172276,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2015-03-19Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 253.813,
+    "FEATURE_LENGTH_M": 74.4479,
+    "OBJECTID": 249623289,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-225",
+   "area": 390.6585,
+   "ring": [
+    [
+     510210.02037595,
+     5439828.072457
+    ],
+    [
+     510210.02663777,
+     5439824.26807292
+    ],
+    [
+     510234.76703021,
+     5439854.33093352
+    ],
+    [
+     510232.66503826,
+     5439856.3985829
+    ],
+    [
+     510214.49809961,
+     5439856.13001408
+    ],
+    [
+     510207.46587288,
+     5439828.03472651
+    ],
+    [
+     510210.02037595,
+     5439828.072457
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1087861,
+    "PARCEL_NAME": "029172225",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172225",
+    "PID_FORMATTED": "029-172-225",
+    "PID_NUMBER": 29172225,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2013-09-30Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 390.6585,
+    "FEATURE_LENGTH_M": 95.3928,
+    "OBJECTID": 249662303,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-438",
+   "area": 252.0179,
+   "ring": [
+    [
+     510130.90135099,
+     5439736.97876095
+    ],
+    [
+     510130.94739252,
+     5439708.988723
+    ],
+    [
+     510139.94381626,
+     5439709.10339002
+    ],
+    [
+     510139.89787759,
+     5439737.09342375
+    ],
+    [
+     510130.90135099,
+     5439736.97876095
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1157126,
+    "PARCEL_NAME": "029172438",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172438",
+    "PID_FORMATTED": "029-172-438",
+    "PID_NUMBER": 29172438,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2015-04-10Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 252.0179,
+    "FEATURE_LENGTH_M": 73.9611,
+    "OBJECTID": 249703906,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-314",
+   "area": 253.8139,
+   "ring": [
+    [
+     510238.31713299,
+     5439762.74962955
+    ],
+    [
+     510210.12865424,
+     5439762.39057849
+    ],
+    [
+     510210.14343481,
+     5439753.39363799
+    ],
+    [
+     510238.3317194,
+     5439753.75289749
+    ],
+    [
+     510238.31713299,
+     5439762.74962955
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1189487,
+    "PARCEL_NAME": "029172314",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172314",
+    "PID_FORMATTED": "029-172-314",
+    "PID_NUMBER": 29172314,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-03-03Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 253.8139,
+    "FEATURE_LENGTH_M": 74.4482,
+    "OBJECTID": 249723144,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-195",
+   "area": 252.014,
+   "ring": [
+    [
+     510188.4167396,
+     5439855.74432111
+    ],
+    [
+     510179.42052485,
+     5439855.6114203
+    ],
+    [
+     510179.47822613,
+     5439827.62102527
+    ],
+    [
+     510188.4743465,
+     5439827.75413027
+    ],
+    [
+     510188.4167396,
+     5439855.74432111
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1390288,
+    "PARCEL_NAME": "029172195",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172195",
+    "PID_FORMATTED": "029-172-195",
+    "PID_NUMBER": 29172195,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2015-01-29Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 252.014,
+    "FEATURE_LENGTH_M": 73.9616,
+    "OBJECTID": 249842916,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-390",
+   "area": 252.0168,
+   "ring": [
+    [
+     510165.83307916,
+     5439709.43328243
+    ],
+    [
+     510174.82950307,
+     5439709.54794531
+    ],
+    [
+     510174.78338116,
+     5439737.53808766
+    ],
+    [
+     510165.78695414,
+     5439737.42342475
+    ],
+    [
+     510165.83230302,
+     5439709.93313307
+    ],
+    [
+     510165.83307916,
+     5439709.43328243
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1552703,
+    "PARCEL_NAME": "029172390",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172390",
+    "PID_FORMATTED": "029-172-390",
+    "PID_NUMBER": 29172390,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2015-02-20Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 252.0168,
+    "FEATURE_LENGTH_M": 73.9612,
+    "OBJECTID": 249937904,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-110",
+   "area": 252.0144,
+   "ring": [
+    [
+     510117.55701499,
+     5439849.56287708
+    ],
+    [
+     510108.56080119,
+     5439849.42996786
+    ],
+    [
+     510108.61853535,
+     5439821.43977125
+    ],
+    [
+     510117.61474605,
+     5439821.57268044
+    ],
+    [
+     510117.55701499,
+     5439849.56287708
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1619055,
+    "PARCEL_NAME": "029172110",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172110",
+    "PID_FORMATTED": "029-172-110",
+    "PID_NUMBER": 29172110,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2015-07-02Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 252.0144,
+    "FEATURE_LENGTH_M": 73.9615,
+    "OBJECTID": 249976970,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-217",
+   "area": 267.304,
+   "ring": [
+    [
+     510201.41137115,
+     5439855.93652769
+    ],
+    [
+     510201.46876132,
+     5439827.94604536
+    ],
+    [
+     510207.46587288,
+     5439828.03472651
+    ],
+    [
+     510214.49809961,
+     5439856.13001408
+    ],
+    [
+     510201.41137115,
+     5439855.93652769
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1684737,
+    "PARCEL_NAME": "029172217",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172217",
+    "PID_FORMATTED": "029-172-217",
+    "PID_NUMBER": 29172217,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2013-09-30Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 267.304,
+    "FEATURE_LENGTH_M": 76.0299,
+    "OBJECTID": 250015726,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-357",
+   "area": 221.211,
+   "ring": [
+    [
+     510228.5610617,
+     5439738.22348905
+    ],
+    [
+     510220.66443967,
+     5439738.12284252
+    ],
+    [
+     510220.71054999,
+     5439710.13279998
+    ],
+    [
+     510228.60726481,
+     5439710.23334224
+    ],
+    [
+     510228.5628212,
+     5439737.22397955
+    ],
+    [
+     510228.5610617,
+     5439738.22348905
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1716266,
+    "PARCEL_NAME": "029172357",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172357",
+    "PID_FORMATTED": "029-172-357",
+    "PID_NUMBER": 29172357,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2013-09-30Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 221.211,
+    "FEATURE_LENGTH_M": 71.758,
+    "OBJECTID": 250034186,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-381",
+   "area": 221.209,
+   "ring": [
+    [
+     510182.68000723,
+     5439737.63883895
+    ],
+    [
+     510174.78338116,
+     5439737.53808766
+    ],
+    [
+     510174.82950307,
+     5439709.54794531
+    ],
+    [
+     510182.72612217,
+     5439709.64859659
+    ],
+    [
+     510182.68000723,
+     5439737.63883895
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1749726,
+    "PARCEL_NAME": "029172381",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172381",
+    "PID_FORMATTED": "029-172-381",
+    "PID_NUMBER": 29172381,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2013-09-30Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 221.209,
+    "FEATURE_LENGTH_M": 71.7581,
+    "OBJECTID": 250053689,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-004",
+   "area": 258.5075,
+   "ring": [
+    [
+     510151.29045533,
+     5439859.95985105
+    ],
+    [
+     510160.28507499,
+     5439861.11970099
+    ],
+    [
+     510160.23835638,
+     5439889.31725496
+    ],
+    [
+     510151.2419385,
+     5439889.18435928
+    ],
+    [
+     510151.29045533,
+     5439859.95985105
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1782076,
+    "PARCEL_NAME": "029172004",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172004",
+    "PID_FORMATTED": "029-172-004",
+    "PID_NUMBER": 29172004,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2015-05-14Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 258.5075,
+    "FEATURE_LENGTH_M": 75.474,
+    "OBJECTID": 250073156,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-152",
+   "area": 260.8502,
+   "ring": [
+    [
+     510144.5988709,
+     5439824.21095356
+    ],
+    [
+     510153.59347843,
+     5439825.09034671
+    ],
+    [
+     510153.53368011,
+     5439854.20206344
+    ],
+    [
+     510144.53946035,
+     5439853.0421956
+    ],
+    [
+     510144.5988709,
+     5439824.21095356
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1782184,
+    "PARCEL_NAME": "029172152",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172152",
+    "PID_FORMATTED": "029-172-152",
+    "PID_NUMBER": 29172152,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2015-04-20Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 260.8502,
+    "FEATURE_LENGTH_M": 76.0341,
+    "OBJECTID": 250073210,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-055",
+   "area": 221.2169,
+   "ring": [
+    [
+     510200.26804504,
+     5439861.91766525
+    ],
+    [
+     510208.16485909,
+     5439862.03433252
+    ],
+    [
+     510208.11866928,
+     5439890.0249267
+    ],
+    [
+     510200.22195226,
+     5439889.90825514
+    ],
+    [
+     510200.26804504,
+     5439861.91766525
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1816801,
+    "PARCEL_NAME": "029172055",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172055",
+    "PID_FORMATTED": "029-172-055",
+    "PID_NUMBER": 29172055,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2013-09-30Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 221.2169,
+    "FEATURE_LENGTH_M": 71.7597,
+    "OBJECTID": 250094001,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-021",
+   "area": 252.0199,
+   "ring": [
+    [
+     510169.28108578,
+     5439861.45975122
+    ],
+    [
+     510178.27740089,
+     5439861.59264899
+    ],
+    [
+     510178.23099701,
+     5439889.5831516
+    ],
+    [
+     510169.23457904,
+     5439889.45025806
+    ],
+    [
+     510169.28108578,
+     5439861.45975122
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1816803,
+    "PARCEL_NAME": "029172021",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172021",
+    "PID_FORMATTED": "029-172-021",
+    "PID_NUMBER": 29172021,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2016-05-25Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 252.0199,
+    "FEATURE_LENGTH_M": 73.9624,
+    "OBJECTID": 250094002,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-241",
+   "area": 307.1516,
+   "ring": [
+    [
+     510211.04125566,
+     5439815.28440335
+    ],
+    [
+     510238.22985401,
+     5439815.63109465
+    ],
+    [
+     510238.20154442,
+     5439832.90773586
+    ],
+    [
+     510210.03414485,
+     5439819.77000191
+    ],
+    [
+     510210.04154367,
+     5439815.27173493
+    ],
+    [
+     510211.04125566,
+     5439815.28440335
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1848627,
+    "PARCEL_NAME": "029172241",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172241",
+    "PID_FORMATTED": "029-172-241",
+    "PID_NUMBER": 29172241,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2013-09-30Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 307.1516,
+    "FEATURE_LENGTH_M": 81.1085,
+    "OBJECTID": 250112558,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-209",
+   "area": 252.0157,
+   "ring": [
+    [
+     510197.47055395,
+     5439827.88693
+    ],
+    [
+     510197.41296288,
+     5439855.87742083
+    ],
+    [
+     510188.4167396,
+     5439855.74432111
+    ],
+    [
+     510188.4743465,
+     5439827.75413027
+    ],
+    [
+     510197.47055395,
+     5439827.88693
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1980874,
+    "PARCEL_NAME": "029172209",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172209",
+    "PID_FORMATTED": "029-172-209",
+    "PID_NUMBER": 29172209,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2015-12-21Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 252.0157,
+    "FEATURE_LENGTH_M": 73.9618,
+    "OBJECTID": 250190922,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-462",
+   "area": 252.6054,
+   "ring": [
+    [
+     510103.95747313,
+     5439709.37133163
+    ],
+    [
+     510112.95484444,
+     5439708.759373
+    ],
+    [
+     510112.90871653,
+     5439736.81582289
+    ],
+    [
+     510103.91143337,
+     5439737.42757703
+    ],
+    [
+     510103.95747313,
+     5439709.37133163
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 2013868,
+    "PARCEL_NAME": "029172462",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172462",
+    "PID_FORMATTED": "029-172-462",
+    "PID_NUMBER": 29172462,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2013-09-30Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 252.6054,
+    "FEATURE_LENGTH_M": 74.1353,
+    "OBJECTID": 250210334,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-187",
+   "area": 223.8033,
+   "ring": [
+    [
+     510179.47822613,
+     5439827.62102527
+    ],
+    [
+     510179.42052485,
+     5439855.6114203
+    ],
+    [
+     510171.52401504,
+     5439855.49483726
+    ],
+    [
+     510171.58278966,
+     5439826.84902555
+    ],
+    [
+     510179.47822613,
+     5439827.62102527
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 2146681,
+    "PARCEL_NAME": "029172187",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172187",
+    "PID_FORMATTED": "029-172-187",
+    "PID_NUMBER": 29172187,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2016-01-22Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 223.8033,
+    "FEATURE_LENGTH_M": 72.4494,
+    "OBJECTID": 250289243,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-446",
+   "area": 252.0103,
+   "ring": [
+    [
+     510130.94739252,
+     5439708.988723
+    ],
+    [
+     510130.90135099,
+     5439736.97876095
+    ],
+    [
+     510121.90513219,
+     5439736.86428429
+    ],
+    [
+     510121.9512681,
+     5439708.87404216
+    ],
+    [
+     510130.94739252,
+     5439708.988723
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 2212320,
+    "PARCEL_NAME": "029172446",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172446",
+    "PID_FORMATTED": "029-172-446",
+    "PID_NUMBER": 29172446,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-17Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 252.0103,
+    "FEATURE_LENGTH_M": 73.9607,
+    "OBJECTID": 250328000,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-420",
+   "area": 221.2094,
+   "ring": [
+    [
+     510139.94381626,
+     5439709.10339002
+    ],
+    [
+     510147.84043098,
+     5439709.20394496
+    ],
+    [
+     510147.79459903,
+     5439737.19407445
+    ],
+    [
+     510139.89787759,
+     5439737.09342375
+    ],
+    [
+     510139.94381626,
+     5439709.10339002
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 2399171,
+    "PARCEL_NAME": "029172420",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172420",
+    "PID_FORMATTED": "029-172-420",
+    "PID_NUMBER": 29172420,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2013-09-30Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 221.2094,
+    "FEATURE_LENGTH_M": 71.758,
+    "OBJECTID": 250438715,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-322",
+   "area": 250.2508,
+   "ring": [
+    [
+     510238.3317194,
+     5439753.75289749
+    ],
+    [
+     510210.14343481,
+     5439753.39363799
+    ],
+    [
+     510210.15891905,
+     5439743.98699654
+    ],
+    [
+     510232.84977404,
+     5439744.27623908
+    ],
+    [
+     510238.33833459,
+     5439749.8438236
+    ],
+    [
+     510238.3317194,
+     5439753.75289749
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 2410472,
+    "PARCEL_NAME": "029172322",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172322",
+    "PID_FORMATTED": "029-172-322",
+    "PID_NUMBER": 29172322,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2013-09-30Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 250.2508,
+    "FEATURE_LENGTH_M": 72.0883,
+    "OBJECTID": 250445554,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-489",
+   "area": 234.0248,
+   "ring": [
+    [
+     510086.6344443,
+     5439710.54897984
+    ],
+    [
+     510094.95978547,
+     5439709.98290202
+    ],
+    [
+     510094.91385083,
+     5439738.03934284
+    ],
+    [
+     510086.56817335,
+     5439738.60668792
+    ],
+    [
+     510086.6344443,
+     5439710.54897984
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 2442914,
+    "PARCEL_NAME": "029172489",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172489",
+    "PID_FORMATTED": "029-172-489",
+    "PID_NUMBER": 29172489,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2013-09-30Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 234.0248,
+    "FEATURE_LENGTH_M": 72.8081,
+    "OBJECTID": 250464416,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-403",
+   "area": 252.0153,
+   "ring": [
+    [
+     510165.83307916,
+     5439709.43328243
+    ],
+    [
+     510165.83230302,
+     5439709.93313307
+    ],
+    [
+     510165.78695414,
+     5439737.42342475
+    ],
+    [
+     510156.79072669,
+     5439737.30875226
+    ],
+    [
+     510156.83665529,
+     5439709.31861848
+    ],
+    [
+     510165.83307916,
+     5439709.43328243
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 2575914,
+    "PARCEL_NAME": "029172403",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172403",
+    "PID_FORMATTED": "029-172-403",
+    "PID_NUMBER": 29172403,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2013-09-30Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 252.0153,
+    "FEATURE_LENGTH_M": 73.961,
+    "OBJECTID": 250542953,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-233",
+   "area": 411.0777,
+   "ring": [
+    [
+     510234.76703021,
+     5439854.33093352
+    ],
+    [
+     510210.02663777,
+     5439824.26807292
+    ],
+    [
+     510210.03414485,
+     5439819.77000191
+    ],
+    [
+     510238.20154442,
+     5439832.90773586
+    ],
+    [
+     510238.17150129,
+     5439850.98195044
+    ],
+    [
+     510234.76703021,
+     5439854.33093352
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 2676985,
+    "PARCEL_NAME": "029172233",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172233",
+    "PID_FORMATTED": "029-172-233",
+    "PID_NUMBER": 29172233,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2013-09-30Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 411.0777,
+    "FEATURE_LENGTH_M": 97.3904,
+    "OBJECTID": 250603920,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-471",
+   "area": 252.614,
+   "ring": [
+    [
+     510103.95747313,
+     5439709.37133163
+    ],
+    [
+     510103.91143337,
+     5439737.42757703
+    ],
+    [
+     510094.91385083,
+     5439738.03934284
+    ],
+    [
+     510094.95978547,
+     5439709.98290202
+    ],
+    [
+     510103.95747313,
+     5439709.37133163
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 2709114,
+    "PARCEL_NAME": "029172471",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172471",
+    "PID_FORMATTED": "029-172-471",
+    "PID_NUMBER": 29172471,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2013-09-30Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 252.614,
+    "FEATURE_LENGTH_M": 74.1359,
+    "OBJECTID": 250622177,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-161",
+   "area": 263.3721,
+   "ring": [
+    [
+     510153.59347843,
+     5439825.09034671
+    ],
+    [
+     510162.58818169,
+     5439825.96963455
+    ],
+    [
+     510162.52759238,
+     5439855.36174298
+    ],
+    [
+     510153.53368011,
+     5439854.20206344
+    ],
+    [
+     510153.59347843,
+     5439825.09034671
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 2941228,
+    "PARCEL_NAME": "029172161",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172161",
+    "PID_FORMATTED": "029-172-161",
+    "PID_NUMBER": 29172161,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2015-04-20Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 263.3721,
+    "FEATURE_LENGTH_M": 76.5943,
+    "OBJECTID": 250759313,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "Road",
+   "area": 2226.2139,
+   "ring": [
+    [
+     510160.28507499,
+     5439861.11970099
+    ],
+    [
+     510151.29045533,
+     5439859.95985105
+    ],
+    [
+     510146.57167747,
+     5439859.35150574
+    ],
+    [
+     510141.10976557,
+     5439864.1460179
+    ],
+    [
+     510141.07358604,
+     5439886.03521722
+    ],
+    [
+     510144.06721558,
+     5439889.07816826
+    ],
+    [
+     510132.07249347,
+     5439888.90101662
+    ],
+    [
+     510135.07607133,
+     5439885.9465478
+    ],
+    [
+     510135.11358519,
+     5439863.37277332
+    ],
+    [
+     510129.67001322,
+     5439857.17203974
+    ],
+    [
+     510124.9510277,
+     5439856.56350161
+    ],
+    [
+     510117.12788681,
+     5439855.55463219
+    ],
+    [
+     510115.9576878,
+     5439855.53741156
+    ],
+    [
+     510099.55225486,
+     5439855.29488234
+    ],
+    [
+     510099.56458743,
+     5439849.29705757
+    ],
+    [
+     510108.56080119,
+     5439849.42996786
+    ],
+    [
+     510117.55701499,
+     5439849.56287708
+    ],
+    [
+     510126.55123392,
+     5439850.72274814
+    ],
+    [
+     510135.5452536,
+     5439851.88262665
+    ],
+    [
+     510144.53946035,
+     5439853.0421956
+    ],
+    [
+     510153.53368011,
+     5439854.20206344
+    ],
+    [
+     510162.52759238,
+     5439855.36174298
+    ],
+    [
+     510171.52401504,
+     5439855.49483726
+    ],
+    [
+     510179.42052485,
+     5439855.6114203
+    ],
+    [
+     510188.4167396,
+     5439855.74432111
+    ],
+    [
+     510197.41296288,
+     5439855.87742083
+    ],
+    [
+     510197.47055395,
+     5439827.88693
+    ],
+    [
+     510201.46876132,
+     5439827.94604536
+    ],
+    [
+     510201.41137115,
+     5439855.93652769
+    ],
+    [
+     510214.49809961,
+     5439856.13001408
+    ],
+    [
+     510232.66503826,
+     5439856.3985829
+    ],
+    [
+     510234.76703021,
+     5439854.33093352
+    ],
+    [
+     510238.17150129,
+     5439850.98195044
+    ],
+    [
+     510238.20154442,
+     5439832.90773586
+    ],
+    [
+     510238.22985401,
+     5439815.63109465
+    ],
+    [
+     510238.24464004,
+     5439806.63435995
+    ],
+    [
+     510238.25951732,
+     5439797.63742003
+    ],
+    [
+     510238.27440308,
+     5439788.64067907
+    ],
+    [
+     510238.28908506,
+     5439779.64384564
+    ],
+    [
+     510238.30396229,
+     5439770.64690273
+    ],
+    [
+     510238.31713299,
+     5439762.74962955
+    ],
+    [
+     510238.3317194,
+     5439753.75289749
+    ],
+    [
+     510238.33833459,
+     5439749.8438236
+    ],
+    [
+     510232.84977404,
+     5439744.27623908
+    ],
+    [
+     510210.15891905,
+     5439743.98699654
+    ],
+    [
+     510210.16874515,
+     5439737.98916969
+    ],
+    [
+     510220.66443967,
+     5439738.12284252
+    ],
+    [
+     510228.5610617,
+     5439738.22348905
+    ],
+    [
+     510236.45798303,
+     5439738.324122
+    ],
+    [
+     510244.35460513,
+     5439738.42476688
+    ],
+    [
+     510244.15003789,
+     5439862.5663029
+    ],
+    [
+     510235.15382218,
+     5439862.4334087
+    ],
+    [
+     510226.15739852,
+     5439862.30032198
+    ],
+    [
+     510217.16128266,
+     5439862.16742138
+    ],
+    [
+     510208.16485909,
+     5439862.03433252
+    ],
+    [
+     510200.26804504,
+     5439861.91766525
+    ],
+    [
+     510200.22195226,
+     5439889.90825514
+    ],
+    [
+     510196.22344257,
+     5439889.84915245
+    ],
+    [
+     510196.27003976,
+     5439861.85864129
+    ],
+    [
+     510187.27362479,
+     5439861.72574991
+    ],
+    [
+     510178.27740089,
+     5439861.59264899
+    ],
+    [
+     510169.28108578,
+     5439861.45975122
+    ],
+    [
+     510162.09846748,
+     5439861.353498
+    ],
+    [
+     510160.28507499,
+     5439861.11970099
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 2913881,
+    "PARCEL_NAME": "Road",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": null,
+    "PID_FORMATTED": null,
+    "PID_NUMBER": null,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Road",
+    "OWNER_TYPE": "Local Government",
+    "PARCEL_START_DATE": null,
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2024-08-18Z",
+    "FEATURE_AREA_SQM": 2226.2139,
+    "FEATURE_LENGTH_M": 763.7736,
+    "OBJECTID": 250742355,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-101",
+   "area": 252.0154,
+   "ring": [
+    [
+     510108.56080119,
+     5439849.42996786
+    ],
+    [
+     510099.56458743,
+     5439849.29705757
+    ],
+    [
+     510099.62231622,
+     5439821.30666103
+    ],
+    [
+     510108.61853535,
+     5439821.43977125
+    ],
+    [
+     510108.56080119,
+     5439849.42996786
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 2973008,
+    "PARCEL_NAME": "029172101",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172101",
+    "PID_FORMATTED": "029-172-101",
+    "PID_NUMBER": 29172101,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2013-09-30Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 252.0154,
+    "FEATURE_LENGTH_M": 73.9617,
+    "OBJECTID": 250778075,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-071",
+   "area": 252.0152,
+   "ring": [
+    [
+     510226.15739852,
+     5439862.30032198
+    ],
+    [
+     510226.11111515,
+     5439890.29092046
+    ],
+    [
+     510217.11489643,
+     5439890.15802409
+    ],
+    [
+     510217.16128266,
+     5439862.16742138
+    ],
+    [
+     510226.15739852,
+     5439862.30032198
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 2972710,
+    "PARCEL_NAME": "029172071",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172071",
+    "PID_FORMATTED": "029-172-071",
+    "PID_NUMBER": 29172071,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2015-06-02Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 252.0152,
+    "FEATURE_LENGTH_M": 73.9622,
+    "OBJECTID": 250777926,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-012",
+   "area": 252.206,
+   "ring": [
+    [
+     510169.23457904,
+     5439889.45025806
+    ],
+    [
+     510160.23835638,
+     5439889.31725496
+    ],
+    [
+     510160.28507499,
+     5439861.11970099
+    ],
+    [
+     510162.09846748,
+     5439861.353498
+    ],
+    [
+     510169.28108578,
+     5439861.45975122
+    ],
+    [
+     510169.23457904,
+     5439889.45025806
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 2972738,
+    "PARCEL_NAME": "029172012",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172012",
+    "PID_FORMATTED": "029-172-012",
+    "PID_NUMBER": 29172012,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2015-01-07Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 252.206,
+    "FEATURE_LENGTH_M": 74.1836,
+    "OBJECTID": 250777940,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-349",
+   "area": 221.2112,
+   "ring": [
+    [
+     510228.5610617,
+     5439738.22348905
+    ],
+    [
+     510228.5628212,
+     5439737.22397955
+    ],
+    [
+     510228.60726481,
+     5439710.23334224
+    ],
+    [
+     510236.50388415,
+     5439710.33398792
+    ],
+    [
+     510236.45798303,
+     5439738.324122
+    ],
+    [
+     510228.5610617,
+     5439738.22348905
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 3301251,
+    "PARCEL_NAME": "029172349",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172349",
+    "PID_FORMATTED": "029-172-349",
+    "PID_NUMBER": 29172349,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2013-09-30Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 221.2112,
+    "FEATURE_LENGTH_M": 71.7583,
+    "OBJECTID": 250971262,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-171-997",
+   "area": 283.9639,
+   "ring": [
+    [
+     510151.29045533,
+     5439859.95985105
+    ],
+    [
+     510151.2419385,
+     5439889.18435928
+    ],
+    [
+     510144.06721558,
+     5439889.07816826
+    ],
+    [
+     510141.07358604,
+     5439886.03521722
+    ],
+    [
+     510141.10976557,
+     5439864.1460179
+    ],
+    [
+     510146.57167747,
+     5439859.35150574
+    ],
+    [
+     510151.29045533,
+     5439859.95985105
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 3301965,
+    "PARCEL_NAME": "029171997",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029171997",
+    "PID_FORMATTED": "029-171-997",
+    "PID_NUMBER": 29171997,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2013-09-30Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 283.9639,
+    "FEATURE_LENGTH_M": 74.5698,
+    "OBJECTID": 250971619,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-454",
+   "area": 252.0439,
+   "ring": [
+    [
+     510113.72743648,
+     5439736.7600843
+    ],
+    [
+     510112.90871653,
+     5439736.81582289
+    ],
+    [
+     510112.95484444,
+     5439708.759373
+    ],
+    [
+     510121.9512681,
+     5439708.87404216
+    ],
+    [
+     510121.90513219,
+     5439736.86428429
+    ],
+    [
+     510113.72743648,
+     5439736.7600843
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 3205544,
+    "PARCEL_NAME": "029172454",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172454",
+    "PID_FORMATTED": "029-172-454",
+    "PID_NUMBER": 29172454,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2013-09-30Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 252.0439,
+    "FEATURE_LENGTH_M": 74.0294,
+    "OBJECTID": 250915577,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-250",
+   "area": 253.8084,
+   "ring": [
+    [
+     510211.04125566,
+     5439815.28440335
+    ],
+    [
+     510210.04154367,
+     5439815.27173493
+    ],
+    [
+     510210.05643683,
+     5439806.27509599
+    ],
+    [
+     510211.0559492,
+     5439806.28777291
+    ],
+    [
+     510238.24464004,
+     5439806.63435995
+    ],
+    [
+     510238.22985401,
+     5439815.63109465
+    ],
+    [
+     510211.04125566,
+     5439815.28440335
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 3367770,
+    "PARCEL_NAME": "029172250",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172250",
+    "PID_FORMATTED": "029-172-250",
+    "PID_NUMBER": 29172250,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2015-02-03Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 253.8084,
+    "FEATURE_LENGTH_M": 74.4476,
+    "OBJECTID": 251010752,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-292",
+   "area": 253.8133,
+   "ring": [
+    [
+     510238.28908506,
+     5439779.64384564
+    ],
+    [
+     510210.10078723,
+     5439779.28448606
+    ],
+    [
+     510210.11567607,
+     5439770.28774314
+    ],
+    [
+     510238.30396229,
+     5439770.64690273
+    ],
+    [
+     510238.28908506,
+     5439779.64384564
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 3490114,
+    "PARCEL_NAME": "029172292",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172292",
+    "PID_FORMATTED": "029-172-292",
+    "PID_NUMBER": 29172292,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-18Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 253.8133,
+    "FEATURE_LENGTH_M": 74.448,
+    "OBJECTID": 251083066,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-373",
+   "area": 289.5178,
+   "ring": [
+    [
+     510190.22317966,
+     5439709.74424596
+    ],
+    [
+     510193.21694914,
+     5439712.78118557
+    ],
+    [
+     510193.1757016,
+     5439737.7725156
+    ],
+    [
+     510182.68000723,
+     5439737.63883895
+    ],
+    [
+     510182.72612217,
+     5439709.64859659
+    ],
+    [
+     510190.22317966,
+     5439709.74424596
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 3533256,
+    "PARCEL_NAME": "029172373",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172373",
+    "PID_FORMATTED": "029-172-373",
+    "PID_NUMBER": 29172373,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2013-09-30Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 289.5178,
+    "FEATURE_LENGTH_M": 75.2307,
+    "OBJECTID": 251108380,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-284",
+   "area": 253.8125,
+   "ring": [
+    [
+     510238.27440308,
+     5439788.64067907
+    ],
+    [
+     510237.27488244,
+     5439788.62780254
+    ],
+    [
+     510210.08610637,
+     5439788.28141944
+    ],
+    [
+     510210.10078723,
+     5439779.28448606
+    ],
+    [
+     510238.28908506,
+     5439779.64384564
+    ],
+    [
+     510238.27440308,
+     5439788.64067907
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 3466237,
+    "PARCEL_NAME": "029172284",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172284",
+    "PID_FORMATTED": "029-172-284",
+    "PID_NUMBER": 29172284,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2015-02-16Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 253.8125,
+    "FEATURE_LENGTH_M": 74.4481,
+    "OBJECTID": 251068337,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-128",
+   "area": 253.2796,
+   "ring": [
+    [
+     510126.55123392,
+     5439850.72274814
+    ],
+    [
+     510117.55701499,
+     5439849.56287708
+    ],
+    [
+     510117.61474605,
+     5439821.57268044
+    ],
+    [
+     510126.60944846,
+     5439822.45197258
+    ],
+    [
+     510126.55123392,
+     5439850.72274814
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 3666642,
+    "PARCEL_NAME": "029172128",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172128",
+    "PID_FORMATTED": "029-172-128",
+    "PID_NUMBER": 29172128,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2015-04-16Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 253.2796,
+    "FEATURE_LENGTH_M": 74.3534,
+    "OBJECTID": 251187571,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-039",
+   "area": 252.016,
+   "ring": [
+    [
+     510187.22722401,
+     5439889.71625254
+    ],
+    [
+     510178.23099701,
+     5439889.5831516
+    ],
+    [
+     510178.27740089,
+     5439861.59264899
+    ],
+    [
+     510187.27362479,
+     5439861.72574991
+    ],
+    [
+     510187.22722401,
+     5439889.71625254
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 3567974,
+    "PARCEL_NAME": "029172039",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172039",
+    "PID_FORMATTED": "029-172-039",
+    "PID_NUMBER": 29172039,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-31Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 252.016,
+    "FEATURE_LENGTH_M": 73.9621,
+    "OBJECTID": 251129432,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-098",
+   "area": 252.0166,
+   "ring": [
+    [
+     510244.10376073,
+     5439890.55690144
+    ],
+    [
+     510235.10754191,
+     5439890.42400722
+    ],
+    [
+     510235.15382218,
+     5439862.4334087
+    ],
+    [
+     510244.15003789,
+     5439862.5663029
+    ],
+    [
+     510244.10376073,
+     5439890.55690144
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 3831248,
+    "PARCEL_NAME": "029172098",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172098",
+    "PID_FORMATTED": "029-172-098",
+    "PID_NUMBER": 29172098,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2016-05-02Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 252.0166,
+    "FEATURE_LENGTH_M": 73.9623,
+    "OBJECTID": 251284655,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-171-971",
+   "area": 294.8432,
+   "ring": [
+    [
+     510117.12788681,
+     5439855.55463219
+    ],
+    [
+     510124.9510277,
+     5439856.56350161
+    ],
+    [
+     510124.89757112,
+     5439888.7948323
+    ],
+    [
+     510115.89395395,
+     5439888.66183871
+    ],
+    [
+     510115.9576878,
+     5439855.53741156
+    ],
+    [
+     510117.12788681,
+     5439855.55463219
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 4094384,
+    "PARCEL_NAME": "029171971",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029171971",
+    "PID_FORMATTED": "029-171-971",
+    "PID_NUMBER": 29171971,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-03-03Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 294.8432,
+    "FEATURE_LENGTH_M": 83.3983,
+    "OBJECTID": 251439617,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-171-989",
+   "area": 302.7627,
+   "ring": [
+    [
+     510132.07249347,
+     5439888.90101662
+    ],
+    [
+     510124.89757112,
+     5439888.7948323
+    ],
+    [
+     510124.9510277,
+     5439856.56350161
+    ],
+    [
+     510129.67001322,
+     5439857.17203974
+    ],
+    [
+     510135.11358519,
+     5439863.37277332
+    ],
+    [
+     510135.07607133,
+     5439885.9465478
+    ],
+    [
+     510132.07249347,
+     5439888.90101662
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 4062950,
+    "PARCEL_NAME": "029171989",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029171989",
+    "PID_FORMATTED": "029-171-989",
+    "PID_NUMBER": 29171989,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2013-09-30Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 302.7627,
+    "FEATURE_LENGTH_M": 79.1851,
+    "OBJECTID": 251421275,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-179",
+   "area": 261.279,
+   "ring": [
+    [
+     510162.58818169,
+     5439825.96963455
+    ],
+    [
+     510171.58278966,
+     5439826.84902555
+    ],
+    [
+     510171.52401504,
+     5439855.49483726
+    ],
+    [
+     510162.52759238,
+     5439855.36174298
+    ],
+    [
+     510162.58818169,
+     5439825.96963455
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 4062244,
+    "PARCEL_NAME": "029172179",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172179",
+    "PID_FORMATTED": "029-172-179",
+    "PID_NUMBER": 29172179,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2016-07-25Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 261.279,
+    "FEATURE_LENGTH_M": 76.0579,
+    "OBJECTID": 251420922,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-268",
+   "area": 253.8151,
+   "ring": [
+    [
+     510211.0559492,
+     5439806.28777291
+    ],
+    [
+     510210.05643683,
+     5439806.27509599
+    ],
+    [
+     510210.07111773,
+     5439797.27816461
+    ],
+    [
+     510238.25951732,
+     5439797.63742003
+    ],
+    [
+     510238.24464004,
+     5439806.63435995
+    ],
+    [
+     510211.0559492,
+     5439806.28777291
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 4258255,
+    "PARCEL_NAME": "029172268",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172268",
+    "PID_FORMATTED": "029-172-268",
+    "PID_NUMBER": 29172268,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-08-26Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 253.8151,
+    "FEATURE_LENGTH_M": 74.4482,
+    "OBJECTID": 251535750,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-144",
+   "area": 258.3286,
+   "ring": [
+    [
+     510135.60415533,
+     5439823.33136362
+    ],
+    [
+     510144.5988709,
+     5439824.21095356
+    ],
+    [
+     510144.53946035,
+     5439853.0421956
+    ],
+    [
+     510135.5452536,
+     5439851.88262665
+    ],
+    [
+     510135.60415533,
+     5439823.33136362
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 4388168,
+    "PARCEL_NAME": "029172144",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172144",
+    "PID_FORMATTED": "029-172-144",
+    "PID_NUMBER": 29172144,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2015-01-20Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 258.3286,
+    "FEATURE_LENGTH_M": 75.4741,
+    "OBJECTID": 251611429,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-136",
+   "area": 255.8027,
+   "ring": [
+    [
+     510135.60415533,
+     5439823.33136362
+    ],
+    [
+     510135.5452536,
+     5439851.88262665
+    ],
+    [
+     510126.55123392,
+     5439850.72274814
+    ],
+    [
+     510126.60944846,
+     5439822.45197258
+    ],
+    [
+     510135.60415533,
+     5439823.33136362
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 4553198,
+    "PARCEL_NAME": "029172136",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172136",
+    "PID_FORMATTED": "029-172-136",
+    "PID_NUMBER": 29172136,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2015-01-13Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 255.8027,
+    "FEATURE_LENGTH_M": 74.9139,
+    "OBJECTID": 251708584,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-331",
+   "area": 221.2127,
+   "ring": [
+    [
+     510236.45798303,
+     5439738.324122
+    ],
+    [
+     510236.50388415,
+     5439710.33398792
+    ],
+    [
+     510244.4008028,
+     5439710.43462001
+    ],
+    [
+     510244.35460513,
+     5439738.42476688
+    ],
+    [
+     510236.45798303,
+     5439738.324122
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 4686710,
+    "PARCEL_NAME": "029172331",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172331",
+    "PID_FORMATTED": "029-172-331",
+    "PID_NUMBER": 29172331,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2013-09-30Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 221.2127,
+    "FEATURE_LENGTH_M": 71.7583,
+    "OBJECTID": 251787281,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-497",
+   "area": 290.2367,
+   "ring": [
+    [
+     510086.56817335,
+     5439738.60668792
+    ],
+    [
+     510076.07046282,
+     5439739.32046819
+    ],
+    [
+     510076.12977865,
+     5439714.26186196
+    ],
+    [
+     510079.12873328,
+     5439711.05958017
+    ],
+    [
+     510086.6344443,
+     5439710.54897984
+    ],
+    [
+     510086.56817335,
+     5439738.60668792
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 4883703,
+    "PARCEL_NAME": "029172497",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172497",
+    "PID_FORMATTED": "029-172-497",
+    "PID_NUMBER": 29172497,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2013-09-30Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 290.2367,
+    "FEATURE_LENGTH_M": 75.5387,
+    "OBJECTID": 251902965,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-172-080",
+   "area": 252.0224,
+   "ring": [
+    [
+     510235.10754191,
+     5439890.42400722
+    ],
+    [
+     510226.11111515,
+     5439890.29092046
+    ],
+    [
+     510226.15739852,
+     5439862.30032198
+    ],
+    [
+     510235.15382218,
+     5439862.4334087
+    ],
+    [
+     510235.10754191,
+     5439890.42400722
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 4850043,
+    "PARCEL_NAME": "029172080",
+    "PLAN_NUMBER": "EPP27233",
+    "PIN": null,
+    "PID": "029172080",
+    "PID_FORMATTED": "029-172-080",
+    "PID_NUMBER": 29172080,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-17Z",
+    "MUNICIPALITY": "Surrey, City of",
+    "REGIONAL_DISTRICT": "Metro Vancouver Regional District",
+    "WHEN_UPDATED": "2019-01-12Z",
+    "FEATURE_AREA_SQM": 252.0224,
+    "FEATURE_LENGTH_M": 73.9627,
+    "OBJECTID": 251883166,
+    "SE_ANNO_CAD_DATA": null
+   }
+  }
+ ],
+ "interests": []
+}

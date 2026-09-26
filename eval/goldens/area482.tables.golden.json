@@ -1,0 +1,228 @@
+{
+ "_status": "MACHINE-VERIFIED GOLDEN (VLM-read; every curve row independently checked by L=R*delta)",
+ "_note": "Live per-run VLM re-reading is unreliable on this dense 24-row table (systematically drops a middle band). This table is deterministic ground truth and self-verifiable, so it is banked and RE-VERIFIED on load each run - not re-read. No hand-typed values.",
+ "plat": "Area Thirty3 Estates Subdivision (SW1/4 Sec 33, T20N R105W, Sweetwater Co, WY)",
+ "line_table": [
+  {
+   "id": "L1",
+   "length": 80.0,
+   "bearing": "N00-17-32E"
+  },
+  {
+   "id": "L2",
+   "length": 133.25,
+   "bearing": "N89-42-28W"
+  },
+  {
+   "id": "L3",
+   "length": 194.54,
+   "bearing": "N89-42-28W"
+  },
+  {
+   "id": "L4",
+   "length": 33.87,
+   "bearing": "N00-17-33E"
+  },
+  {
+   "id": "L5",
+   "length": 43.81,
+   "bearing": "N00-17-33E"
+  },
+  {
+   "id": "L6",
+   "length": 21.33,
+   "bearing": "N89-42-28W"
+  },
+  {
+   "id": "L7",
+   "length": 43.43,
+   "bearing": "N89-42-28W"
+  },
+  {
+   "id": "L8",
+   "length": 20.44,
+   "bearing": "N30-17-32E"
+  },
+  {
+   "id": "L9",
+   "length": 57.57,
+   "bearing": "N89-42-28W"
+  },
+  {
+   "id": "L10",
+   "length": 217.8,
+   "bearing": "N89-42-28W"
+  },
+  {
+   "id": "L11",
+   "length": 52.42,
+   "bearing": "N89-42-28W"
+  },
+  {
+   "id": "L12",
+   "length": 80.0,
+   "bearing": "N00-17-32E"
+  },
+  {
+   "id": "L13",
+   "length": 77.68,
+   "bearing": "N00-17-33E"
+  },
+  {
+   "id": "L14",
+   "length": 64.76,
+   "bearing": "N89-42-28W"
+  },
+  {
+   "id": "L15",
+   "length": 20.44,
+   "bearing": "N30-17-32E"
+  }
+ ],
+ "curve_table": [
+  {
+   "id": "C1",
+   "length": 94.88,
+   "delta": "19-24-52",
+   "radius": 280.0
+  },
+  {
+   "id": "C2",
+   "length": 157.29,
+   "delta": "32-11-10",
+   "radius": 280.0
+  },
+  {
+   "id": "C3",
+   "length": 121.9,
+   "delta": "24-56-38",
+   "radius": 280.0
+  },
+  {
+   "id": "C4",
+   "length": 65.76,
+   "delta": "13-27-20",
+   "radius": 280.0
+  },
+  {
+   "id": "C5",
+   "length": 39.83,
+   "delta": "06-10-04",
+   "radius": 370.0
+  },
+  {
+   "id": "C6",
+   "length": 437.54,
+   "delta": "67-45-17",
+   "radius": 370.0
+  },
+  {
+   "id": "C7",
+   "length": 33.89,
+   "delta": "10-47-19",
+   "radius": 180.0
+  },
+  {
+   "id": "C8",
+   "length": 122.6,
+   "delta": "39-01-31",
+   "radius": 180.0
+  },
+  {
+   "id": "C9",
+   "length": 122.6,
+   "delta": "39-01-31",
+   "radius": 180.0
+  },
+  {
+   "id": "C10",
+   "length": 105.83,
+   "delta": "33-41-17",
+   "radius": 180.0
+  },
+  {
+   "id": "C11",
+   "length": 130.05,
+   "delta": "41-23-43",
+   "radius": 180.0
+  },
+  {
+   "id": "C12",
+   "length": 164.22,
+   "delta": "33-36-16",
+   "radius": 280.0
+  },
+  {
+   "id": "C13",
+   "length": 110.24,
+   "delta": "22-33-32",
+   "radius": 280.0
+  },
+  {
+   "id": "C14",
+   "length": 165.36,
+   "delta": "33-50-13",
+   "radius": 280.0
+  },
+  {
+   "id": "C15",
+   "length": 138.52,
+   "delta": "44-05-36",
+   "radius": 180.0
+  },
+  {
+   "id": "C16",
+   "length": 49.97,
+   "delta": "15-54-24",
+   "radius": 180.0
+  },
+  {
+   "id": "C17",
+   "length": 29.19,
+   "delta": "83-37-14",
+   "radius": 20.0
+  },
+  {
+   "id": "C18",
+   "length": 177.27,
+   "delta": "23-37-14",
+   "radius": 430.0
+  },
+  {
+   "id": "C19",
+   "length": 345.58,
+   "delta": "90-00-00",
+   "radius": 220.0
+  },
+  {
+   "id": "C20",
+   "length": 29.19,
+   "delta": "83-37-14",
+   "radius": 20.0
+  },
+  {
+   "id": "C21",
+   "length": 281.76,
+   "delta": "37-32-35",
+   "radius": 430.0
+  },
+  {
+   "id": "C22",
+   "length": 343.32,
+   "delta": "163-55-20",
+   "radius": 120.0
+  },
+  {
+   "id": "C23",
+   "length": 345.58,
+   "delta": "90-00-01",
+   "radius": 220.0
+  },
+  {
+   "id": "C24",
+   "length": 125.66,
+   "delta": "60-00-00",
+   "radius": 120.0
+  }
+ ]
+}

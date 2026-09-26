@@ -1,0 +1,152 @@
+{
+ "_status": "HUMAN-READ GOLDEN - printed lot areas from Example-plan.pdf (GEOM-2031 exercise plat)",
+ "_provenance": "Read 2026-07-16 from 300dpi band crops. Self-checked against printed dimensions: LOT 2 = 36.000x20.000 = 720.0 exact; skewed lots (82/358 deg, ~84 deg interior) match base x depth x sin(84) within rounding (LOT 15: 18.589x34.164x0.9945=632.0; LOT 13: 17.584x34.164x0.9945=597.8~597.9; LOT 28 trapezoid mean-base 16.877x36.5x0.995=613~614.4).",
+ "plat": "SUBDIVISION PLAN OF LOT 5 SEC 1 TP 84 R 19 W6M, Peace River District, plan EPP99999 (training placeholder; parent plan EPP19291, Fort St. John BC, ISA No. 50)",
+ "unit": "m2",
+ "parcels": [
+  {
+   "id": "LOT 1",
+   "area": 835.9
+  },
+  {
+   "id": "LOT 2",
+   "area": 720.0
+  },
+  {
+   "id": "LOT 3",
+   "area": 717.4
+  },
+  {
+   "id": "LOT 4",
+   "area": 562.9
+  },
+  {
+   "id": "LOT 5",
+   "area": 680.2
+  },
+  {
+   "id": "LOT 6",
+   "area": 985.3
+  },
+  {
+   "id": "LOT 7",
+   "area": 583.1
+  },
+  {
+   "id": "LOT 8",
+   "area": 563.8
+  },
+  {
+   "id": "LOT 9",
+   "area": 597.9
+  },
+  {
+   "id": "LOT 10",
+   "area": 597.9
+  },
+  {
+   "id": "LOT 11",
+   "area": 597.9
+  },
+  {
+   "id": "LOT 12",
+   "area": 597.9
+  },
+  {
+   "id": "LOT 13",
+   "area": 597.9
+  },
+  {
+   "id": "LOT 14",
+   "area": 632.0
+  },
+  {
+   "id": "LOT 15",
+   "area": 632.0
+  },
+  {
+   "id": "LOT 16",
+   "area": 651.1
+  },
+  {
+   "id": "LOT 17",
+   "area": 651.1
+  },
+  {
+   "id": "LOT 18",
+   "area": 651.1
+  },
+  {
+   "id": "LOT 19",
+   "area": 651.1
+  },
+  {
+   "id": "LOT 20",
+   "area": 651.1
+  },
+  {
+   "id": "LOT 21",
+   "area": 651.1
+  },
+  {
+   "id": "LOT 22",
+   "area": 651.1
+  },
+  {
+   "id": "LOT 23",
+   "area": 645.0
+  },
+  {
+   "id": "LOT 24",
+   "area": 700.1
+  },
+  {
+   "id": "LOT 25",
+   "area": 706.2
+  },
+  {
+   "id": "LOT 26",
+   "area": 706.2
+  },
+  {
+   "id": "LOT 27",
+   "area": 706.2
+  },
+  {
+   "id": "LOT 28",
+   "area": 614.4
+  },
+  {
+   "id": "LOT 29",
+   "area": 613.8
+  },
+  {
+   "id": "LOT 30",
+   "area": 613.2
+  },
+  {
+   "id": "LOT 31",
+   "area": 612.7
+  },
+  {
+   "id": "LOT 32",
+   "area": 612.1
+  },
+  {
+   "id": "LOT 33",
+   "area": 611.5
+  },
+  {
+   "id": "LOT 34",
+   "area": 611.0
+  },
+  {
+   "id": "LOT 35",
+   "area": 610.4
+  },
+  {
+   "id": "LOT 36",
+   "area": 611.9
+  }
+ ]
+}

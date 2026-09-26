@@ -1,0 +1,1835 @@
+{
+ "provider": "parcelmap_bc",
+ "units": "m2",
+ "epsg": 26910,
+ "_provenance": "Fetched 2026-07-16 from BC openmaps WFS PMBC_PARCEL_FABRIC_POLY_SVW PLAN_NUMBER='EPP46435' srsName=EPSG:26910 (Open Government Licence BC). LTSA-maintained fabric; FEATURE_AREA_SQM is computed from fabric geometry, NOT the plan's printed area. No lot-number attribute: labels are PIDs; Interest-class parcels (easements/SRWs) listed separately.",
+ "parcels": [
+  {
+   "label": "029-457-742",
+   "area": 598.0897,
+   "ring": [
+    [
+     632024.80508528,
+     6236919.34409061
+    ],
+    [
+     632023.82604334,
+     6236953.49401354
+    ],
+    [
+     632006.3831405,
+     6236951.27506517
+    ],
+    [
+     632007.36096924,
+     6236917.12499459
+    ],
+    [
+     632024.80508528,
+     6236919.34409061
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1006781,
+    "PARCEL_NAME": "029457742",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457742",
+    "PID_FORMATTED": "029-457-742",
+    "PID_NUMBER": 29457742,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2025-06-30Z",
+    "FEATURE_AREA_SQM": 598.0897,
+    "FEATURE_LENGTH_M": 103.5914,
+    "OBJECTID": 249614134,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-912",
+   "area": 614.0451,
+   "ring": [
+    [
+     632071.19903271,
+     6236772.62201466
+    ],
+    [
+     632069.41198712,
+     6236787.79237728
+    ],
+    [
+     632066.94501809,
+     6236808.73296781
+    ],
+    [
+     632051.24764476,
+     6236806.73616543
+    ],
+    [
+     632051.05909607,
+     6236806.71219207
+    ],
+    [
+     632053.60799092,
+     6236770.3530688
+    ],
+    [
+     632071.19903271,
+     6236772.62201466
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1072820,
+    "PARCEL_NAME": "029457912",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457912",
+    "PID_FORMATTED": "029-457-912",
+    "PID_NUMBER": 29457912,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2025-06-30Z",
+    "FEATURE_AREA_SQM": 614.0451,
+    "FEATURE_LENGTH_M": 106.6673,
+    "OBJECTID": 249653015,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-882",
+   "area": 706.5165,
+   "ring": [
+    [
+     632069.90403737,
+     6236829.2700271
+    ],
+    [
+     632068.78109753,
+     6236868.48801342
+    ],
+    [
+     632050.83805763,
+     6236866.2050255
+    ],
+    [
+     632051.96099341,
+     6236826.98704169
+    ],
+    [
+     632069.90403737,
+     6236829.2700271
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1142025,
+    "PARCEL_NAME": "029457882",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457882",
+    "PID_FORMATTED": "029-457-882",
+    "PID_NUMBER": 29457882,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2025-10-27Z",
+    "FEATURE_AREA_SQM": 706.5165,
+    "FEATURE_LENGTH_M": 114.7613,
+    "OBJECTID": 249694596,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-653",
+   "area": 717.5091,
+   "ring": [
+    [
+     632160.05196182,
+     6236895.16942464
+    ],
+    [
+     632159.83800362,
+     6236902.65883652
+    ],
+    [
+     632125.06611594,
+     6236901.66106451
+    ],
+    [
+     632124.45670112,
+     6236899.53184616
+    ],
+    [
+     632124.11263454,
+     6236897.34465589
+    ],
+    [
+     632124.03909041,
+     6236895.1320294
+    ],
+    [
+     632124.42507993,
+     6236881.63493937
+    ],
+    [
+     632160.41112723,
+     6236882.66699717
+    ],
+    [
+     632160.05196182,
+     6236895.16942464
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1242229,
+    "PARCEL_NAME": "029457653",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457653",
+    "PID_FORMATTED": "029-457-653",
+    "PID_NUMBER": 29457653,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2025-06-30Z",
+    "FEATURE_AREA_SQM": 717.5091,
+    "FEATURE_LENGTH_M": 110.8833,
+    "OBJECTID": 249754769,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-700",
+   "area": 563.7847,
+   "ring": [
+    [
+     632093.64805782,
+     6236929.68099655
+    ],
+    [
+     632092.71297838,
+     6236962.25695478
+    ],
+    [
+     632076.15716659,
+     6236960.15097378
+    ],
+    [
+     632077.13505919,
+     6236926.00209072
+    ],
+    [
+     632086.5580411,
+     6236927.19994987
+    ],
+    [
+     632089.02899985,
+     6236927.69759742
+    ],
+    [
+     632091.40757225,
+     6236928.52994204
+    ],
+    [
+     632093.64805782,
+     6236929.68099655
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1342769,
+    "PARCEL_NAME": "029457700",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457700",
+    "PID_FORMATTED": "029-457-700",
+    "PID_NUMBER": 29457700,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2025-10-27Z",
+    "FEATURE_AREA_SQM": 563.7847,
+    "FEATURE_LENGTH_M": 100.5971,
+    "OBJECTID": 249814148,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-939",
+   "area": 612.9046,
+   "ring": [
+    [
+     632082.82910508,
+     6236810.75302255
+    ],
+    [
+     632088.78607037,
+     6236774.89112825
+    ],
+    [
+     632106.37000487,
+     6236777.1579761
+    ],
+    [
+     632098.71407701,
+     6236812.77503977
+    ],
+    [
+     632082.82910508,
+     6236810.75302255
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1390364,
+    "PARCEL_NAME": "029457939",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457939",
+    "PID_FORMATTED": "029-457-939",
+    "PID_NUMBER": 29457939,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2019-01-09Z",
+    "FEATURE_AREA_SQM": 612.9046,
+    "FEATURE_LENGTH_M": 106.6273,
+    "OBJECTID": 249842954,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-734",
+   "area": 598.0945,
+   "ring": [
+    [
+     632042.24799215,
+     6236921.56303933
+    ],
+    [
+     632041.26998971,
+     6236955.71391982
+    ],
+    [
+     632023.82604334,
+     6236953.49401354
+    ],
+    [
+     632024.80508528,
+     6236919.34409061
+    ],
+    [
+     632042.24799215,
+     6236921.56303933
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1412317,
+    "PARCEL_NAME": "029457734",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457734",
+    "PID_FORMATTED": "029-457-734",
+    "PID_NUMBER": 29457734,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2025-10-27Z",
+    "FEATURE_AREA_SQM": 598.0945,
+    "FEATURE_LENGTH_M": 103.5922,
+    "OBJECTID": 249856733,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-661",
+   "area": 563.5004,
+   "ring": [
+    [
+     632159.83800362,
+     6236902.65883652
+    ],
+    [
+     632159.25001714,
+     6236923.18406385
+    ],
+    [
+     632133.29312815,
+     6236919.77607026
+    ],
+    [
+     632132.88734343,
+     6236916.42453691
+    ],
+    [
+     632131.91947922,
+     6236913.1891437
+    ],
+    [
+     632130.41738067,
+     6236910.1623967
+    ],
+    [
+     632128.42399801,
+     6236907.43108684
+    ],
+    [
+     632127.06867592,
+     6236905.65034201
+    ],
+    [
+     632125.94365666,
+     6236903.7172196
+    ],
+    [
+     632125.06611594,
+     6236901.66106451
+    ],
+    [
+     632159.83800362,
+     6236902.65883652
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1443593,
+    "PARCEL_NAME": "029457661",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457661",
+    "PID_FORMATTED": "029-457-661",
+    "PID_NUMBER": 29457661,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2025-06-30Z",
+    "FEATURE_AREA_SQM": 563.5004,
+    "FEATURE_LENGTH_M": 101.6786,
+    "OBJECTID": 249875062,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-823",
+   "area": 651.3773,
+   "ring": [
+    [
+     632050.83805763,
+     6236866.2050255
+    ],
+    [
+     632049.80207873,
+     6236902.36397442
+    ],
+    [
+     632031.86085368,
+     6236900.08111181
+    ],
+    [
+     632032.89501001,
+     6236863.92184086
+    ],
+    [
+     632050.83805763,
+     6236866.2050255
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1936924,
+    "PARCEL_NAME": "029457823",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457823",
+    "PID_FORMATTED": "029-457-823",
+    "PID_NUMBER": 29457823,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Local Government",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2025-10-27Z",
+    "FEATURE_AREA_SQM": 651.3773,
+    "FEATURE_LENGTH_M": 108.6244,
+    "OBJECTID": 250165629,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-718",
+   "area": 598.0955,
+   "ring": [
+    [
+     632077.13505919,
+     6236926.00209072
+    ],
+    [
+     632076.15716659,
+     6236960.15097378
+    ],
+    [
+     632058.71310232,
+     6236957.93306424
+    ],
+    [
+     632059.6911416,
+     6236923.78297899
+    ],
+    [
+     632077.13505919,
+     6236926.00209072
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 2132423,
+    "PARCEL_NAME": "029457718",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457718",
+    "PID_FORMATTED": "029-457-718",
+    "PID_NUMBER": 29457718,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2025-06-30Z",
+    "FEATURE_AREA_SQM": 598.0955,
+    "FEATURE_LENGTH_M": 103.5912,
+    "OBJECTID": 250280790,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-980",
+   "area": 611.184,
+   "ring": [
+    [
+     632194.34797247,
+     6236788.50702242
+    ],
+    [
+     632180.64406612,
+     6236817.45000619
+    ],
+    [
+     632178.13905226,
+     6236822.87816313
+    ],
+    [
+     632162.25416137,
+     6236820.85812907
+    ],
+    [
+     632176.67001501,
+     6236786.22706638
+    ],
+    [
+     632194.34797247,
+     6236788.50702242
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 2197205,
+    "PARCEL_NAME": "029457980",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457980",
+    "PID_FORMATTED": "029-457-980",
+    "PID_NUMBER": 29457980,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2025-06-30Z",
+    "FEATURE_AREA_SQM": 611.184,
+    "FEATURE_LENGTH_M": 109.4177,
+    "OBJECTID": 250318724,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-645",
+   "area": 720.2755,
+   "ring": [
+    [
+     632160.98304387,
+     6236862.67510972
+    ],
+    [
+     632160.41112723,
+     6236882.66699717
+    ],
+    [
+     632124.42507993,
+     6236881.63493937
+    ],
+    [
+     632124.99809815,
+     6236861.64310838
+    ],
+    [
+     632160.98304387,
+     6236862.67510972
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 2694579,
+    "PARCEL_NAME": "029457645",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457645",
+    "PID_FORMATTED": "029-457-645",
+    "PID_NUMBER": 29457645,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2025-06-30Z",
+    "FEATURE_AREA_SQM": 720.2755,
+    "FEATURE_LENGTH_M": 111.9501,
+    "OBJECTID": 250613858,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-807",
+   "area": 651.3877,
+   "ring": [
+    [
+     632014.95312278,
+     6236861.64000883
+    ],
+    [
+     632013.91805243,
+     6236897.79891593
+    ],
+    [
+     631995.97501815,
+     6236895.51593357
+    ],
+    [
+     631997.0110943,
+     6236859.35718684
+    ],
+    [
+     632014.95312278,
+     6236861.64000883
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 2807113,
+    "PARCEL_NAME": "029457807",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457807",
+    "PID_FORMATTED": "029-457-807",
+    "PID_NUMBER": 29457807,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2019-01-09Z",
+    "FEATURE_AREA_SQM": 651.3877,
+    "FEATURE_LENGTH_M": 108.6246,
+    "OBJECTID": 250680167,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-670",
+   "area": 681.0639,
+   "ring": [
+    [
+     632158.72710144,
+     6236941.44432085
+    ],
+    [
+     632158.26499599,
+     6236957.59404326
+    ],
+    [
+     632158.03602581,
+     6236957.40000348
+    ],
+    [
+     632129.0641896,
+     6236932.8399936
+    ],
+    [
+     632130.97499908,
+     6236929.90431248
+    ],
+    [
+     632132.34183752,
+     6236926.68154933
+    ],
+    [
+     632133.1225093,
+     6236923.27049396
+    ],
+    [
+     632133.29312815,
+     6236919.77607026
+    ],
+    [
+     632159.25001714,
+     6236923.18406385
+    ],
+    [
+     632158.72710144,
+     6236941.44432085
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 2825952,
+    "PARCEL_NAME": "029457670",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457670",
+    "PID_FORMATTED": "029-457-670",
+    "PID_NUMBER": 29457670,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2025-06-30Z",
+    "FEATURE_AREA_SQM": 681.0639,
+    "FEATURE_LENGTH_M": 112.9324,
+    "OBJECTID": 250691232,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-947",
+   "area": 612.3668,
+   "ring": [
+    [
+     632123.95118677,
+     6236779.42613818
+    ],
+    [
+     632114.59896593,
+     6236814.79506558
+    ],
+    [
+     632098.71407701,
+     6236812.77503977
+    ],
+    [
+     632106.37000487,
+     6236777.1579761
+    ],
+    [
+     632123.95118677,
+     6236779.42613818
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 4310450,
+    "PARCEL_NAME": "029457947",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457947",
+    "PID_FORMATTED": "029-457-947",
+    "PID_NUMBER": 29457947,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2025-10-27Z",
+    "FEATURE_AREA_SQM": 612.3668,
+    "FEATURE_LENGTH_M": 106.8507,
+    "OBJECTID": 251566070,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-874",
+   "area": 706.4957,
+   "ring": [
+    [
+     632086.72309512,
+     6236870.77004854
+    ],
+    [
+     632068.78109753,
+     6236868.48801342
+    ],
+    [
+     632069.90403737,
+     6236829.2700271
+    ],
+    [
+     632087.84704019,
+     6236831.55201839
+    ],
+    [
+     632086.72309512,
+     6236870.77004854
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 4653947,
+    "PARCEL_NAME": "029457874",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457874",
+    "PID_FORMATTED": "029-457-874",
+    "PID_NUMBER": 29457874,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2019-01-09Z",
+    "FEATURE_AREA_SQM": 706.4957,
+    "FEATURE_LENGTH_M": 114.7601,
+    "OBJECTID": 251768331,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-793",
+   "area": 651.3872,
+   "ring": [
+    [
+     631979.06809032,
+     6236857.0750068
+    ],
+    [
+     631997.0110943,
+     6236859.35718684
+    ],
+    [
+     631995.97501815,
+     6236895.51593357
+    ],
+    [
+     631978.0330358,
+     6236893.23410859
+    ],
+    [
+     631979.06809032,
+     6236857.0750068
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 4947111,
+    "PARCEL_NAME": "029457793",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457793",
+    "PID_FORMATTED": "029-457-793",
+    "PID_NUMBER": 29457793,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2019-01-09Z",
+    "FEATURE_AREA_SQM": 651.3872,
+    "FEATURE_LENGTH_M": 108.6245,
+    "OBJECTID": 251939619,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-777",
+   "area": 632.2847,
+   "ring": [
+    [
+     631971.47715026,
+     6236912.55993752
+    ],
+    [
+     631970.49896988,
+     6236946.71101696
+    ],
+    [
+     631952.05802746,
+     6236944.36410677
+    ],
+    [
+     631953.03705526,
+     6236910.21419263
+    ],
+    [
+     631971.47715026,
+     6236912.55993752
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 4933200,
+    "PARCEL_NAME": "029457777",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457777",
+    "PID_FORMATTED": "029-457-777",
+    "PID_NUMBER": 29457777,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2025-06-30Z",
+    "FEATURE_AREA_SQM": 632.2847,
+    "FEATURE_LENGTH_M": 105.5986,
+    "OBJECTID": 251931551,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-858",
+   "area": 645.2991,
+   "ring": [
+    [
+     632100.1581035,
+     6236908.76992025
+    ],
+    [
+     632085.68700861,
+     6236906.92900624
+    ],
+    [
+     632086.72309512,
+     6236870.77004854
+    ],
+    [
+     632104.66613627,
+     6236873.05304171
+    ],
+    [
+     632103.72993041,
+     6236905.71210922
+    ],
+    [
+     632100.1581035,
+     6236908.76992025
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1288620,
+    "PARCEL_NAME": "029457858",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457858",
+    "PID_FORMATTED": "029-457-858",
+    "PID_NUMBER": 29457858,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2019-01-09Z",
+    "FEATURE_AREA_SQM": 645.2991,
+    "FEATURE_LENGTH_M": 106.325,
+    "OBJECTID": 249781849,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-831",
+   "area": 651.4094,
+   "ring": [
+    [
+     632049.80207873,
+     6236902.36397442
+    ],
+    [
+     632050.83805763,
+     6236866.2050255
+    ],
+    [
+     632068.78109753,
+     6236868.48801342
+    ],
+    [
+     632067.74502312,
+     6236904.64716814
+    ],
+    [
+     632049.80207873,
+     6236902.36397442
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1355876,
+    "PARCEL_NAME": "029457831",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457831",
+    "PID_FORMATTED": "029-457-831",
+    "PID_NUMBER": 29457831,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2019-01-09Z",
+    "FEATURE_AREA_SQM": 651.4094,
+    "FEATURE_LENGTH_M": 108.6261,
+    "OBJECTID": 249821984,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-971",
+   "area": 610.649,
+   "ring": [
+    [
+     632176.67001501,
+     6236786.22706638
+    ],
+    [
+     632162.25416137,
+     6236820.85812907
+    ],
+    [
+     632146.36898723,
+     6236818.83611187
+    ],
+    [
+     632159.10095407,
+     6236783.96099267
+    ],
+    [
+     632176.67001501,
+     6236786.22706638
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1702221,
+    "PARCEL_NAME": "029457971",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457971",
+    "PID_FORMATTED": "029-457-971",
+    "PID_NUMBER": 29457971,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2025-06-30Z",
+    "FEATURE_AREA_SQM": 610.649,
+    "FEATURE_LENGTH_M": 108.4421,
+    "OBJECTID": 250025828,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-840",
+   "area": 651.3721,
+   "ring": [
+    [
+     632086.72309512,
+     6236870.77004854
+    ],
+    [
+     632085.68700861,
+     6236906.92900624
+    ],
+    [
+     632067.74502312,
+     6236904.64716814
+    ],
+    [
+     632068.78109753,
+     6236868.48801342
+    ],
+    [
+     632086.72309512,
+     6236870.77004854
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1848727,
+    "PARCEL_NAME": "029457840",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457840",
+    "PID_FORMATTED": "029-457-840",
+    "PID_NUMBER": 29457840,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2019-01-09Z",
+    "FEATURE_AREA_SQM": 651.3721,
+    "FEATURE_LENGTH_M": 108.6238,
+    "OBJECTID": 250112608,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-815",
+   "area": 651.3824,
+   "ring": [
+    [
+     632013.91805243,
+     6236897.79891593
+    ],
+    [
+     632014.95312278,
+     6236861.64000883
+    ],
+    [
+     632032.89501001,
+     6236863.92184086
+    ],
+    [
+     632031.86085368,
+     6236900.08111181
+    ],
+    [
+     632013.91805243,
+     6236897.79891593
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 1949502,
+    "PARCEL_NAME": "029457815",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457815",
+    "PID_FORMATTED": "029-457-815",
+    "PID_NUMBER": 29457815,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2019-01-09Z",
+    "FEATURE_AREA_SQM": 651.3824,
+    "FEATURE_LENGTH_M": 108.6245,
+    "OBJECTID": 250172887,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-769",
+   "area": 632.2738,
+   "ring": [
+    [
+     631971.47715026,
+     6236912.55993752
+    ],
+    [
+     631989.91710414,
+     6236914.90708887
+    ],
+    [
+     631988.94003802,
+     6236949.05612755
+    ],
+    [
+     631970.49896988,
+     6236946.71101696
+    ],
+    [
+     631971.47715026,
+     6236912.55993752
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 2113075,
+    "PARCEL_NAME": "029457769",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457769",
+    "PID_FORMATTED": "029-457-769",
+    "PID_NUMBER": 29457769,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2019-01-09Z",
+    "FEATURE_AREA_SQM": 632.2738,
+    "FEATURE_LENGTH_M": 105.5976,
+    "OBJECTID": 250269245,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-688",
+   "area": 987.0866,
+   "ring": [
+    [
+     632158.26499599,
+     6236957.59404326
+    ],
+    [
+     632157.80193002,
+     6236973.74001245
+    ],
+    [
+     632147.03430478,
+     6236971.39687303
+    ],
+    [
+     632136.23111985,
+     6236969.22234195
+    ],
+    [
+     632125.39500337,
+     6236967.21690986
+    ],
+    [
+     632117.1719848,
+     6236940.14603722
+    ],
+    [
+     632120.58999315,
+     6236939.14279134
+    ],
+    [
+     632123.77629892,
+     6236937.5547254
+    ],
+    [
+     632126.6308862,
+     6236935.43149407
+    ],
+    [
+     632129.0641896,
+     6236932.8399936
+    ],
+    [
+     632158.03602581,
+     6236957.40000348
+    ],
+    [
+     632158.26499599,
+     6236957.59404326
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 2133588,
+    "PARCEL_NAME": "029457688",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457688",
+    "PID_FORMATTED": "029-457-688",
+    "PID_NUMBER": 29457688,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2025-10-27Z",
+    "FEATURE_AREA_SQM": 987.0866,
+    "FEATURE_LENGTH_M": 130.0309,
+    "OBJECTID": 250281455,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-637",
+   "area": 836.2311,
+   "ring": [
+    [
+     632129.19291718,
+     6236836.81316914
+    ],
+    [
+     632156.468036,
+     6236840.28319965
+    ],
+    [
+     632161.55604792,
+     6236842.68287983
+    ],
+    [
+     632161.55462327,
+     6236842.73026511
+    ],
+    [
+     632160.98304387,
+     6236862.67510972
+    ],
+    [
+     632124.99809815,
+     6236861.64310838
+    ],
+    [
+     632125.62215695,
+     6236839.87013663
+    ],
+    [
+     632129.19291718,
+     6236836.81316914
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 2212392,
+    "PARCEL_NAME": "029457637",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457637",
+    "PID_FORMATTED": "029-457-637",
+    "PID_NUMBER": 29457637,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2019-01-09Z",
+    "FEATURE_AREA_SQM": 836.2311,
+    "FEATURE_LENGTH_M": 115.5679,
+    "OBJECTID": 250328036,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-866",
+   "area": 700.3759,
+   "ring": [
+    [
+     632086.72309512,
+     6236870.77004854
+    ],
+    [
+     632087.84704019,
+     6236831.55201839
+    ],
+    [
+     632102.31608065,
+     6236833.39401194
+    ],
+    [
+     632105.68811599,
+     6236837.33298944
+    ],
+    [
+     632104.66613627,
+     6236873.05304171
+    ],
+    [
+     632086.72309512,
+     6236870.77004854
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 2308891,
+    "PARCEL_NAME": "029457866",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457866",
+    "PID_FORMATTED": "029-457-866",
+    "PID_NUMBER": 29457866,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2019-01-09Z",
+    "FEATURE_AREA_SQM": 700.3759,
+    "FEATURE_LENGTH_M": 112.9459,
+    "OBJECTID": 250384318,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-751",
+   "area": 598.0784,
+   "ring": [
+    [
+     631988.94003802,
+     6236949.05612755
+    ],
+    [
+     631989.91710414,
+     6236914.90708887
+    ],
+    [
+     632007.36096924,
+     6236917.12499459
+    ],
+    [
+     632006.3831405,
+     6236951.27506517
+    ],
+    [
+     631988.94003802,
+     6236949.05612755
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 2410540,
+    "PARCEL_NAME": "029457751",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457751",
+    "PID_FORMATTED": "029-457-751",
+    "PID_NUMBER": 29457751,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2019-01-09Z",
+    "FEATURE_AREA_SQM": 598.0784,
+    "FEATURE_LENGTH_M": 103.5903,
+    "OBJECTID": 250445588,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-955",
+   "area": 611.7718,
+   "ring": [
+    [
+     632141.52714641,
+     6236781.69411883
+    ],
+    [
+     632130.48409733,
+     6236816.81608194
+    ],
+    [
+     632114.59896593,
+     6236814.79506558
+    ],
+    [
+     632123.95118677,
+     6236779.42613818
+    ],
+    [
+     632141.52714641,
+     6236781.69411883
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 2494633,
+    "PARCEL_NAME": "029457955",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457955",
+    "PID_FORMATTED": "029-457-955",
+    "PID_NUMBER": 29457955,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2025-10-27Z",
+    "FEATURE_AREA_SQM": 611.7718,
+    "FEATURE_LENGTH_M": 107.2266,
+    "OBJECTID": 250494415,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-904",
+   "area": 614.5856,
+   "ring": [
+    [
+     632035.17425913,
+     6236804.69097428
+    ],
+    [
+     632036.01293666,
+     6236768.08409131
+    ],
+    [
+     632053.60799092,
+     6236770.3530688
+    ],
+    [
+     632051.05909607,
+     6236806.71219207
+    ],
+    [
+     632035.17425913,
+     6236804.69097428
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 2540309,
+    "PARCEL_NAME": "029457904",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457904",
+    "PID_FORMATTED": "029-457-904",
+    "PID_NUMBER": 29457904,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2019-01-09Z",
+    "FEATURE_AREA_SQM": 614.5856,
+    "FEATURE_LENGTH_M": 106.9279,
+    "OBJECTID": 250521360,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-891",
+   "area": 706.4949,
+   "ring": [
+    [
+     632051.96099341,
+     6236826.98704169
+    ],
+    [
+     632050.83805763,
+     6236866.2050255
+    ],
+    [
+     632032.89501001,
+     6236863.92184086
+    ],
+    [
+     632033.07349168,
+     6236857.69234192
+    ],
+    [
+     632034.0191515,
+     6236824.70400936
+    ],
+    [
+     632051.96099341,
+     6236826.98704169
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 2761280,
+    "PARCEL_NAME": "029457891",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457891",
+    "PID_FORMATTED": "029-457-891",
+    "PID_NUMBER": 29457891,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2025-10-27Z",
+    "FEATURE_AREA_SQM": 706.4949,
+    "FEATURE_LENGTH_M": 114.7601,
+    "OBJECTID": 250652951,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-921",
+   "area": 613.4304,
+   "ring": [
+    [
+     632071.19903271,
+     6236772.62201466
+    ],
+    [
+     632088.78607037,
+     6236774.89112825
+    ],
+    [
+     632082.82910508,
+     6236810.75302255
+    ],
+    [
+     632066.94501809,
+     6236808.73296781
+    ],
+    [
+     632071.19903271,
+     6236772.62201466
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 2839953,
+    "PARCEL_NAME": "029457921",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457921",
+    "PID_FORMATTED": "029-457-921",
+    "PID_NUMBER": 29457921,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2019-01-09Z",
+    "FEATURE_AREA_SQM": 613.4304,
+    "FEATURE_LENGTH_M": 106.5634,
+    "OBJECTID": 250699405,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-963",
+   "area": 611.2102,
+   "ring": [
+    [
+     632159.10095407,
+     6236783.96099267
+    ],
+    [
+     632146.36898723,
+     6236818.83611187
+    ],
+    [
+     632130.48409733,
+     6236816.81608194
+    ],
+    [
+     632141.52714641,
+     6236781.69411883
+    ],
+    [
+     632159.10095407,
+     6236783.96099267
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 3587936,
+    "PARCEL_NAME": "029457963",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457963",
+    "PID_FORMATTED": "029-457-963",
+    "PID_NUMBER": 29457963,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2025-10-27Z",
+    "FEATURE_AREA_SQM": 611.2102,
+    "FEATURE_LENGTH_M": 107.7593,
+    "OBJECTID": 251141092,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-726",
+   "area": 598.0847,
+   "ring": [
+    [
+     632059.6911416,
+     6236923.78297899
+    ],
+    [
+     632058.71310232,
+     6236957.93306424
+    ],
+    [
+     632041.26998971,
+     6236955.71391982
+    ],
+    [
+     632042.24799215,
+     6236921.56303933
+    ],
+    [
+     632059.6911416,
+     6236923.78297899
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 3898356,
+    "PARCEL_NAME": "029457726",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457726",
+    "PID_FORMATTED": "029-457-726",
+    "PID_NUMBER": 29457726,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2019-01-09Z",
+    "FEATURE_AREA_SQM": 598.0847,
+    "FEATURE_LENGTH_M": 103.5917,
+    "OBJECTID": 251324970,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-696",
+   "area": 584.4295,
+   "ring": [
+    [
+     632093.64805782,
+     6236929.68099655
+    ],
+    [
+     632095.24089317,
+     6236930.77529479
+    ],
+    [
+     632096.70803291,
+     6236932.03163422
+    ],
+    [
+     632098.03284849,
+     6236933.43612334
+    ],
+    [
+     632100.71627805,
+     6236936.05599898
+    ],
+    [
+     632103.84260707,
+     6236938.13282088
+    ],
+    [
+     632107.30258267,
+     6236939.59391529
+    ],
+    [
+     632110.97511397,
+     6236940.38806416
+    ],
+    [
+     632118.78109075,
+     6236966.08409867
+    ],
+    [
+     632110.10792463,
+     6236964.70044818
+    ],
+    [
+     632101.41811442,
+     6236963.42461855
+    ],
+    [
+     632092.71297838,
+     6236962.25695478
+    ],
+    [
+     632093.64805782,
+     6236929.68099655
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 3918139,
+    "PARCEL_NAME": "029457696",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457696",
+    "PID_FORMATTED": "029-457-696",
+    "PID_NUMBER": 29457696,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2025-10-27Z",
+    "FEATURE_AREA_SQM": 584.4295,
+    "FEATURE_LENGTH_M": 106.6676,
+    "OBJECTID": 251336423,
+    "SE_ANNO_CAD_DATA": null
+   }
+  },
+  {
+   "label": "029-457-785",
+   "area": 651.3711,
+   "ring": [
+    [
+     631978.0330358,
+     6236893.23410859
+    ],
+    [
+     631960.09104572,
+     6236890.95208691
+    ],
+    [
+     631961.1260965,
+     6236854.79298744
+    ],
+    [
+     631979.06809032,
+     6236857.0750068
+    ],
+    [
+     631978.0330358,
+     6236893.23410859
+    ]
+   ],
+   "attrs": {
+    "PARCEL_FABRIC_POLY_ID": 4258345,
+    "PARCEL_NAME": "029457785",
+    "PLAN_NUMBER": "EPP46435",
+    "PIN": null,
+    "PID": "029457785",
+    "PID_FORMATTED": "029-457-785",
+    "PID_NUMBER": 29457785,
+    "PARCEL_STATUS": "Active",
+    "PARCEL_CLASS": "Subdivision",
+    "OWNER_TYPE": "Private",
+    "PARCEL_START_DATE": "2014-12-16Z",
+    "MUNICIPALITY": "Fort St. John, City of",
+    "REGIONAL_DISTRICT": "Peace River Regional District",
+    "WHEN_UPDATED": "2019-01-09Z",
+    "FEATURE_AREA_SQM": 651.3711,
+    "FEATURE_LENGTH_M": 108.6239,
+    "OBJECTID": 251535795,
+    "SE_ANNO_CAD_DATA": null
+   }
+  }
+ ],
+ "interests": [],
+ "_status": "ORACLE SNAPSHOT - ParcelMap BC fabric for plan EPP46435 (the real plan behind the GEOM-2031 Example-plan / placeholder EPP99999)",
+ "_identification": "Identified 2026-07-16 by area-multiset fingerprint: text keys gave parent plan EPP19291 (Fort St. John); a BBOX+PARCEL_CLASS=Subdivision sweep of 233 nearby parcels matched the 36-lot printed-areas golden 36/36 within 1.5% for EPP46435 only (next best 20/36)."
+}

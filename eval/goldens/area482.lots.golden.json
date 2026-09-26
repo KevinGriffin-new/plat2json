@@ -1,0 +1,36 @@
+{
+ "_status": "HAND-VERIFIED TARGET - NOT pipeline output",
+ "_note": "The per-lot association (grouping a lot's ordered boundary courses, incl. its L#/C# frontage) is NOT yet automated on raster plats. These two lots were read off sheet 2 of 482.pdf by a human and each was validated by BOTH oracles: traverse closure to near-zero AND computed area == the printed lot area. This file is the regression golden the future association algorithm must reproduce from the raster faces + per-edge VLM labels that close_lots.py already emits.",
+ "plat": "Area Thirty3 Estates Subdivision (SW1/4 Sec 33, T20N R105W, Sweetwater County, WY)",
+ "source": "sheet 2 drawing; L#/C# values from the banked line/curve tables",
+ "unit": "ft",
+ "closer": "close_arc_traverse.close_traverse (radial-entry arcs + bulge-test area)",
+ "lots": [
+  {
+   "id": "LOT 5",
+   "printed_sqft": 70026,
+   "frontage": "tangent arc C5 (road-continuation curve)",
+   "courses": [
+    {"line": ["N", 0, 17, 32, "E", 296.87]},
+    {"line": ["S", 89, 41, 51, "E", 234.30]},
+    {"line": ["S", 0, 17, 32, "W", 298.97]},
+    {"line": ["N", 89, 42, 28, "W", 194.54]},
+    {"curve": [370.00, [6, 10, 4], 0]}
+   ],
+   "expect": {"precision": "1:149673", "area_sqft": 70025, "area_pct_err_max": 0.1}
+  },
+  {
+   "id": "LOT 11",
+   "printed_sqft": 72820,
+   "frontage": "radial arc C12 (cul-de-sac; sides meet the arc at 90deg)",
+   "courses": [
+    {"line": ["S", 89, 42, 28, "E", 229.56]},
+    {"line": ["S", 0, 17, 33, "W", 43.81]},
+    {"curve": [280.00, [33, 36, 16], -1, 0]},
+    {"line": ["S", 56, 41, 17, "W", 328.56]},
+    {"line": ["N", 0, 6, 51, "W", 380.63]}
+   ],
+   "expect": {"precision": "1:566185", "area_sqft": 72819, "area_pct_err_max": 0.1}
+  }
+ ]
+}
