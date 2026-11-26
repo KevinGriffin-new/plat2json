@@ -49,6 +49,7 @@ OCR scripts also need `pytesseract` (+ a system Tesseract install) and/or
     python arc_refine.py      # snap arcs to a published curve table
     python cogo_assemble.py --key sheet_assoc_key.json --reads sheet_assoc_reads.json \
         --links controls.json --out sheet_plan.json
+    python plan2dxf.py        IN.json OUT.dxf
 
 ## plan-JSON schema (the interchange contract)
 
@@ -74,9 +75,35 @@ restated flattened — straight edges into `lines` and bulged segments into
 recognize and skip those duplicates. Importers without polyline support just
 ignore `polylines` and draw `lines`/`arcs` as before.
 
+
+## Export to DXF
+
+    python plan2dxf.py INPUT.json OUTPUT.dxf
+
+Writes an AutoCAD R2013 DXF of the plan-JSON geometry. `$INSUNITS` is metres
+by default (the v1 contract) and follows the plan's `unit` when that is `ft`
+(or `mm` / `in`). Layers are the JSON layer names, plus two v2 extras:
+
+| Layer | Contents |
+|---|---|
+| (JSON names, e.g. `PROPERTY_LINE`) | linework, arcs, circles, bulge `LWPOLYLINE`s |
+| `0` | v1 `texts` (the contract gives them a STYLE, not a layer) |
+| `ANNOTATION` | v2 course labels (bearing + distance), aligned to the segment |
+| `FLAGS` | flagged courses (segment overlay + midpoint mark); rings that fail the same misclosure test as `cogo_assemble.py` when `report.needs_human` |
+
+Default ACI colors live in `DEFAULT_LAYER_TABLE` in `plan2dxf.py` and are easy
+to change; there is no client layer-standard remapping yet.
+
+When `polylines` are present they are preferred, and matching restated `lines`
+/ `arcs` are skipped (the v1 duplicate contract). Pass `--no-prefer-polylines`
+to emit every list.
+
+**This is a drawing of the recovered skeleton, not survey-grade output.**
+
 ## Layout
 
 - `plat2json.py` — main CLI: PDF -> geometry plan-JSON
+- `plan2dxf.py` — plan-JSON -> DXF (v1 geometry and v2 course labels)
 - `fit_arcs.py`, `arc_refine.py` — arc fitting / curve-table refinement on a plan-JSON
 - `experiments/` — WIP label-OCR research stages (Tesseract baseline, cv2
   morphology, EasyOCR/CRAFT, vector + geometry-guided deskew). See STATUS.md.

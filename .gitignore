@@ -4,8 +4,9 @@ __pycache__/
 .venv/
 venv/
 
-# Pipeline inputs/outputs & scratch (plats, rendered images, plan JSONs)
+# Pipeline inputs/outputs & scratch (plats, rendered images, plan JSONs, DXF)
 *.pdf
+*.dxf
 *.png
 *.json
 _*.png
