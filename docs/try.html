@@ -118,10 +118,9 @@ label.consent input{margin-top:5px}
 
   <div class="foot">
     Your PDF never leaves this tab: no upload, no analytics, nothing kept. The page loads Pyodide
-    (Python in WebAssembly) and PyMuPDF from the jsDelivr CDN, ezdxf from PyPI, plus
-    <code>vector_plan.py</code> and <code>plan2dxf.py</code> from the
-    <a href="https://github.com/KevinGriffin-new/plat2json">plat2json repo</a>. The first run
-    downloads about 22&nbsp;MB. See also the <a href="plat-reader-demo.html">plat reader demo</a>.
+    (Python in WebAssembly) and PyMuPDF from the jsDelivr CDN, and ezdxf from PyPI.
+    <code>vector_plan.py</code> and <code>plan2dxf.py</code> are served with this page.
+    The first run downloads about 22&nbsp;MB. See also the <a href="plat-reader-demo.html">plat reader demo</a>.
   </div>
 </div>
 
@@ -131,7 +130,7 @@ label.consent input{margin-top:5px}
   var MAX_BYTES = 20 * 1024 * 1024;
   var BOOT_TIMEOUT_MS = 120000, RUN_TIMEOUT_MS = 60000;
   var q = new URLSearchParams(location.search);
-  var ref = q.get("ref") || "main";                 // which repo ref to load Python from on Pages
+  var ref = q.get("ref") || undefined;              // optional SHA override for the jsDelivr fallback
   if (q.get("run_timeout_ms")) RUN_TIMEOUT_MS = Math.max(1, +q.get("run_timeout_ms"));  // tests only
   var $ = function (id) { return document.getElementById(id); };
   var worker = null, ready = null, current = null, urls = [];

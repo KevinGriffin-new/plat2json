@@ -2,19 +2,31 @@
  * thread so the page can stop it on a timeout. The PDF bytes stay in this tab:
  * nothing is uploaded. Python comes from the repo itself (vector_plan.py,
  * plan2dxf.py, eval/harness/vector_golden.py), not a copy.
+ *
+ * Load order: same-origin next to this worker (the assembled Pages site),
+ * then one directory up (a repo-root checkout), then jsDelivr pinned to a
+ * commit SHA — never @main. The Pages workflow overwrites PINNED_SHA with
+ * GITHUB_SHA when it assembles the site.
  */
 const PYODIDE = "https://cdn.jsdelivr.net/pyodide/v0.29.5/full/";
+const PINNED_SHA = "08c2935c851d5a8e0647a621746f2564221f33c4";
 const REPO_CDN = "https://cdn.jsdelivr.net/gh/KevinGriffin-new/plat2json@";
 const FILES = ["vector_plan.py", "plan2dxf.py", "eval/harness/vector_golden.py"];
 
 let pyodide = null;
 
+function fileUrls(path, ref) {
+  const here = self.location.href;
+  const sha = ref || PINNED_SHA;
+  return [
+    new URL(path, here).href,                 // assembled site / Pages Actions
+    new URL("../" + path, here).href,         // python -m http.server at repo root
+    REPO_CDN + sha + "/" + path,              // SHA-pinned fallback, not @main
+  ];
+}
+
 async function fetchRepoFile(path, ref) {
-  // 1) served from a repo checkout (python -m http.server at the repo root);
-  // 2) GitHub Pages serves only docs/, so fall back to the repo on jsDelivr.
-  const tries = [new URL("../" + path, self.location.href).href,
-                 REPO_CDN + encodeURIComponent(ref || "main").replace(/%2F/g, "/") + "/" + path];
-  for (const url of tries) {
+  for (const url of fileUrls(path, ref)) {
     try {
       const r = await fetch(url, { cache: "no-cache" });
       if (!r.ok) continue;

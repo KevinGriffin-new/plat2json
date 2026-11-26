@@ -117,10 +117,14 @@ drawing; they need the vision reader.
 [`docs/try.html`](docs/try.html) runs the same `vector_plan.py` + `plan2dxf.py`
 in the browser under Pyodide 0.29.5 (the newest release that ships PyMuPDF),
 inside a Web Worker. One page, 20 MB cap, 60 s timeout; the PDF never leaves
-the tab. On Pages it loads the Python files from the repo via jsDelivr
-(`?ref=<branch>` picks a ref); served from a checkout
-(`python -m http.server` at the repo root, open `/docs/try.html`) it uses the
-local files. `docs/samples/sample-vector-plat.pdf` is a synthetic sample made by
+the tab. A GitHub Pages workflow (`.github/workflows/pages.yml`) assembles
+`docs/` plus `vector_plan.py`, `plan2dxf.py`, and `eval/harness/vector_golden.py`
+so the page loads them same-origin. If that 404s (for example while Pages is
+still pointed at the branch source), it falls back to jsDelivr pinned to a
+commit SHA, not `@main`. After merging, set Settings → Pages → Source to
+"GitHub Actions" once. From a checkout, `python -m http.server` at the repo
+root (open `/docs/try.html`) still works: the worker looks one directory up.
+`docs/samples/sample-vector-plat.pdf` is a synthetic sample made by
 `docs/samples/make_sample.py`.
 
 Limits: it keeps all sheet linework (title block, vicinity map, leaders), not
