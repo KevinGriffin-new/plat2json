@@ -12,6 +12,8 @@ venv/
 _*.png
 # ...but the committed goldens ARE facts we keep (license-free numeric keys).
 !eval/goldens/*.json
+# ...and the tiny synthetic sample for docs/try.html (made by make_sample.py).
+!docs/samples/sample-vector-plat.pdf
 
 # IDE / OS
 .vscode/
