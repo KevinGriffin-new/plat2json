@@ -10,3 +10,8 @@ scikit-image>=0.22
 pytesseract>=0.3.13
 easyocr>=1.7
 Pillow>=10
+
+# DXF export: plan2dxf.py. ezdxf is Python (+ numpy, already a core dep)
+# and is the intended sink for a later Pyodide / GitHub Pages sample.
+ezdxf>=1.0
+

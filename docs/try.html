@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Try plat2json in your browser</title>
+<style>
+:root{
+  --bg:#f5f3ee; --panel:#fffdf8; --sheet:#fbf8f0; --ink:#1f2937; --muted:#6b7280;
+  --line:#64748b; --grid:#cbd5e1; --accent:#2563eb; --good:#0f9d8f; --bad:#c2410c;
+  --hair:#e6e1d6; --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0f1216; --panel:#171b21; --sheet:#12161c; --ink:#e5e7eb; --muted:#9aa4b2;
+    --line:#94a3b8; --grid:#2a323d; --accent:#60a5fa; --good:#2dd4bf; --bad:#fb923c;
+    --hair:#262c34;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+  line-height:1.65;-webkit-font-smoothing:antialiased}
+.wrap{max-width:860px;margin:0 auto;padding:48px 24px 80px}
+h1{font-size:30px;font-weight:600;letter-spacing:-.01em;margin:0 0 6px}
+.sub{color:var(--muted);font-size:18px;margin:0 0 28px}
+h2{font-size:20px;font-weight:600;margin:0 0 6px}
+p{font-size:16px;margin:12px 0}
+.muted{color:var(--muted)}
+code{font-family:var(--mono);font-size:.9em;background:var(--hair);padding:1px 5px;border-radius:4px}
+.card{background:var(--panel);border:1px solid var(--hair);border-radius:14px;padding:22px;margin:18px 0}
+.note{border-left:3px solid var(--bad);padding:10px 14px;background:var(--panel);border-radius:6px;font-size:15px}
+#drop{border:2px dashed var(--grid);border-radius:14px;padding:34px 20px;text-align:center;
+  background:var(--sheet);cursor:pointer;transition:border-color .2s}
+#drop.over{border-color:var(--accent)}
+#drop strong{font-size:18px}
+.row{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:14px;font-size:15px}
+input[type=number],input[type=email],select{font:inherit;padding:5px 8px;border:1px solid var(--hair);
+  border-radius:6px;background:var(--panel);color:var(--ink)}
+input[type=number]{width:96px}
+button,.btn{font:inherit;font-weight:600;padding:8px 16px;border-radius:8px;border:1px solid var(--accent);
+  background:var(--accent);color:#fff;cursor:pointer;text-decoration:none;display:inline-block}
+button.ghost{background:transparent;color:var(--accent)}
+button:disabled{opacity:.5;cursor:default}
+#status{font-family:var(--mono);font-size:14px;color:var(--muted);min-height:1.5em;margin-top:12px}
+#status.err{color:var(--bad)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin:14px 0}
+.stat{border:1px solid var(--hair);border-radius:10px;padding:8px 12px;background:var(--sheet)}
+.stat .n{font-family:var(--mono);font-size:20px;font-weight:600}
+.stat .l{font-size:12px;color:var(--muted)}
+#preview{background:var(--sheet);border:1px solid var(--hair);border-radius:10px;margin-top:10px}
+#preview svg{display:block;width:100%;height:auto;max-height:520px}
+.geo{fill:none;stroke:var(--ink);stroke-width:1.2;vector-effect:non-scaling-stroke}
+.mon{fill:none;stroke:var(--accent);stroke-width:1.2;vector-effect:non-scaling-stroke}
+.txt{fill:var(--muted);font-family:var(--mono)}
+label.consent{display:flex;gap:10px;align-items:flex-start;font-size:15px;margin:14px 0}
+label.consent input{margin-top:5px}
+.hidden{display:none}
+.foot{color:var(--muted);font-size:14px;margin-top:36px;border-top:1px solid var(--hair);padding-top:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Try plat2json in your browser</h1>
+  <p class="sub">Drop one vector plat PDF and get plan-JSON and a DXF back. It all runs in this tab.</p>
+
+  <p class="note"><strong>Rough geometry skeleton, not survey-grade.</strong> This reads the PDF&rsquo;s own
+  vector paths and text layer. It does not check closure, fix bad linework, or vouch for any
+  bearing. Want a checked DWG? <a href="https://plat2cad.com">plat2cad</a>.</p>
+
+  <div class="card">
+    <div id="drop" tabindex="0" role="button" aria-label="Choose a plat PDF">
+      <strong>Drop a plat PDF here</strong><br>
+      <span class="muted">or click to choose one &middot; one page is read &middot; up to 20&nbsp;MB</span>
+      <input id="file" type="file" accept="application/pdf,.pdf" hidden>
+    </div>
+    <div class="row">
+      <label>Plot scale 1:<input id="scale" type="number" min="1" step="1" value="250"></label>
+      <span class="muted">(1:1200 is 1&Prime;&nbsp;=&nbsp;100&prime;. Sets the metres in the output.)</span>
+    </div>
+    <div class="row hidden" id="pagerow">
+      <label>Page <select id="page"></select></label>
+      <button id="rerun" class="ghost">Read this page</button>
+    </div>
+    <div class="row"><button id="sample" class="ghost">Try the synthetic sample plat</button></div>
+    <div id="status" aria-live="polite"></div>
+  </div>
+
+  <div class="card hidden" id="vector">
+    <h2>Result</h2>
+    <div class="stats" id="stats"></div>
+    <div class="row">
+      <a class="btn" id="dl-json" download="plan.json">Download plan.json</a>
+      <a class="btn" id="dl-dxf" download="plan.dxf">Download plan.dxf</a>
+    </div>
+    <div id="preview"></div>
+    <p class="muted" id="labels"></p>
+  </div>
+
+  <div class="card hidden" id="scanned">
+    <h2>This looks like a scanned plat</h2>
+    <p id="scan-why" class="muted"></p>
+    <p>Scanned plats have no vector linework or text layer to read. They need the
+    vision reader, which runs a local model on a GPU and can&rsquo;t run in a browser.
+    Nothing was sent anywhere.</p>
+    <label class="consent"><input type="checkbox" id="optin">
+      <span>Send this plat to plat2cad to improve the scanned-plat reader. I have the right to share it. It may be kept and used to train and test plat2json's models, will not be published or shared, and is deleted on request to plats@plat2cad.com.</span>
+    </label>
+    <div id="optin-more" class="hidden">
+      <div class="row"><label>Email for results (optional)
+        <input type="email" id="email" placeholder="you@example.com" autocomplete="email"></label></div>
+      <div class="row"><a class="btn" id="mailto" href="#">Open a prefilled email</a></div>
+      <p><strong>Attach the PDF yourself.</strong> A mailto link can&rsquo;t attach files, so the
+      email opens without it.</p>
+      <p class="muted">Once you send it, the plat is queued for the vision path. There is no set turnaround.</p>
+    </div>
+  </div>
+
+  <div class="foot">
+    Your PDF never leaves this tab: no upload, no analytics, nothing kept. The page loads Pyodide
+    (Python in WebAssembly) and PyMuPDF from the jsDelivr CDN, and ezdxf from PyPI.
+    <code>vector_plan.py</code> and <code>plan2dxf.py</code> are served with this page.
+    The first run downloads about 22&nbsp;MB. See also the <a href="plat-reader-demo.html">plat reader demo</a>.
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var MAX_BYTES = 20 * 1024 * 1024;
+  var BOOT_TIMEOUT_MS = 120000, RUN_TIMEOUT_MS = 60000;
+  var q = new URLSearchParams(location.search);
+  var ref = q.get("ref") || undefined;              // optional SHA override for the jsDelivr fallback
+  if (q.get("run_timeout_ms")) RUN_TIMEOUT_MS = Math.max(1, +q.get("run_timeout_ms"));  // tests only
+  var $ = function (id) { return document.getElementById(id); };
+  var worker = null, ready = null, current = null, urls = [];
+  window.__plat2json = { timing: {} };       // read by the headless test
+
+  function status(msg, err) { var s = $("status"); s.textContent = msg; s.className = err ? "err" : ""; }
+  function show(id, on) { $(id).classList.toggle("hidden", !on); }
+
+  function withTimeout(p, ms, what) {
+    return new Promise(function (resolve, reject) {
+      var t = setTimeout(function () {
+        if (worker) { worker.terminate(); worker = null; ready = null; }
+        reject(new Error(what));
+      }, ms);
+      p.then(function (v) { clearTimeout(t); resolve(v); }, function (e) { clearTimeout(t); reject(e); });
+    });
+  }
+  function call(msg, transfer) {
+    return new Promise(function (resolve, reject) {
+      worker.onmessage = function (ev) {
+        if (ev.data.type === "error") reject(new Error(ev.data.message)); else resolve(ev.data);
+      };
+      worker.onerror = function (e) { reject(new Error(e.message || "worker error")); };
+      worker.postMessage(msg, transfer || []);
+    });
+  }
+  function boot() {
+    if (ready) return ready;
+    worker = new Worker("try-worker.js");
+    status("Loading Python in your browser (first time about 22 MB)…");
+    ready = withTimeout(call({ type: "boot", ref: ref }), BOOT_TIMEOUT_MS,
+      "Loading the Python runtime took more than 2 minutes and was stopped. Check your connection and try again.")
+      .then(function (m) { window.__plat2json.timing.boot = m.timing; return m; },
+            function (e) { ready = null; throw e; });
+    return ready;
+  }
+
+  function pick(file) {
+    show("vector", false); show("scanned", false); show("pagerow", false);
+    if (!file) return;
+    if (file.size > MAX_BYTES) {
+      status("That file is " + (file.size / 1048576).toFixed(1) + " MB. The limit here is 20 MB.", true); return;
+    }
+    file.arrayBuffer().then(function (buf) {
+      var head = new TextDecoder().decode(new Uint8Array(buf.slice(0, 1024)));
+      if (head.indexOf("%PDF") < 0) { status("That doesn’t look like a PDF.", true); return; }
+      current = { name: file.name, size: file.size, bytes: buf, pages: null };
+      run(1);
+    });
+  }
+
+  function run(page) {
+    if (!current) return;
+    var scale = parseFloat($("scale").value);
+    if (!(scale > 0)) { status("Enter a plot scale above 0, e.g. 250.", true); return; }
+    $("rerun").disabled = true;
+    boot().then(function () {
+      status("Reading page " + page + " of " + current.name + "…");
+      var copy = current.bytes.slice(0);
+      return withTimeout(call({ type: "run", bytes: copy, page: page, plotScale: scale }, [copy]),
+        RUN_TIMEOUT_MS, "Reading this page took more than " + Math.ceil(RUN_TIMEOUT_MS / 1000) + " seconds and was stopped. " +
+        "Very dense sheets are better run with the command line (python vector_plan.py).");
+    }).then(function (m) {
+      window.__plat2json.timing.extract_ms = m.extract_ms;
+      window.__plat2json.result = m.res;
+      render(m.res, m.dxf);
+    }).catch(function (e) { status(e.message, true); })
+      .then(function () { $("rerun").disabled = false; });
+  }
+
+  function pager(n, page) {
+    var sel = $("page"); sel.innerHTML = "";
+    for (var i = 1; i <= n; i++) {
+      var o = document.createElement("option"); o.value = i; o.textContent = i + " of " + n;
+      if (i === page) o.selected = true; sel.appendChild(o);
+    }
+    show("pagerow", n > 1);
+  }
+
+  function blobUrl(text, type) {
+    var u = URL.createObjectURL(new Blob([text], { type: type })); urls.push(u); return u;
+  }
+
+  function render(res, dxf) {
+    current.pages = res.page_count;
+    pager(res.page_count, res.page);
+    urls.forEach(URL.revokeObjectURL); urls = [];
+    if (res.scanned) {
+      status("Page " + res.page + " looks scanned.");
+      $("scan-why").textContent = "Page " + res.page + ": " + res.reason + ".";
+      $("optin").checked = false; show("optin-more", false);
+      show("scanned", true); return;
+    }
+    var c = res.counts, base = current.name.replace(/\.pdf$/i, "") || "plan";
+    var empty = !c.polylines && !c.circles && !c.lines;
+    status("Done: page " + res.page + " of " + res.page_count + "." + (empty
+      ? " No linework on this page" + (res.page_count > 1 ? "; if the plat is on another page, pick it above." : ".") : ""));
+    $("stats").innerHTML = [["polylines", c.polylines], ["arcs", c.arcs], ["circles", c.circles],
+      ["texts", c.texts], ["bearings", c.bearings], ["distances", c.distances]]
+      .map(function (s) { return '<div class="stat"><div class="n">' + s[1] + '</div><div class="l">' + s[0] + "</div></div>"; }).join("");
+    $("dl-json").href = blobUrl(JSON.stringify(res.plan), "application/json");
+    $("dl-json").download = base + ".plan.json";
+    $("dl-dxf").href = blobUrl(dxf, "application/dxf");
+    $("dl-dxf").download = base + ".dxf";
+    var L = res.plan.labels || {};
+    $("labels").textContent = (L.bearings && L.bearings.length)
+      ? "Text layer: " + L.bearings.length + " bearings, " + L.distances.length + " distances (e.g. " + L.bearings.slice(0, 3).join(", ") + "). They are listed in plan.json, not yet bound to edges."
+      : "No bearings found in the text layer. Labels drawn as stroked glyphs need the vision reader.";
+    $("preview").innerHTML = svg(res.plan);
+    show("vector", true);
+  }
+
+  function svg(plan) {
+    var xs = [], ys = [], P = plan.polylines || [], C = plan.circles || [], T = plan.texts || [];
+    P.forEach(function (pl) { pl.slice(0, -1).forEach(function (v) { xs.push(v[0]); ys.push(v[1]); }); });
+    if (!P.length) (plan.lines || []).forEach(function (l) { xs.push(l[0], l[2]); ys.push(l[1], l[3]); });
+    C.forEach(function (c) { xs.push(c[0] - c[2], c[0] + c[2]); ys.push(c[1] - c[2], c[1] + c[2]); });
+    if (!xs.length) return '<p class="muted" style="padding:12px">No linework was found on this page.</p>';
+    var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs);
+    var y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys);
+    var w = Math.max(x1 - x0, 1e-6), h = Math.max(y1 - y0, 1e-6), pad = 0.04 * Math.max(w, h);
+    function X(x) { return (x - x0 + pad).toFixed(3); }
+    function Y(y) { return (y1 - y + pad).toFixed(3); }   // north-up world -> SVG y-down
+    var out = [];
+    P.forEach(function (pl) {
+      var v = pl.slice(0, -1), d = "M" + X(v[0][0]) + " " + Y(v[0][1]);
+      for (var i = 1; i < v.length; i++) {
+        var a = v[i - 1], b = v[i], bu = a.length > 2 ? a[2] : 0;
+        if (!bu) { d += " L" + X(b[0]) + " " + Y(b[1]); continue; }
+        var chord = Math.hypot(b[0] - a[0], b[1] - a[1]);
+        var r = chord * (1 + bu * bu) / (4 * Math.abs(bu));
+        // bulge > 0 is CCW as seen north-up; in SVG's y-down coords that is sweep-flag 0
+        d += " A" + r.toFixed(3) + " " + r.toFixed(3) + " 0 " + (Math.abs(bu) > 1 ? 1 : 0) + " " +
+             (bu > 0 ? 0 : 1) + " " + X(b[0]) + " " + Y(b[1]);
+      }
+      out.push('<path class="geo" d="' + d + '"/>');
+    });
+    if (!P.length) (plan.lines || []).forEach(function (l) {
+      out.push('<line class="geo" x1="' + X(l[0]) + '" y1="' + Y(l[1]) + '" x2="' + X(l[2]) + '" y2="' + Y(l[3]) + '"/>');
+    });
+    C.forEach(function (c) { out.push('<circle class="mon" cx="' + X(c[0]) + '" cy="' + Y(c[1]) + '" r="' + c[2] + '"/>'); });
+    var fs = (0.012 * Math.max(w, h)).toFixed(3);
+    T.slice(0, 400).forEach(function (t) {
+      var s = String(t[2]).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+      out.push('<text class="txt" font-size="' + fs + '" x="' + X(t[0]) + '" y="' + Y(t[1]) + '">' + s + "</text>");
+    });
+    return '<svg viewBox="0 0 ' + (w + 2 * pad).toFixed(3) + " " + (h + 2 * pad).toFixed(3) +
+      '" role="img" aria-label="Preview of the extracted linework">' + out.join("") + "</svg>";
+  }
+
+  function mailto() {
+    var email = $("email").value.trim();
+    var body = [
+      "Hi plat2cad,", "",
+      "I'm sending a scanned plat for the scanned-plat reader. I will attach the PDF to this email.", "",
+      "File: " + current.name,
+      "Pages: " + (current.pages || "unknown"),
+      "Size: " + (current.size / 1048576).toFixed(2) + " MB",
+      "Email for results: " + (email || "not requested"), "",
+      "Consent (ticked on the plat2json try page): Send this plat to plat2cad to improve the scanned-plat reader. I have the right to share it. It may be kept and used to train and test plat2json's models, will not be published or shared, and is deleted on request to plats@plat2cad.com."
+    ].join("\n");
+    return "mailto:plats@plat2cad.com?subject=" + encodeURIComponent("Scanned plat for the vision reader: " + current.name) +
+      "&body=" + encodeURIComponent(body);
+  }
+
+  $("optin").addEventListener("change", function () {
+    show("optin-more", this.checked);
+    if (this.checked) $("mailto").href = mailto();
+  });
+  $("email").addEventListener("input", function () { $("mailto").href = mailto(); });
+  $("mailto").addEventListener("click", function () { this.href = mailto(); });
+
+  var drop = $("drop"), file = $("file");
+  drop.addEventListener("click", function () { file.click(); });
+  drop.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); file.click(); } });
+  file.addEventListener("change", function () { pick(file.files[0]); file.value = ""; });
+  ["dragenter", "dragover"].forEach(function (t) { drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.add("over"); }); });
+  ["dragleave", "drop"].forEach(function (t) { drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.remove("over"); }); });
+  drop.addEventListener("drop", function (e) {
+    var f = e.dataTransfer.files; if (f.length > 1) status("One PDF at a time; using the first.");
+    pick(f[0]);
+  });
+  $("rerun").addEventListener("click", function () { run(parseInt($("page").value, 10) || 1); });
+  $("sample").addEventListener("click", function () {
+    status("Fetching the synthetic sample…");
+    fetch("samples/sample-vector-plat.pdf").then(function (r) {
+      if (!r.ok) throw new Error("sample not found"); return r.blob();
+    }).then(function (b) {
+      $("scale").value = 1200;
+      pick(new File([b], "sample-vector-plat.pdf", { type: "application/pdf" }));
+    }).catch(function (e) { status(e.message, true); });
+  });
+})();
+</script>
+</body>
+</html>
